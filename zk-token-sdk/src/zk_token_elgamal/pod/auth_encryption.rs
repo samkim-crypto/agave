@@ -3,13 +3,16 @@
 #[cfg(not(target_os = "solana"))]
 use crate::encryption::auth_encryption::{self as decoded, AuthenticatedEncryptionError};
 use {
-    crate::zk_token_elgamal::pod::{Pod, Zeroable},
+    crate::zk_token_elgamal::pod::{ParseError, Pod, Zeroable},
     base64::{prelude::BASE64_STANDARD, Engine},
-    std::fmt,
+    std::{fmt, str::FromStr},
 };
 
 /// Byte length of an authenticated encryption ciphertext
 const AE_CIPHERTEXT_LEN: usize = 36;
+
+/// Maximum length of a base64 encoded authenticated encryption ciphertext
+const AE_CIPHERTEXT_MAX_BASE64_LEN: usize = 48;
 
 /// The `AeCiphertext` type as a `Pod`.
 #[derive(Clone, Copy, PartialEq, Eq)]
@@ -34,6 +37,24 @@ impl fmt::Display for AeCiphertext {
     }
 }
 
+impl FromStr for AeCiphertext {
+    type Err = ParseError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        if s.len() > AE_CIPHERTEXT_MAX_BASE64_LEN {
+            return Err(ParseError::WrongSize);
+        }
+        let ciphertext_vec = BASE64_STANDARD.decode(s).map_err(|_| ParseError::Invalid)?;
+        if ciphertext_vec.len() != std::mem::size_of::<AeCiphertext>() {
+            Err(ParseError::WrongSize)
+        } else {
+            <[u8; AE_CIPHERTEXT_LEN]>::try_from(ciphertext_vec)
+                .map_err(|_| ParseError::Invalid)
+                .map(AeCiphertext)
+        }
+    }
+}
+
 impl Default for AeCiphertext {
     fn default() -> Self {
         Self::zeroed()
@@ -53,5 +74,21 @@ impl TryFrom<AeCiphertext> for decoded::AeCiphertext {
 
     fn try_from(pod_ciphertext: AeCiphertext) -> Result<Self, Self::Error> {
         Self::from_bytes(&pod_ciphertext.0).ok_or(AuthenticatedEncryptionError::Deserialization)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use {super::*, crate::encryption::auth_encryption::AeKey};
+
+    #[test]
+    fn ae_ciphertext_fromstr() {
+        let ae_key = AeKey::new_rand();
+        let expected_ae_ciphertext: AeCiphertext = ae_key.encrypt(0_u64).into();
+
+        let ae_ciphertext_base64_str = format!("{}", expected_ae_ciphertext);
+        let computed_ae_ciphertext = AeCiphertext::from_str(&ae_ciphertext_base64_str).unwrap();
+
+        assert_eq!(expected_ae_ciphertext, computed_ae_ciphertext);
     }
 }
