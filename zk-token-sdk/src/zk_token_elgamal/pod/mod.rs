@@ -10,6 +10,7 @@ use {
     crate::zk_token_proof_instruction::ProofType,
     num_traits::{FromPrimitive, ToPrimitive},
     solana_program::instruction::InstructionError,
+    thiserror::Error,
 };
 pub use {
     auth_encryption::AeCiphertext,
@@ -25,6 +26,14 @@ pub use {
         PubkeyValidityProof, ZeroBalanceProof,
     },
 };
+
+#[derive(Error, Debug, Clone, PartialEq, Eq)]
+pub enum ParseError {
+    #[error("String is the wrong size")]
+    WrongSize,
+    #[error("Invalid Base64 string")]
+    Invalid,
+}
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Pod, Zeroable)]
 #[repr(transparent)]
