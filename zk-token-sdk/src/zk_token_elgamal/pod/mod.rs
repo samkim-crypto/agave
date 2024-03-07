@@ -13,7 +13,6 @@ use {
     num_traits::{FromPrimitive, ToPrimitive},
     solana_program::instruction::InstructionError,
 };
-
 pub use {
     auth_encryption::AeCiphertext,
     bytemuck::{Pod, Zeroable},
