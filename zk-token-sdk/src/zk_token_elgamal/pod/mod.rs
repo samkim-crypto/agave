@@ -6,12 +6,14 @@ mod pedersen;
 mod range_proof;
 mod sigma_proofs;
 
+#[cfg(not(target_os = "solana"))]
+use thiserror::Error;
 use {
     crate::zk_token_proof_instruction::ProofType,
     num_traits::{FromPrimitive, ToPrimitive},
     solana_program::instruction::InstructionError,
-    thiserror::Error,
 };
+
 pub use {
     auth_encryption::AeCiphertext,
     bytemuck::{Pod, Zeroable},
@@ -27,6 +29,7 @@ pub use {
     },
 };
 
+#[cfg(not(target_os = "solana"))]
 #[derive(Error, Debug, Clone, PartialEq, Eq)]
 pub enum ParseError {
     #[error("String is the wrong size")]
