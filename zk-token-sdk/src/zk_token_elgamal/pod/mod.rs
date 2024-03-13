@@ -83,7 +83,6 @@ impl TryFrom<PodProofType> for ProofType {
 #[repr(transparent)]
 pub struct CompressedRistretto(pub [u8; 32]);
 
-#[macro_export]
 macro_rules! impl_from_str {
     (TYPE = $type:ident, BYTES_LEN = $bytes_len:expr, BASE64_LEN = $base64_len:expr) => {
         impl FromStr for $type {
