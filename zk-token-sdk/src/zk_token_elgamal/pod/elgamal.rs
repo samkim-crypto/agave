@@ -67,7 +67,7 @@ impl FromStr for ElGamalCiphertext {
             return Err(ParseError::WrongSize);
         }
         let ciphertext_vec = BASE64_STANDARD.decode(s).map_err(|_| ParseError::Invalid)?;
-        if ciphertext_vec.len() != std::mem::size_of::<ElGamalCiphertext>() {
+        if ciphertext_vec.len() != ELGAMAL_CIPHERTEXT_LEN {
             Err(ParseError::WrongSize)
         } else {
             <[u8; ELGAMAL_CIPHERTEXT_LEN]>::try_from(ciphertext_vec)
@@ -119,7 +119,7 @@ impl FromStr for ElGamalPubkey {
             return Err(ParseError::WrongSize);
         }
         let pubkey_vec = BASE64_STANDARD.decode(s).map_err(|_| ParseError::Invalid)?;
-        if pubkey_vec.len() != std::mem::size_of::<ElGamalPubkey>() {
+        if pubkey_vec.len() != ELGAMAL_PUBKEY_LEN {
             Err(ParseError::WrongSize)
         } else {
             <[u8; ELGAMAL_PUBKEY_LEN]>::try_from(pubkey_vec)

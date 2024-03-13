@@ -53,7 +53,7 @@ impl FromStr for AeCiphertext {
             return Err(ParseError::WrongSize);
         }
         let ciphertext_vec = BASE64_STANDARD.decode(s).map_err(|_| ParseError::Invalid)?;
-        if ciphertext_vec.len() != std::mem::size_of::<AeCiphertext>() {
+        if ciphertext_vec.len() != AE_CIPHERTEXT_LEN {
             Err(ParseError::WrongSize)
         } else {
             <[u8; AE_CIPHERTEXT_LEN]>::try_from(ciphertext_vec)
