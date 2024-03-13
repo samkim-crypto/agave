@@ -3,7 +3,7 @@
 #[cfg(not(target_os = "solana"))]
 use crate::encryption::auth_encryption::{self as decoded, AuthenticatedEncryptionError};
 use {
-    crate::zk_token_elgamal::pod::{ParseError, Pod, Zeroable},
+    crate::zk_token_elgamal::pod::{impl_from_str, ParseError, Pod, Zeroable},
     base64::{prelude::BASE64_STANDARD, Engine},
     std::fmt,
     std::str::FromStr,
@@ -38,23 +38,11 @@ impl fmt::Display for AeCiphertext {
     }
 }
 
-impl FromStr for AeCiphertext {
-    type Err = ParseError;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        if s.len() > AE_CIPHERTEXT_MAX_BASE64_LEN {
-            return Err(ParseError::WrongSize);
-        }
-        let ciphertext_vec = BASE64_STANDARD.decode(s).map_err(|_| ParseError::Invalid)?;
-        if ciphertext_vec.len() != AE_CIPHERTEXT_LEN {
-            Err(ParseError::WrongSize)
-        } else {
-            <[u8; AE_CIPHERTEXT_LEN]>::try_from(ciphertext_vec)
-                .map_err(|_| ParseError::Invalid)
-                .map(AeCiphertext)
-        }
-    }
-}
+impl_from_str!(
+    TYPE = AeCiphertext,
+    BYTES_LEN = AE_CIPHERTEXT_LEN,
+    BASE64_LEN = AE_CIPHERTEXT_MAX_BASE64_LEN
+);
 
 impl Default for AeCiphertext {
     fn default() -> Self {

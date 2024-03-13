@@ -7,7 +7,9 @@ use {
 };
 use {
     crate::{
-        zk_token_elgamal::pod::{pedersen::PEDERSEN_COMMITMENT_LEN, ParseError, Pod, Zeroable},
+        zk_token_elgamal::pod::{
+            impl_from_str, pedersen::PEDERSEN_COMMITMENT_LEN, ParseError, Pod, Zeroable,
+        },
         RISTRETTO_POINT_LEN,
     },
     base64::{prelude::BASE64_STANDARD, Engine},
@@ -53,23 +55,11 @@ impl Default for ElGamalCiphertext {
     }
 }
 
-impl FromStr for ElGamalCiphertext {
-    type Err = ParseError;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        if s.len() > ELGAMAL_CIPHERTEXT_MAX_BASE64_LEN {
-            return Err(ParseError::WrongSize);
-        }
-        let ciphertext_vec = BASE64_STANDARD.decode(s).map_err(|_| ParseError::Invalid)?;
-        if ciphertext_vec.len() != ELGAMAL_CIPHERTEXT_LEN {
-            Err(ParseError::WrongSize)
-        } else {
-            <[u8; ELGAMAL_CIPHERTEXT_LEN]>::try_from(ciphertext_vec)
-                .map_err(|_| ParseError::Invalid)
-                .map(ElGamalCiphertext)
-        }
-    }
-}
+impl_from_str!(
+    TYPE = ElGamalCiphertext,
+    BYTES_LEN = ELGAMAL_CIPHERTEXT_LEN,
+    BASE64_LEN = ELGAMAL_CIPHERTEXT_MAX_BASE64_LEN
+);
 
 #[cfg(not(target_os = "solana"))]
 impl From<decoded::ElGamalCiphertext> for ElGamalCiphertext {
@@ -104,23 +94,11 @@ impl fmt::Display for ElGamalPubkey {
     }
 }
 
-impl FromStr for ElGamalPubkey {
-    type Err = ParseError;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        if s.len() > ELGAMAL_PUBKEY_MAX_BASE64_LEN {
-            return Err(ParseError::WrongSize);
-        }
-        let pubkey_vec = BASE64_STANDARD.decode(s).map_err(|_| ParseError::Invalid)?;
-        if pubkey_vec.len() != ELGAMAL_PUBKEY_LEN {
-            Err(ParseError::WrongSize)
-        } else {
-            <[u8; ELGAMAL_PUBKEY_LEN]>::try_from(pubkey_vec)
-                .map_err(|_| ParseError::Invalid)
-                .map(ElGamalPubkey)
-        }
-    }
-}
+impl_from_str!(
+    TYPE = ElGamalPubkey,
+    BYTES_LEN = ELGAMAL_PUBKEY_LEN,
+    BASE64_LEN = ELGAMAL_PUBKEY_MAX_BASE64_LEN
+);
 
 #[cfg(not(target_os = "solana"))]
 impl From<decoded::ElGamalPubkey> for ElGamalPubkey {

@@ -82,3 +82,27 @@ impl TryFrom<PodProofType> for ProofType {
 #[derive(Clone, Copy, Pod, Zeroable, PartialEq, Eq)]
 #[repr(transparent)]
 pub struct CompressedRistretto(pub [u8; 32]);
+
+#[macro_export]
+macro_rules! impl_from_str {
+    (TYPE = $type:ident, BYTES_LEN = $bytes_len:expr, BASE64_LEN = $base64_len:expr) => {
+        impl FromStr for $type {
+            type Err = ParseError;
+
+            fn from_str(s: &str) -> Result<Self, Self::Err> {
+                if s.len() > $base64_len {
+                    return Err(ParseError::WrongSize);
+                }
+                let bytes_vec = BASE64_STANDARD.decode(s).map_err(|_| ParseError::Invalid)?;
+                if bytes_vec.len() != $bytes_len {
+                    Err(ParseError::WrongSize)
+                } else {
+                    <[u8; $bytes_len]>::try_from(bytes_vec)
+                        .map_err(|_| ParseError::Invalid)
+                        .map($type)
+                }
+            }
+        }
+    };
+}
+pub(crate) use impl_from_str;
