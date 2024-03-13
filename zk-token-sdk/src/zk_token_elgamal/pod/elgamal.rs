@@ -2,27 +2,23 @@
 
 #[cfg(not(target_os = "solana"))]
 use {
-    crate::{
-        encryption::elgamal::{self as decoded, ElGamalError},
-        zk_token_elgamal::pod::ParseError,
-    },
+    crate::encryption::elgamal::{self as decoded, ElGamalError},
     curve25519_dalek::ristretto::CompressedRistretto,
-    std::str::FromStr,
 };
 use {
     crate::{
-        zk_token_elgamal::pod::{pedersen::PEDERSEN_COMMITMENT_LEN, Pod, Zeroable},
+        zk_token_elgamal::pod::{pedersen::PEDERSEN_COMMITMENT_LEN, ParseError, Pod, Zeroable},
         RISTRETTO_POINT_LEN,
     },
     base64::{prelude::BASE64_STANDARD, Engine},
     std::fmt,
+    std::str::FromStr,
 };
 
 /// Byte length of an ElGamal public key
 const ELGAMAL_PUBKEY_LEN: usize = RISTRETTO_POINT_LEN;
 
 /// Maximum length of a base64 encoded ElGamal public key
-#[cfg(not(target_os = "solana"))]
 const ELGAMAL_PUBKEY_MAX_BASE64_LEN: usize = 44;
 
 /// Byte length of a decrypt handle
@@ -32,7 +28,6 @@ pub(crate) const DECRYPT_HANDLE_LEN: usize = RISTRETTO_POINT_LEN;
 const ELGAMAL_CIPHERTEXT_LEN: usize = PEDERSEN_COMMITMENT_LEN + DECRYPT_HANDLE_LEN;
 
 /// Maximum length of a base64 encoded ElGamal ciphertext
-#[cfg(not(target_os = "solana"))]
 const ELGAMAL_CIPHERTEXT_MAX_BASE64_LEN: usize = 88;
 
 /// The `ElGamalCiphertext` type as a `Pod`.
@@ -58,7 +53,6 @@ impl Default for ElGamalCiphertext {
     }
 }
 
-#[cfg(not(target_os = "solana"))]
 impl FromStr for ElGamalCiphertext {
     type Err = ParseError;
 
@@ -110,7 +104,6 @@ impl fmt::Display for ElGamalPubkey {
     }
 }
 
-#[cfg(not(target_os = "solana"))]
 impl FromStr for ElGamalPubkey {
     type Err = ParseError;
 

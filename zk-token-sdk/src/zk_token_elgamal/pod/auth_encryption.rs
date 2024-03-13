@@ -1,16 +1,11 @@
 //! Plain Old Data types for the AES128-GCM-SIV authenticated encryption scheme.
 
+#[cfg(not(target_os = "solana"))]
+use crate::encryption::auth_encryption::{self as decoded, AuthenticatedEncryptionError};
 use {
-    crate::zk_token_elgamal::pod::{Pod, Zeroable},
+    crate::zk_token_elgamal::pod::{ParseError, Pod, Zeroable},
     base64::{prelude::BASE64_STANDARD, Engine},
     std::fmt,
-};
-#[cfg(not(target_os = "solana"))]
-use {
-    crate::{
-        encryption::auth_encryption::{self as decoded, AuthenticatedEncryptionError},
-        zk_token_elgamal::pod::ParseError,
-    },
     std::str::FromStr,
 };
 
@@ -18,7 +13,6 @@ use {
 const AE_CIPHERTEXT_LEN: usize = 36;
 
 /// Maximum length of a base64 encoded authenticated encryption ciphertext
-#[cfg(not(target_os = "solana"))]
 const AE_CIPHERTEXT_MAX_BASE64_LEN: usize = 48;
 
 /// The `AeCiphertext` type as a `Pod`.
@@ -44,7 +38,6 @@ impl fmt::Display for AeCiphertext {
     }
 }
 
-#[cfg(not(target_os = "solana"))]
 impl FromStr for AeCiphertext {
     type Err = ParseError;
 
