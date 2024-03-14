@@ -5,7 +5,7 @@ use crate::encryption::auth_encryption::{self as decoded, AuthenticatedEncryptio
 use {
     crate::zk_token_elgamal::pod::{impl_from_str, ParseError, Pod, Zeroable},
     base64::{prelude::BASE64_STANDARD, Engine},
-    std::{fmt, str::FromStr},
+    std::fmt,
 };
 
 /// Byte length of an authenticated encryption ciphertext
@@ -67,7 +67,7 @@ impl TryFrom<AeCiphertext> for decoded::AeCiphertext {
 
 #[cfg(test)]
 mod tests {
-    use {super::*, crate::encryption::auth_encryption::AeKey};
+    use {super::*, crate::encryption::auth_encryption::AeKey, std::str::FromStr};
 
     #[test]
     fn ae_ciphertext_fromstr() {

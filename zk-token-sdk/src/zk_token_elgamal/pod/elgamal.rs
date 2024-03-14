@@ -13,7 +13,7 @@ use {
         RISTRETTO_POINT_LEN,
     },
     base64::{prelude::BASE64_STANDARD, Engine},
-    std::{fmt, str::FromStr},
+    std::fmt,
 };
 
 /// Byte length of an ElGamal public key
@@ -152,7 +152,7 @@ impl TryFrom<DecryptHandle> for decoded::DecryptHandle {
 
 #[cfg(test)]
 mod tests {
-    use {super::*, crate::encryption::elgamal::ElGamalKeypair};
+    use {super::*, crate::encryption::elgamal::ElGamalKeypair, std::str::FromStr};
 
     #[test]
     fn elgamal_pubkey_fromstr() {
