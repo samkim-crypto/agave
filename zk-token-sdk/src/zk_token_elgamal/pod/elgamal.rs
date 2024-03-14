@@ -13,8 +13,7 @@ use {
         RISTRETTO_POINT_LEN,
     },
     base64::{prelude::BASE64_STANDARD, Engine},
-    std::fmt,
-    std::str::FromStr,
+    std::{fmt, str::FromStr},
 };
 
 /// Byte length of an ElGamal public key

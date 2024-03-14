@@ -5,8 +5,7 @@ use crate::encryption::auth_encryption::{self as decoded, AuthenticatedEncryptio
 use {
     crate::zk_token_elgamal::pod::{impl_from_str, ParseError, Pod, Zeroable},
     base64::{prelude::BASE64_STANDARD, Engine},
-    std::fmt,
-    std::str::FromStr,
+    std::{fmt, str::FromStr},
 };
 
 /// Byte length of an authenticated encryption ciphertext
