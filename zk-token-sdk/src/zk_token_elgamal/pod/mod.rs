@@ -92,13 +92,14 @@ macro_rules! impl_from_str {
                 if s.len() > $base64_len {
                     return Err(ParseError::WrongSize);
                 }
-                let bytes_vec = BASE64_STANDARD.decode(s).map_err(|_| ParseError::Invalid)?;
-                if bytes_vec.len() != $bytes_len {
+                let mut bytes = [0u8; $bytes_len];
+                let decoded_len = BASE64_STANDARD
+                    .decode_slice(s, &mut bytes)
+                    .map_err(|_| ParseError::Invalid)?;
+                if decoded_len != $bytes_len {
                     Err(ParseError::WrongSize)
                 } else {
-                    <[u8; $bytes_len]>::try_from(bytes_vec)
-                        .map_err(|_| ParseError::Invalid)
-                        .map($type)
+                    Ok($type(bytes))
                 }
             }
         }
