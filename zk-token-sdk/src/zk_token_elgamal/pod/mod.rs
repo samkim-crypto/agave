@@ -85,8 +85,8 @@ pub struct CompressedRistretto(pub [u8; 32]);
 
 macro_rules! impl_from_str {
     (TYPE = $type:ident, BYTES_LEN = $bytes_len:expr, BASE64_LEN = $base64_len:expr) => {
-        impl FromStr for $type {
-            type Err = ParseError;
+        impl std::str::FromStr for $type {
+            type Err = crate::zk_token_elgamal::pod::ParseError;
 
             fn from_str(s: &str) -> Result<Self, Self::Err> {
                 if s.len() > $base64_len {
