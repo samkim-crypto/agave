@@ -7,9 +7,7 @@ use {
 };
 use {
     crate::{
-        zk_token_elgamal::pod::{
-            impl_from_str, pedersen::PEDERSEN_COMMITMENT_LEN, ParseError, Pod, Zeroable,
-        },
+        zk_token_elgamal::pod::{impl_from_str, pedersen::PEDERSEN_COMMITMENT_LEN, Pod, Zeroable},
         RISTRETTO_POINT_LEN,
     },
     base64::{prelude::BASE64_STANDARD, Engine},

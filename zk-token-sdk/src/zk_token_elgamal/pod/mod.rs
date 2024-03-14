@@ -90,14 +90,14 @@ macro_rules! impl_from_str {
 
             fn from_str(s: &str) -> Result<Self, Self::Err> {
                 if s.len() > $base64_len {
-                    return Err(ParseError::WrongSize);
+                    return Err(Self::Err::WrongSize);
                 }
                 let mut bytes = [0u8; $bytes_len];
                 let decoded_len = BASE64_STANDARD
                     .decode_slice(s, &mut bytes)
-                    .map_err(|_| ParseError::Invalid)?;
+                    .map_err(|_| Self::Err::Invalid)?;
                 if decoded_len != $bytes_len {
-                    Err(ParseError::WrongSize)
+                    Err(Self::Err::WrongSize)
                 } else {
                     Ok($type(bytes))
                 }
