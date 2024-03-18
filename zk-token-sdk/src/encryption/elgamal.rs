@@ -14,23 +14,26 @@
 //! discrete log to recover the originally encrypted value.
 
 use {
-    crate::{
-        encryption::{
-            discrete_log::DiscreteLog,
-            pedersen::{
-                Pedersen, PedersenCommitment, PedersenOpening, G, H, PEDERSEN_COMMITMENT_LEN,
-            },
-        },
-        RISTRETTO_POINT_LEN, SCALAR_LEN,
-    },
-    base64::{prelude::BASE64_STANDARD, Engine},
-    core::ops::{Add, Mul, Sub},
+    crate::{encryption::pedersen::H, RISTRETTO_POINT_LEN, SCALAR_LEN},
     curve25519_dalek::{
         ristretto::{CompressedRistretto, RistrettoPoint},
         scalar::Scalar,
-        traits::Identity,
     },
+    rand::rngs::OsRng,
     serde::{Deserialize, Serialize},
+    subtle::{Choice, ConstantTimeEq},
+    zeroize::Zeroize,
+};
+
+#[cfg(not(target_arch = "wasm32"))]
+use {
+    crate::encryption::{
+        discrete_log::DiscreteLog,
+        pedersen::{Pedersen, PedersenCommitment, PedersenOpening, G, PEDERSEN_COMMITMENT_LEN},
+    },
+    base64::{prelude::BASE64_STANDARD, Engine},
+    core::ops::{Add, Mul, Sub},
+    curve25519_dalek::traits::Identity,
     solana_sdk::{
         derivation_path::DerivationPath,
         signature::Signature,
@@ -40,13 +43,10 @@ use {
         },
     },
     std::convert::TryInto,
-    subtle::{Choice, ConstantTimeEq},
     thiserror::Error,
-    zeroize::Zeroize,
 };
-#[cfg(not(target_os = "solana"))]
+#[cfg(all(not(target_os = "solana"), not(target_arch = "wasm32")))]
 use {
-    rand::rngs::OsRng,
     sha3::{Digest, Sha3_512},
     std::{
         error, fmt,
@@ -56,9 +56,11 @@ use {
 };
 
 /// Byte length of a decrypt handle
+#[cfg(not(target_arch = "wasm32"))]
 const DECRYPT_HANDLE_LEN: usize = RISTRETTO_POINT_LEN;
 
 /// Byte length of an ElGamal ciphertext
+#[cfg(not(target_arch = "wasm32"))]
 const ELGAMAL_CIPHERTEXT_LEN: usize = PEDERSEN_COMMITMENT_LEN + DECRYPT_HANDLE_LEN;
 
 /// Byte length of an ElGamal public key
@@ -729,6 +731,7 @@ define_mul_variants!(
 #[cfg(not(target_arch = "wasm32"))]
 #[derive(Clone, Copy, Debug, Default, Deserialize, Eq, PartialEq, Serialize)]
 pub struct DecryptHandle(RistrettoPoint);
+#[cfg(not(target_arch = "wasm32"))]
 impl DecryptHandle {
     pub fn new(public: &ElGamalPubkey, opening: &PedersenOpening) -> Self {
         Self(&public.0 * opening.get_scalar())
