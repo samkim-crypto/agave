@@ -17,31 +17,39 @@
 //
 // `clippy::op_ref` is turned off to prevent clippy from warning that this is not idiomatic code.
 
-#[cfg(not(target_os = "solana"))]
+#[cfg(all(not(target_os = "solana"), not(target_arch = "wasm32")))]
 #[macro_use]
 pub(crate) mod macros;
-#[cfg(not(target_os = "solana"))]
+#[cfg(all(not(target_os = "solana"), not(target_arch = "wasm32")))]
 pub mod encryption;
-#[cfg(not(target_os = "solana"))]
+#[cfg(all(not(target_os = "solana"), not(target_arch = "wasm32")))]
 pub mod errors;
-#[cfg(not(target_os = "solana"))]
+#[cfg(all(not(target_os = "solana"), not(target_arch = "wasm32")))]
 mod range_proof;
-#[cfg(not(target_os = "solana"))]
+#[cfg(all(not(target_os = "solana"), not(target_arch = "wasm32")))]
 mod sigma_proofs;
-#[cfg(not(target_os = "solana"))]
+#[cfg(all(not(target_os = "solana"), not(target_arch = "wasm32")))]
 mod transcript;
 
-// TODO: re-organize visibility
+#[cfg(not(target_arch = "wasm32"))]
 pub mod curve25519;
+#[cfg(not(target_arch = "wasm32"))]
 pub mod instruction;
+#[cfg(not(target_arch = "wasm32"))]
 pub mod zk_token_elgamal;
+#[cfg(not(target_arch = "wasm32"))]
 pub mod zk_token_proof_instruction;
+#[cfg(not(target_arch = "wasm32"))]
 pub mod zk_token_proof_program;
+#[cfg(not(target_arch = "wasm32"))]
 pub mod zk_token_proof_state;
 
 /// Byte length of a compressed Ristretto point or scalar in Curve255519
+#[cfg(not(target_arch = "wasm32"))]
 const UNIT_LEN: usize = 32;
 /// Byte length of a compressed Ristretto point in Curve25519
+#[cfg(not(target_arch = "wasm32"))]
 const RISTRETTO_POINT_LEN: usize = UNIT_LEN;
 /// Byte length of a scalar in Curve25519
+#[cfg(not(target_arch = "wasm32"))]
 const SCALAR_LEN: usize = UNIT_LEN;
