@@ -418,6 +418,7 @@ impl FromStr for PubkeySignature {
     }
 }
 
+#[allow(deprecated)]
 #[cfg(test)]
 mod tests {
     use {
