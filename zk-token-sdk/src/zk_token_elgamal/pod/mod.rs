@@ -11,6 +11,7 @@ mod pedersen;
 mod range_proof;
 #[cfg(not(target_arch = "wasm32"))]
 mod sigma_proofs;
+mod wasm;
 
 use thiserror::Error;
 #[cfg(not(target_arch = "wasm32"))]
