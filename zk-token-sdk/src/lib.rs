@@ -35,7 +35,6 @@ mod transcript;
 pub mod curve25519;
 #[cfg(not(target_arch = "wasm32"))]
 pub mod instruction;
-#[cfg(not(target_arch = "wasm32"))]
 pub mod zk_token_elgamal;
 #[cfg(not(target_arch = "wasm32"))]
 pub mod zk_token_proof_instruction;
