@@ -7702,6 +7702,7 @@ dependencies = [
  "subtle",
  "thiserror",
  "tiny-bip39",
+ "wasm-bindgen",
  "zeroize",
 ]
 

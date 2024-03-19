@@ -22,6 +22,7 @@ use {
     rand::rngs::OsRng,
     serde::{Deserialize, Serialize},
     subtle::{Choice, ConstantTimeEq},
+    wasm_bindgen::prelude::*,
     zeroize::Zeroize,
 };
 
@@ -184,6 +185,7 @@ impl ElGamal {
 /// A (twisted) ElGamal encryption keypair.
 ///
 /// The instances of the secret key are zeroized on drop.
+#[wasm_bindgen]
 #[derive(Clone, Debug, Deserialize, PartialEq, Eq, Serialize, Zeroize)]
 pub struct ElGamalKeypair {
     /// The public half of this keypair.
@@ -192,6 +194,7 @@ pub struct ElGamalKeypair {
     secret: ElGamalSecretKey,
 }
 
+#[wasm_bindgen]
 impl ElGamalKeypair {
     /// Generates the public and secret keys for ElGamal encryption.
     ///
@@ -201,6 +204,13 @@ impl ElGamalKeypair {
         ElGamal::keygen()
     }
 
+    #[cfg(target_arch = "wasm32")]
+    pub fn pubkey_owned(&self) -> ElGamalPubkey {
+        self.public
+    }
+}
+
+impl ElGamalKeypair {
     pub fn pubkey(&self) -> &ElGamalPubkey {
         &self.public
     }
@@ -339,6 +349,7 @@ impl EncodableKeypair for ElGamalKeypair {
 }
 
 /// Public key for the ElGamal encryption scheme.
+#[wasm_bindgen]
 #[derive(Clone, Copy, Debug, Default, Deserialize, Eq, PartialEq, Serialize, Zeroize)]
 pub struct ElGamalPubkey(RistrettoPoint);
 impl ElGamalPubkey {
