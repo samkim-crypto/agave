@@ -145,35 +145,51 @@ impl DiscreteLog {
     /// Solves the discrete log problem under the assumption that the solution
     /// is a positive 32-bit number.
     pub fn decode_u32(self) -> Option<u64> {
-        let mut starting_point = self.target;
-        let handles = (0..self.num_threads)
-            .map(|i| {
-                let ristretto_iterator = RistrettoIterator::new(
-                    (starting_point, i as u64),
-                    (-(&self.step_point), self.num_threads as u64),
-                );
+        #[cfg(not(target_arch = "wasm32"))]
+        {
+            let mut starting_point = self.target;
+            let handles = (0..self.num_threads)
+                .map(|i| {
+                    let ristretto_iterator = RistrettoIterator::new(
+                        (starting_point, i as u64),
+                        (-(&self.step_point), self.num_threads as u64),
+                    );
 
-                let handle = thread::spawn(move || {
-                    Self::decode_range(
-                        ristretto_iterator,
-                        self.range_bound,
-                        self.compression_batch_size,
-                    )
-                });
+                    let handle = thread::spawn(move || {
+                        Self::decode_range(
+                            ristretto_iterator,
+                            self.range_bound,
+                            self.compression_batch_size,
+                        )
+                    });
 
-                starting_point -= G;
-                handle
-            })
-            .collect::<Vec<_>>();
+                    starting_point -= G;
+                    handle
+                })
+                .collect::<Vec<_>>();
 
-        let mut solution = None;
-        for handle in handles {
-            let discrete_log = handle.join().unwrap();
-            if discrete_log.is_some() {
-                solution = discrete_log;
+            let mut solution = None;
+            for handle in handles {
+                let discrete_log = handle.join().unwrap();
+                if discrete_log.is_some() {
+                    solution = discrete_log;
+                }
             }
+            solution
         }
-        solution
+        #[cfg(target_arch = "wasm32")]
+        {
+            let ristretto_iterator = RistrettoIterator::new(
+                (self.target, 0_u64),
+                (-(&self.step_point), self.num_threads as u64),
+            );
+
+            Self::decode_range(
+                ristretto_iterator,
+                self.range_bound,
+                self.compression_batch_size,
+            )
+        }
     }
 
     fn decode_range(
