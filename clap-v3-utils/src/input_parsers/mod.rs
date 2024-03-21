@@ -29,7 +29,7 @@ pub use signer::{
 
 // Return parsed values from matches at `name`
 #[deprecated(
-    since = "1.19.0",
+    since = "2.0.0",
     note = "Please use the functions `ArgMatches::get_many` or `ArgMatches::try_get_many` instead"
 )]
 #[allow(deprecated)]
@@ -45,7 +45,7 @@ where
 
 // Return a parsed value from matches at `name`
 #[deprecated(
-    since = "1.19.0",
+    since = "2.0.0",
     note = "Please use the functions `ArgMatches::get_one` or `ArgMatches::try_get_one` instead"
 )]
 #[allow(deprecated)]
@@ -60,7 +60,7 @@ where
 }
 
 #[deprecated(
-    since = "1.19.0",
+    since = "2.0.0",
     note = "Please use `ArgMatches::get_one::<UnixTimestamp>(...)` instead"
 )]
 #[allow(deprecated)]
@@ -85,7 +85,7 @@ pub fn lamports_of_sol(matches: &ArgMatches, name: &str) -> Option<u64> {
 }
 
 #[deprecated(
-    since = "1.19.0",
+    since = "2.0.0",
     note = "Please use `ArgMatches::get_one::<ClusterType>(...)` instead"
 )]
 #[allow(deprecated)]
@@ -94,7 +94,7 @@ pub fn cluster_type_of(matches: &ArgMatches, name: &str) -> Option<ClusterType> 
 }
 
 #[deprecated(
-    since = "1.19.0",
+    since = "2.0.0",
     note = "Please use `ArgMatches::get_one::<CommitmentConfig>(...)` instead"
 )]
 #[allow(deprecated)]
@@ -274,7 +274,7 @@ pub fn parse_derived_address_seed(arg: &str) -> Result<String, String> {
 
 // Return the keypair for an argument with filename `name` or None if not present.
 #[deprecated(
-    since = "1.19.0",
+    since = "2.0.0",
     note = "Please use `input_parsers::signer::try_keypair_of` instead"
 )]
 #[allow(deprecated)]
@@ -292,7 +292,7 @@ pub fn keypair_of(matches: &ArgMatches, name: &str) -> Option<Keypair> {
 }
 
 #[deprecated(
-    since = "1.19.0",
+    since = "2.0.0",
     note = "Please use `input_parsers::signer::try_keypairs_of` instead"
 )]
 #[allow(deprecated)]
@@ -314,7 +314,7 @@ pub fn keypairs_of(matches: &ArgMatches, name: &str) -> Option<Vec<Keypair>> {
 // Return a pubkey for an argument that can itself be parsed into a pubkey,
 // or is a filename that can be read as a keypair
 #[deprecated(
-    since = "1.19.0",
+    since = "2.0.0",
     note = "Please use `input_parsers::signer::try_pubkey_of` instead"
 )]
 #[allow(deprecated)]
@@ -323,7 +323,7 @@ pub fn pubkey_of(matches: &ArgMatches, name: &str) -> Option<Pubkey> {
 }
 
 #[deprecated(
-    since = "1.19.0",
+    since = "2.0.0",
     note = "Please use `input_parsers::signer::try_pubkeys_of` instead"
 )]
 #[allow(deprecated)]

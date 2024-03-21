@@ -296,7 +296,7 @@ pub fn try_pubkeys_of(
 }
 
 // Return pubkey/signature pairs for a string of the form pubkey=signature
-#[deprecated(since = "1.19.0", note = "Please use `try_pubkeys_sigs_of` instead")]
+#[deprecated(since = "2.0.0", note = "Please use `try_pubkeys_sigs_of` instead")]
 #[allow(deprecated)]
 pub fn pubkeys_sigs_of(matches: &ArgMatches, name: &str) -> Option<Vec<(Pubkey, Signature)>> {
     matches.values_of(name).map(|values| {
