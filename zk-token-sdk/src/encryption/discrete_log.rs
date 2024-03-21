@@ -16,6 +16,8 @@
 
 #![cfg(not(target_os = "solana"))]
 
+#[cfg(not(target_arch = "wasm32"))]
+use std::thread;
 use {
     crate::RISTRETTO_POINT_LEN,
     curve25519_dalek::{
@@ -26,7 +28,7 @@ use {
     },
     itertools::Itertools,
     serde::{Deserialize, Serialize},
-    std::{collections::HashMap, thread},
+    std::collections::HashMap,
     thiserror::Error,
 };
 
