@@ -36,6 +36,7 @@ const TWO16: u64 = 65536; // 2^16
 const TWO17: u64 = 131072; // 2^17
 
 /// Maximum number of threads permitted for discrete log computation
+#[cfg(not(target_arch = "wasm32"))]
 const MAX_THREAD: usize = 65536;
 
 #[derive(Error, Clone, Debug, Eq, PartialEq)]
@@ -114,6 +115,7 @@ impl DiscreteLog {
     }
 
     /// Adjusts number of threads in a discrete log instance.
+    #[cfg(not(target_arch = "wasm32"))]
     pub fn num_threads(&mut self, num_threads: usize) -> Result<(), DiscreteLogError> {
         // number of threads must be a positive power-of-two integer
         if num_threads == 0 || (num_threads & (num_threads - 1)) != 0 || num_threads > MAX_THREAD {
