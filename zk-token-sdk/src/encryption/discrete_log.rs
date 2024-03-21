@@ -294,6 +294,7 @@ mod tests {
         println!("single thread discrete log computation secs: {computation_secs:?} sec");
     }
 
+    #[cfg(not(target_arch = "wasm32"))]
     #[test]
     fn test_decode_correctness_threaded() {
         // general case
