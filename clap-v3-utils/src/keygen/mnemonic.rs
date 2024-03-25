@@ -25,10 +25,13 @@ pub const NO_PASSPHRASE_ARG: ArgConstant<'static> = ArgConstant {
     help: "Do not prompt for a BIP39 passphrase",
 };
 
+// The constant `POSSIBLE_WORD_COUNTS` and function `try_get_word_count` must always be updated in
+// sync
+const POSSIBLE_WORD_COUNTS: &[&str] = &["12", "15", "18", "21", "24"];
 pub fn word_count_arg<'a>() -> Arg<'a> {
     Arg::new(WORD_COUNT_ARG.name)
         .long(WORD_COUNT_ARG.long)
-        .value_parser(PossibleValuesParser::new(["12", "15", "18", "21", "24"]))
+        .value_parser(PossibleValuesParser::new(POSSIBLE_WORD_COUNTS))
         .default_value("12")
         .value_name("NUMBER")
         .takes_value(true)
