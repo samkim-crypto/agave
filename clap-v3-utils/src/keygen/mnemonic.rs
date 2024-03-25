@@ -35,19 +35,17 @@ pub fn word_count_arg<'a>() -> Arg<'a> {
         .help(WORD_COUNT_ARG.help)
 }
 
-pub fn get_word_count(matches: &ArgMatches) -> usize {
-    match matches
-        .get_one::<String>(WORD_COUNT_ARG.name)
-        .unwrap()
-        .as_str()
-    {
-        "12" => 12,
-        "15" => 15,
-        "18" => 18,
-        "21" => 21,
-        "24" => 24,
-        _ => unreachable!(),
-    }
+pub fn try_get_word_count(matches: &ArgMatches) -> Result<Option<usize>, Box<dyn error::Error>> {
+    Ok(matches
+        .try_get_one::<String>(WORD_COUNT_ARG.name)?
+        .map(|count| match count.as_str() {
+            "12" => 12,
+            "15" => 15,
+            "18" => 18,
+            "21" => 21,
+            "24" => 24,
+            _ => unreachable!(),
+        }))
 }
 
 pub fn language_arg<'a>() -> Arg<'a> {
