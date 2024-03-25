@@ -35,7 +35,7 @@ pub fn word_count_arg<'a>() -> Arg<'a> {
         .help(WORD_COUNT_ARG.help)
 }
 
-pub fn acquire_word_count(matches: &ArgMatches) -> usize {
+pub fn get_word_count(matches: &ArgMatches) -> usize {
     match matches
         .get_one::<String>(WORD_COUNT_ARG.name)
         .unwrap()
