@@ -51,19 +51,21 @@ pub fn try_get_word_count(matches: &ArgMatches) -> Result<Option<usize>, Box<dyn
         }))
 }
 
+// The constant `POSSIBLE_LANGUAGES` and function `try_get_language` must always be updated in sync
+const POSSIBLE_LANGUAGES: &[&str] = &[
+    "english",
+    "chinese-simplified",
+    "chinese-traditional",
+    "japanese",
+    "spanish",
+    "korean",
+    "french",
+    "italian",
+];
 pub fn language_arg<'a>() -> Arg<'a> {
     Arg::new(LANGUAGE_ARG.name)
         .long(LANGUAGE_ARG.long)
-        .value_parser(PossibleValuesParser::new([
-            "english",
-            "chinese-simplified",
-            "chinese-traditional",
-            "japanese",
-            "spanish",
-            "korean",
-            "french",
-            "italian",
-        ]))
+        .value_parser(PossibleValuesParser::new(POSSIBLE_LANGUAGES))
         .default_value("english")
         .value_name("LANGUAGE")
         .takes_value(true)
