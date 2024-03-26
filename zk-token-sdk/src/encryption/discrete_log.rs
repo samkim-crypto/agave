@@ -168,11 +168,11 @@ impl DiscreteLog {
                 })
                 .collect::<Vec<_>>();
 
-        handles
-            .into_iter()
-            .map_while(|h| h.join().ok())
-            .find(|x| x.is_some())
-            .flatten()
+            handles
+                .into_iter()
+                .map_while(|h| h.join().ok())
+                .find(|x| x.is_some())
+                .flatten()
         }
         #[cfg(target_arch = "wasm32")]
         {
