@@ -60,11 +60,11 @@ pub struct DiscreteLog {
     num_threads: Option<NonZeroUsize>,
     /// Range bound for discrete log search derived from the max value to search for and
     /// `num_threads`
-    range_bound: usize,
+    range_bound: NonZeroUsize,
     /// Ristretto point representing each step of the discrete log search
     step_point: RistrettoPoint,
     /// Ristretto point compression batch size
-    compression_batch_size: usize,
+    compression_batch_size: NonZeroUsize,
 }
 
 #[derive(Serialize, Deserialize, Default)]
@@ -108,9 +108,9 @@ impl DiscreteLog {
             generator,
             target,
             num_threads: None,
-            range_bound: TWO16 as usize,
+            range_bound: (TWO16 as usize).try_into().unwrap(),
             step_point: G,
-            compression_batch_size: 32,
+            compression_batch_size: 32.try_into().unwrap(),
         }
     }
 
@@ -123,7 +123,10 @@ impl DiscreteLog {
         }
 
         self.num_threads = Some(num_threads);
-        self.range_bound = (TWO16 as usize).checked_div(num_threads.get()).unwrap();
+        self.range_bound = (TWO16 as usize)
+            .checked_div(num_threads.get())
+            .and_then(|range_bound| range_bound.try_into().ok())
+            .unwrap(); // `num_threads` cannot exceed `TWO16`, so `range_bound` always positive
         self.step_point = Scalar::from(num_threads.get() as u64) * G;
 
         Ok(())
@@ -132,9 +135,9 @@ impl DiscreteLog {
     /// Adjusts inversion batch size in a discrete log instance.
     pub fn set_compression_batch_size(
         &mut self,
-        compression_batch_size: usize,
+        compression_batch_size: NonZeroUsize,
     ) -> Result<(), DiscreteLogError> {
-        if compression_batch_size >= TWO16 as usize || compression_batch_size == 0 {
+        if compression_batch_size.get() >= TWO16 as usize {
             return Err(DiscreteLogError::DiscreteLogBatchSize);
         }
         self.compression_batch_size = compression_batch_size;
@@ -191,15 +194,15 @@ impl DiscreteLog {
 
     fn decode_range(
         ristretto_iterator: RistrettoIterator,
-        range_bound: usize,
-        compression_batch_size: usize,
+        range_bound: NonZeroUsize,
+        compression_batch_size: NonZeroUsize,
     ) -> Option<u64> {
         let hashmap = &DECODE_PRECOMPUTATION_FOR_G;
         let mut decoded = None;
 
         for batch in &ristretto_iterator
-            .take(range_bound)
-            .chunks(compression_batch_size)
+            .take(range_bound.get())
+            .chunks(compression_batch_size.get())
         {
             // batch compression currently errors if any point in the batch is the identity point
             let (batch_points, batch_indices): (Vec<_>, Vec<_>) = batch
