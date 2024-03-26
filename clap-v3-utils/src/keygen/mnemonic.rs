@@ -95,6 +95,22 @@ pub fn acquire_language(matches: &ArgMatches) -> Language {
     }
 }
 
+pub fn try_get_language(matches: &ArgMatches) -> Result<Option<Language>, Box<dyn error::Error>> {
+    Ok(matches
+        .try_get_one::<String>(LANGUAGE_ARG.name)?
+        .map(|language| match language.as_str() {
+            "english" => Language::English,
+            "chinese-simplified" => Language::ChineseSimplified,
+            "chinese-traditional" => Language::ChineseTraditional,
+            "japanese" => Language::Japanese,
+            "spanish" => Language::Spanish,
+            "korean" => Language::Korean,
+            "french" => Language::French,
+            "italian" => Language::Italian,
+            _ => unreachable!(),
+        }))
+}
+
 pub fn no_passphrase_and_message() -> (String, String) {
     (NO_PASSPHRASE.to_string(), "".to_string())
 }
