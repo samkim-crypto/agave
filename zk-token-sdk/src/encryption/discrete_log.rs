@@ -168,14 +168,11 @@ impl DiscreteLog {
                 })
                 .collect::<Vec<_>>();
 
-            let mut solution = None;
-            for handle in handles {
-                let discrete_log = handle.join().unwrap();
-                if discrete_log.is_some() {
-                    solution = discrete_log;
-                }
-            }
-            solution
+        handles
+            .into_iter()
+            .map_while(|h| h.join().ok())
+            .find(|x| x.is_some())
+            .flatten()
         }
         #[cfg(target_arch = "wasm32")]
         {
