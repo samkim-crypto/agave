@@ -126,7 +126,7 @@ impl DiscreteLog {
         self.range_bound = (TWO16 as usize)
             .checked_div(num_threads.get())
             .and_then(|range_bound| range_bound.try_into().ok())
-            .unwrap(); // `num_threads` cannot exceed `TWO16`, so `range_bound` always positive
+            .unwrap(); // `num_threads` cannot exceed `TWO16`, so `range_bound` always non-zero
         self.step_point = Scalar::from(num_threads.get() as u64) * G;
 
         Ok(())
