@@ -35,7 +35,6 @@ use {
         },
     },
     std::{
-        borrow::Cow,
         collections::HashSet,
         error,
         rc::Rc,
@@ -71,16 +70,19 @@ fn get_keypair_from_matches(
     config: Config,
     wallet_manager: &mut Option<Rc<RemoteWalletManager>>,
 ) -> Result<Box<dyn Signer>, Box<dyn error::Error>> {
-    let source = if matches.try_contains_id("keypair")? {
-        Cow::Borrowed(matches.get_one::<SignerSource>("keypair").unwrap())
+    let config_source;
+    let keypair_source = if matches.try_contains_id("keypair")? {
+        matches.get_one::<SignerSource>("keypair").unwrap()
     } else if !config.keypair_path.is_empty() {
-        Cow::Owned(SignerSource::parse(&config.keypair_path)?)
+        config_source = SignerSource::parse(&config.keypair_path)?;
+        &config_source
     } else {
         let mut path = dirs_next::home_dir().expect("home directory");
         path.extend([".config", "solana", "id.json"]);
-        Cow::Owned(SignerSource::parse(path.to_str().unwrap())?)
+        config_source = SignerSource::parse(path.to_str().unwrap())?;
+        &config_source
     };
-    signer_from_source(matches, &source, "pubkey recovery", wallet_manager)
+    signer_from_source(matches, keypair_source, "pubkey recovery", wallet_manager)
 }
 
 fn output_keypair(
