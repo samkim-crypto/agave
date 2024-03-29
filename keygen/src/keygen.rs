@@ -1,7 +1,7 @@
 #![allow(clippy::arithmetic_side_effects)]
 use {
     bip39::{Mnemonic, MnemonicType, Seed},
-    clap::{crate_description, crate_name, value_parser, Arg, ArgMatches, Command},
+    clap::{crate_description, crate_name, value_parser, Arg, ArgAction, ArgMatches, Command},
     solana_clap_v3_utils::{
         input_parsers::{
             signer::{SignerSource, SignerSourceParserBuilder},
@@ -315,7 +315,7 @@ fn app<'a>(num_threads: &'a str, crate_version: &'a str) -> Command<'a> {
                         .value_name("PREFIX:COUNT")
                         .number_of_values(1)
                         .takes_value(true)
-                        .multiple_occurrences(true)
+                        .action(ArgAction::Append)
                         .multiple_values(true)
                         .validator(grind_validator_starts_with)
                         .help("Saves specified number of keypairs whos public key starts with the indicated prefix\nExample: --starts-with sol:4\nPREFIX type is Base58\nCOUNT type is u64"),
@@ -326,7 +326,7 @@ fn app<'a>(num_threads: &'a str, crate_version: &'a str) -> Command<'a> {
                         .value_name("SUFFIX:COUNT")
                         .number_of_values(1)
                         .takes_value(true)
-                        .multiple_occurrences(true)
+                        .action(ArgAction::Append)
                         .multiple_values(true)
                         .validator(grind_validator_ends_with)
                         .help("Saves specified number of keypairs whos public key ends with the indicated suffix\nExample: --ends-with ana:4\nSUFFIX type is Base58\nCOUNT type is u64"),
@@ -337,7 +337,7 @@ fn app<'a>(num_threads: &'a str, crate_version: &'a str) -> Command<'a> {
                         .value_name("PREFIX:SUFFIX:COUNT")
                         .number_of_values(1)
                         .takes_value(true)
-                        .multiple_occurrences(true)
+                        .action(ArgAction::Append)
                         .multiple_values(true)
                         .validator(grind_validator_starts_and_ends_with)
                         .help("Saves specified number of keypairs whos public key starts and ends with the indicated perfix and suffix\nExample: --starts-and-ends-with sol:ana:4\nPREFIX and SUFFIX type is Base58\nCOUNT type is u64"),
