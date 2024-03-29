@@ -546,9 +546,9 @@ fn do_main(matches: &ArgMatches) -> Result<(), Box<dyn error::Error>> {
             output_keypair(&keypair, outfile, "recovered")?;
         }
         ("grind", matches) => {
-            let ignore_case = matches.is_present("ignore_case");
+            let ignore_case = matches.try_contains_id("ignore_case")?;
 
-            let starts_with_args = if matches.is_present("starts_with") {
+            let starts_with_args = if matches.try_contains_id("starts_with")? {
                 matches
                     .values_of_t_or_exit::<String>("starts_with")
                     .into_iter()
@@ -557,7 +557,7 @@ fn do_main(matches: &ArgMatches) -> Result<(), Box<dyn error::Error>> {
             } else {
                 HashSet::new()
             };
-            let ends_with_args = if matches.is_present("ends_with") {
+            let ends_with_args = if matches.try_contains_id("ends_with")? {
                 matches
                     .values_of_t_or_exit::<String>("ends_with")
                     .into_iter()
@@ -566,7 +566,7 @@ fn do_main(matches: &ArgMatches) -> Result<(), Box<dyn error::Error>> {
             } else {
                 HashSet::new()
             };
-            let starts_and_ends_with_args = if matches.is_present("starts_and_ends_with") {
+            let starts_and_ends_with_args = if matches.try_contains_id("starts_and_ends_with")? {
                 matches
                     .values_of_t_or_exit::<String>("starts_and_ends_with")
                     .into_iter()
@@ -595,7 +595,7 @@ fn do_main(matches: &ArgMatches) -> Result<(), Box<dyn error::Error>> {
                 num_threads,
             );
 
-            let use_mnemonic = matches.is_present("use_mnemonic");
+            let use_mnemonic = matches.try_contains_id("use_mnemonic")?;
 
             let derivation_path = acquire_derivation_path(matches)?;
 
@@ -608,7 +608,7 @@ fn do_main(matches: &ArgMatches) -> Result<(), Box<dyn error::Error>> {
             } else {
                 no_passphrase_and_message()
             };
-            let no_outfile = matches.is_present(NO_OUTFILE_ARG.name);
+            let no_outfile = matches.try_contains_id(NO_OUTFILE_ARG.name)?;
 
             // The vast majority of base58 encoded public keys have length 44, but
             // these only encapsulate prefixes 1-9 and A-H.  If the user is searching
