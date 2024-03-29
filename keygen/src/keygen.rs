@@ -535,27 +535,45 @@ fn do_main(matches: &ArgMatches) -> Result<(), Box<dyn error::Error>> {
 
             let starts_with_args = if matches.try_contains_id("starts_with")? {
                 matches
-                    .values_of_t_or_exit::<String>("starts_with")
-                    .into_iter()
-                    .map(|s| if ignore_case { s.to_lowercase() } else { s })
+                    .get_many::<String>("starts_with")
+                    .unwrap()
+                    .map(|s| {
+                        if ignore_case {
+                            s.to_lowercase()
+                        } else {
+                            s.to_owned()
+                        }
+                    })
                     .collect()
             } else {
                 HashSet::new()
             };
             let ends_with_args = if matches.try_contains_id("ends_with")? {
                 matches
-                    .values_of_t_or_exit::<String>("ends_with")
-                    .into_iter()
-                    .map(|s| if ignore_case { s.to_lowercase() } else { s })
+                    .get_many::<String>("ends_with")
+                    .unwrap()
+                    .map(|s| {
+                        if ignore_case {
+                            s.to_lowercase()
+                        } else {
+                            s.to_owned()
+                        }
+                    })
                     .collect()
             } else {
                 HashSet::new()
             };
             let starts_and_ends_with_args = if matches.try_contains_id("starts_and_ends_with")? {
                 matches
-                    .values_of_t_or_exit::<String>("starts_and_ends_with")
-                    .into_iter()
-                    .map(|s| if ignore_case { s.to_lowercase() } else { s })
+                    .get_many::<String>("starts_and_ends_with")
+                    .unwrap()
+                    .map(|s| {
+                        if ignore_case {
+                            s.to_lowercase()
+                        } else {
+                            s.to_owned()
+                        }
+                    })
                     .collect()
             } else {
                 HashSet::new()
