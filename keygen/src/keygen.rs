@@ -1,7 +1,10 @@
 #![allow(clippy::arithmetic_side_effects)]
 use {
     bip39::{Mnemonic, MnemonicType, Seed},
-    clap::{crate_description, crate_name, value_parser, Arg, ArgAction, ArgMatches, Command},
+    clap::{
+        builder::ValueParser, crate_description, crate_name, value_parser, Arg, ArgAction,
+        ArgMatches, Command,
+    },
     solana_clap_v3_utils::{
         input_parsers::{
             signer::{SignerSource, SignerSourceParserBuilder},
@@ -64,6 +67,38 @@ struct GrindMatch {
     count: AtomicU64,
 }
 
+#[derive(Debug, Clone)]
+enum GrindType {
+    Starts,
+    Ends,
+    StartsEnds,
+}
+
+fn grind_parser(grind_type: GrindType) -> ValueParser {
+    ValueParser::from(move |v: &str| -> Result<String, String> {
+        let (required_div_count, prefix_suffix) = match grind_type {
+            GrindType::Starts => (1, "PREFIX"),
+            GrindType::Ends => (1, "SUFFIX"),
+            GrindType::StartsEnds => (2, "PREFIX and SUFFIX"),
+        };
+        if v.matches(':').count() != required_div_count || (v.starts_with(':') || v.ends_with(':'))
+        {
+            return Err(format!("Expected : between {} and COUNT", prefix_suffix));
+        }
+        let mut args: Vec<&str> = v.split(':').collect();
+        let count = args.pop().unwrap().parse::<u64>();
+        for arg in args.iter() {
+            bs58::decode(arg)
+                .into_vec()
+                .map_err(|err| format!("{}: {:?}", args[0], err))?;
+        }
+        if count.is_err() || count.unwrap() == 0 {
+            return Err(String::from("Expected COUNT to be of type u64"));
+        }
+        Ok(v.to_string())
+    })
+}
+
 fn get_keypair_from_matches(
     matches: &ArgMatches,
     config: Config,
@@ -95,56 +130,6 @@ fn output_keypair(
     } else {
         write_keypair_file(keypair, outfile)?;
         println!("Wrote {source} keypair to {outfile}");
-    }
-    Ok(())
-}
-
-fn grind_validator_starts_with(v: &str) -> Result<(), String> {
-    if v.matches(':').count() != 1 || (v.starts_with(':') || v.ends_with(':')) {
-        return Err(String::from("Expected : between PREFIX and COUNT"));
-    }
-    let args: Vec<&str> = v.split(':').collect();
-    bs58::decode(&args[0])
-        .into_vec()
-        .map_err(|err| format!("{}: {:?}", args[0], err))?;
-    let count = args[1].parse::<u64>();
-    if count.is_err() || count.unwrap() == 0 {
-        return Err(String::from("Expected COUNT to be of type u64"));
-    }
-    Ok(())
-}
-
-fn grind_validator_ends_with(v: &str) -> Result<(), String> {
-    if v.matches(':').count() != 1 || (v.starts_with(':') || v.ends_with(':')) {
-        return Err(String::from("Expected : between SUFFIX and COUNT"));
-    }
-    let args: Vec<&str> = v.split(':').collect();
-    bs58::decode(&args[0])
-        .into_vec()
-        .map_err(|err| format!("{}: {:?}", args[0], err))?;
-    let count = args[1].parse::<u64>();
-    if count.is_err() || count.unwrap() == 0 {
-        return Err(String::from("Expected COUNT to be of type u64"));
-    }
-    Ok(())
-}
-
-fn grind_validator_starts_and_ends_with(v: &str) -> Result<(), String> {
-    if v.matches(':').count() != 2 || (v.starts_with(':') || v.ends_with(':')) {
-        return Err(String::from(
-            "Expected : between PREFIX and SUFFIX and COUNT",
-        ));
-    }
-    let args: Vec<&str> = v.split(':').collect();
-    bs58::decode(&args[0])
-        .into_vec()
-        .map_err(|err| format!("{}: {:?}", args[0], err))?;
-    bs58::decode(&args[1])
-        .into_vec()
-        .map_err(|err| format!("{}: {:?}", args[1], err))?;
-    let count = args[2].parse::<u64>();
-    if count.is_err() || count.unwrap() == 0 {
-        return Err(String::from("Expected COUNT to be a u64"));
     }
     Ok(())
 }
@@ -317,7 +302,7 @@ fn app<'a>(num_threads: &'a str, crate_version: &'a str) -> Command<'a> {
                         .takes_value(true)
                         .action(ArgAction::Append)
                         .multiple_values(true)
-                        .validator(grind_validator_starts_with)
+                        .value_parser(grind_parser(GrindType::Starts))
                         .help("Saves specified number of keypairs whos public key starts with the indicated prefix\nExample: --starts-with sol:4\nPREFIX type is Base58\nCOUNT type is u64"),
                 )
                 .arg(
@@ -328,7 +313,7 @@ fn app<'a>(num_threads: &'a str, crate_version: &'a str) -> Command<'a> {
                         .takes_value(true)
                         .action(ArgAction::Append)
                         .multiple_values(true)
-                        .validator(grind_validator_ends_with)
+                        .value_parser(grind_parser(GrindType::Ends))
                         .help("Saves specified number of keypairs whos public key ends with the indicated suffix\nExample: --ends-with ana:4\nSUFFIX type is Base58\nCOUNT type is u64"),
                 )
                 .arg(
@@ -339,7 +324,7 @@ fn app<'a>(num_threads: &'a str, crate_version: &'a str) -> Command<'a> {
                         .takes_value(true)
                         .action(ArgAction::Append)
                         .multiple_values(true)
-                        .validator(grind_validator_starts_and_ends_with)
+                        .value_parser(grind_parser(GrindType::StartsEnds))
                         .help("Saves specified number of keypairs whos public key starts and ends with the indicated perfix and suffix\nExample: --starts-and-ends-with sol:ana:4\nPREFIX and SUFFIX type is Base58\nCOUNT type is u64"),
                 )
                 .arg(
