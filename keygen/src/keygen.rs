@@ -11,8 +11,8 @@ use {
             check_for_overwrite,
             derivation_path::{acquire_derivation_path, derivation_path_arg},
             mnemonic::{
-                acquire_language, acquire_passphrase_and_message, no_passphrase_and_message,
-                try_get_language, try_get_word_count, WORD_COUNT_ARG,
+                acquire_passphrase_and_message, no_passphrase_and_message, try_get_language,
+                try_get_word_count,
             },
             no_outfile_arg, KeyGenerationCommonArgs, NO_OUTFILE_ARG,
         },
@@ -599,9 +599,9 @@ fn do_main(matches: &ArgMatches) -> Result<(), Box<dyn error::Error>> {
 
             let derivation_path = acquire_derivation_path(matches)?;
 
-            let word_count: usize = matches.value_of_t(WORD_COUNT_ARG.name).unwrap();
+            let word_count = try_get_word_count(matches)?.unwrap();
             let mnemonic_type = MnemonicType::for_word_count(word_count)?;
-            let language = acquire_language(matches);
+            let language = try_get_language(matches)?.unwrap();
 
             let (passphrase, passphrase_message) = if use_mnemonic {
                 acquire_passphrase_and_message(matches).unwrap()
