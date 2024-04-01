@@ -79,7 +79,7 @@ fn grind_parser(grind_type: GrindType) -> ValueParser {
         let (required_div_count, prefix_suffix) = match grind_type {
             GrindType::Starts => (1, "PREFIX"),
             GrindType::Ends => (1, "SUFFIX"),
-            GrindType::StartsEnds => (2, "PREFIX and SUFFIX"),
+            GrindType::StartsAndEnds => (2, "PREFIX and SUFFIX"),
         };
         if v.matches(':').count() != required_div_count || (v.starts_with(':') || v.ends_with(':'))
         {
@@ -324,7 +324,7 @@ fn app<'a>(num_threads: &'a str, crate_version: &'a str) -> Command<'a> {
                         .takes_value(true)
                         .action(ArgAction::Append)
                         .multiple_values(true)
-                        .value_parser(grind_parser(GrindType::StartsEnds))
+                        .value_parser(grind_parser(GrindType::StartsAndEnds))
                         .help("Saves specified number of keypairs whos public key starts and ends with the indicated perfix and suffix\nExample: --starts-and-ends-with sol:ana:4\nPREFIX and SUFFIX type is Base58\nCOUNT type is u64"),
                 )
                 .arg(
