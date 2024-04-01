@@ -71,7 +71,7 @@ struct GrindMatch {
 enum GrindType {
     Starts,
     Ends,
-    StartsEnds,
+    StartsAndEnds,
 }
 
 fn grind_parser(grind_type: GrindType) -> ValueParser {
