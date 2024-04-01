@@ -85,6 +85,7 @@ fn grind_parser(grind_type: GrindType) -> ValueParser {
         {
             return Err(format!("Expected : between {} and COUNT", prefix_suffix));
         }
+        // `args` is guaranteed to have length at least 1 by the previous if statement
         let mut args: Vec<&str> = v.split(':').collect();
         let count = args.pop().unwrap().parse::<u64>();
         for arg in args.iter() {
