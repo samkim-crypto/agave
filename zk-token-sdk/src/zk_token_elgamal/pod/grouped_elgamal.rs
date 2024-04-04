@@ -4,7 +4,9 @@
 use crate::{encryption::grouped_elgamal::GroupedElGamalCiphertext, errors::ElGamalError};
 use {
     crate::zk_token_elgamal::pod::{
-        elgamal::DECRYPT_HANDLE_LEN, pedersen::PEDERSEN_COMMITMENT_LEN, Pod, Zeroable,
+        elgamal::{ElGamalCiphertext, DECRYPT_HANDLE_LEN, ELGAMAL_CIPHERTEXT_LEN},
+        pedersen::{PedersenCommitment, PEDERSEN_COMMITMENT_LEN},
+        Pod, Zeroable,
     },
     std::fmt,
 };
@@ -79,5 +81,36 @@ impl TryFrom<GroupedElGamalCiphertext3Handles> for GroupedElGamalCiphertext<3> {
 
     fn try_from(pod_ciphertext: GroupedElGamalCiphertext3Handles) -> Result<Self, Self::Error> {
         Self::from_bytes(&pod_ciphertext.0).ok_or(ElGamalError::CiphertextDeserialization)
+    }
+}
+
+impl GroupedElGamalCiphertext3Handles {
+    /// Extract the commitment component from a grouped ciphertext
+    pub fn extract_commitment(&self) -> PedersenCommitment {
+        // `GROUPED_ELGAMAL_CIPHERTEXT_2_HANDLES` guaranteed to be at least `PEDERSEN_COMMITMENT_LEN`
+        let commitment = self.0[..PEDERSEN_COMMITMENT_LEN].try_into().unwrap();
+        PedersenCommitment(commitment)
+    }
+
+    /// Extract a regular ElGamal ciphertext using the decrypt handle at a specified index.
+    pub fn try_extract_ciphertext(&self, index: usize) -> Result<ElGamalCiphertext, ElGamalError> {
+        let mut ciphertext_bytes = [0u8; ELGAMAL_CIPHERTEXT_LEN];
+        ciphertext_bytes[..PEDERSEN_COMMITMENT_LEN]
+            .copy_from_slice(&self.0[..PEDERSEN_COMMITMENT_LEN]);
+
+        let handle_start = DECRYPT_HANDLE_LEN
+            .checked_mul(index)
+            .and_then(|n| n.checked_add(PEDERSEN_COMMITMENT_LEN))
+            .ok_or(ElGamalError::CiphertextDeserialization)?;
+        let handle_end = handle_start
+            .checked_add(DECRYPT_HANDLE_LEN)
+            .ok_or(ElGamalError::CiphertextDeserialization)?;
+        ciphertext_bytes[PEDERSEN_COMMITMENT_LEN..].copy_from_slice(
+            self.0
+                .get(handle_start..handle_end)
+                .ok_or(ElGamalError::CiphertextDeserialization)?,
+        );
+
+        Ok(ElGamalCiphertext(ciphertext_bytes))
     }
 }
