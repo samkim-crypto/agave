@@ -89,6 +89,8 @@ impl TryFrom<GroupedElGamalCiphertext2Handles> for GroupedElGamalCiphertext<2> {
     }
 }
 
+impl_extract!(TYPE = GroupedElGamalCiphertext2Handles);
+
 /// The `GroupedElGamalCiphertext` type with three decryption handles as a `Pod`
 #[derive(Clone, Copy, Pod, Zeroable, PartialEq, Eq)]
 #[repr(transparent)]
