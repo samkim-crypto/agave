@@ -1,13 +1,23 @@
 //! Errors related to proving and verifying proofs.
 #[cfg(not(target_os = "solana"))]
-use {
-    crate::{
-        encryption::elgamal::ElGamalError,
-        range_proof::errors::{RangeProofGenerationError, RangeProofVerificationError},
-        sigma_proofs::errors::*,
-    },
-    thiserror::Error,
+use crate::{
+    encryption::elgamal::ElGamalError,
+    range_proof::errors::{RangeProofGenerationError, RangeProofVerificationError},
+    sigma_proofs::errors::*,
 };
+use thiserror::Error;
+
+#[derive(Error, Clone, Debug, Eq, PartialEq)]
+pub enum AuthenticatedEncryptionError {
+    #[error("key derivation method not supported")]
+    DerivationMethodNotSupported,
+    #[error("seed length too short for derivation")]
+    SeedLengthTooShort,
+    #[error("seed length too long for derivation")]
+    SeedLengthTooLong,
+    #[error("failed to deserialize")]
+    Deserialization,
+}
 
 #[cfg(not(target_os = "solana"))]
 #[derive(Error, Clone, Debug, Eq, PartialEq)]
