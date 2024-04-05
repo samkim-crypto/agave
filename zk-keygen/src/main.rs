@@ -1,5 +1,3 @@
-#![allow(deprecated)]
-
 use {
     bip39::{Mnemonic, MnemonicType, Seed},
     clap::{crate_description, crate_name, Arg, ArgMatches, Command},
