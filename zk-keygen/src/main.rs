@@ -1,6 +1,6 @@
 use {
     bip39::{Mnemonic, MnemonicType, Seed},
-    clap::{crate_description, crate_name, Arg, ArgMatches, Command},
+    clap::{crate_description, crate_name, Arg, ArgMatches, Command, PossibleValue},
     solana_clap_v3_utils::{
         input_parsers::{signer::SignerSourceParserBuilder, value_of, STDOUT_OUTFILE_TOKEN},
         keygen::{
@@ -49,7 +49,7 @@ fn app(crate_version: &str) -> Command {
                     Arg::new("type")
                         .index(1)
                         .takes_value(true)
-                        .possible_values(["elgamal", "aes128"])
+                        .value_parser(clap::value_parser!(KeyType))
                         .value_name("TYPE")
                         .required(true)
                         .help("The type of encryption key")
@@ -83,7 +83,9 @@ fn app(crate_version: &str) -> Command {
                     Arg::new("type")
                         .index(1)
                         .takes_value(true)
-                        .possible_values(["elgamal"])
+                        .value_parser([
+                            PossibleValue::new("elgamal")
+                        ])
                         .value_name("TYPE")
                         .required(true)
                         .help("The type of keypair")
@@ -109,7 +111,7 @@ fn app(crate_version: &str) -> Command {
                     Arg::new("type")
                         .index(1)
                         .takes_value(true)
-                        .possible_values(["elgamal", "aes128"])
+                        .value_parser(clap::value_parser!(KeyType))
                         .value_name("TYPE")
                         .required(true)
                         .help("The type of keypair")
@@ -293,6 +295,7 @@ fn do_main(matches: &ArgMatches) -> Result<(), Box<dyn error::Error>> {
     Ok(())
 }
 
+#[derive(Clone)]
 enum KeyType {
     ElGamal,
     Aes128,
