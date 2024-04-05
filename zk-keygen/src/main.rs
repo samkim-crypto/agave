@@ -2,10 +2,10 @@ use {
     bip39::{Mnemonic, MnemonicType, Seed},
     clap::{crate_description, crate_name, Arg, ArgMatches, Command, PossibleValue},
     solana_clap_v3_utils::{
-        input_parsers::{signer::SignerSourceParserBuilder, value_of, STDOUT_OUTFILE_TOKEN},
+        input_parsers::{signer::SignerSourceParserBuilder, STDOUT_OUTFILE_TOKEN},
         keygen::{
             check_for_overwrite,
-            mnemonic::{acquire_language, acquire_passphrase_and_message, WORD_COUNT_ARG},
+            mnemonic::{acquire_passphrase_and_message, try_get_language, try_get_word_count},
             no_outfile_arg, KeyGenerationCommonArgs, NO_OUTFILE_ARG,
         },
         keypair::{
@@ -156,11 +156,11 @@ fn do_main(matches: &ArgMatches) -> Result<(), Box<dyn error::Error>> {
     let subcommand = matches.subcommand().unwrap();
     match subcommand {
         ("new", matches) => {
-            let key_type: KeyType = value_of(matches, "type").unwrap();
+            let key_type = matches.try_get_one::<KeyType>("type")?.unwrap();
 
             let mut path = dirs_next::home_dir().expect("home directory");
             let outfile = if matches.try_contains_id("outfile")? {
-                matches.value_of("outfile")
+                matches.get_one::<String>("outfile").map(|s| s.as_str())
             } else if matches.try_contains_id(NO_OUTFILE_ARG.name)? {
                 None
             } else {
@@ -174,9 +174,9 @@ fn do_main(matches: &ArgMatches) -> Result<(), Box<dyn error::Error>> {
                 None => (),
             }
 
-            let word_count: usize = matches.value_of_t(WORD_COUNT_ARG.name).unwrap();
+            let word_count = try_get_word_count(matches)?.unwrap();
             let mnemonic_type = MnemonicType::for_word_count(word_count)?;
-            let language = acquire_language(matches);
+            let language = try_get_language(matches)?.unwrap();
 
             let mnemonic = Mnemonic::new(mnemonic_type, language);
             let (passphrase, passphrase_message) = acquire_passphrase_and_message(matches).unwrap();
@@ -228,11 +228,16 @@ fn do_main(matches: &ArgMatches) -> Result<(), Box<dyn error::Error>> {
             }
         }
         ("pubkey", matches) => {
-            let key_type: KeyType = value_of(matches, "type").unwrap();
+            let key_type = matches.try_get_one::<String>("type")?.unwrap();
+            let key_type = if key_type == "elgamal" {
+                KeyType::ElGamal
+            } else {
+                return Err("unsupported key type".into());
+            };
 
             let mut path = dirs_next::home_dir().expect("home directory");
             let path = if matches.try_contains_id("keypair")? {
-                matches.value_of("keypair").unwrap()
+                matches.get_one::<String>("keypair").unwrap()
             } else {
                 path.extend([".config", "solana", key_type.default_file_name()]);
                 path.to_str().unwrap()
@@ -251,11 +256,11 @@ fn do_main(matches: &ArgMatches) -> Result<(), Box<dyn error::Error>> {
             }
         }
         ("recover", matches) => {
-            let key_type: KeyType = value_of(matches, "type").unwrap();
+            let key_type = matches.try_get_one::<KeyType>("type")?.unwrap();
 
             let mut path = dirs_next::home_dir().expect("home directory");
             let outfile = if matches.try_contains_id("outfile")? {
-                matches.value_of("outfile").unwrap()
+                matches.get_one::<String>("outfile").unwrap()
             } else {
                 path.extend([".config", "solana", key_type.default_file_name()]);
                 path.to_str().unwrap()
@@ -268,7 +273,9 @@ fn do_main(matches: &ArgMatches) -> Result<(), Box<dyn error::Error>> {
             let name = "recover";
             match key_type {
                 KeyType::ElGamal => {
-                    let keypair = if let Some(path) = matches.value_of("prompt_signer") {
+                    let keypair = if let Some(path) =
+                        matches.try_get_one::<String>("prompt_signer")?
+                    {
                         elgamal_keypair_from_path(matches, path, name, true)?
                     } else {
                         let skip_validation =
@@ -278,7 +285,7 @@ fn do_main(matches: &ArgMatches) -> Result<(), Box<dyn error::Error>> {
                     output_encodable_key(&keypair, outfile, "recovered ElGamal keypair")?;
                 }
                 KeyType::Aes128 => {
-                    let key = if let Some(path) = matches.value_of("prompt_signer") {
+                    let key = if let Some(path) = matches.try_get_one::<String>("prompt_signer")? {
                         ae_key_from_path(matches, path, name)?
                     } else {
                         let skip_validation =
