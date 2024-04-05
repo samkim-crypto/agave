@@ -158,9 +158,9 @@ fn do_main(matches: &ArgMatches) -> Result<(), Box<dyn error::Error>> {
             let key_type: KeyType = value_of(matches, "type").unwrap();
 
             let mut path = dirs_next::home_dir().expect("home directory");
-            let outfile = if matches.is_present("outfile") {
+            let outfile = if matches.try_contains_id("outfile")? {
                 matches.value_of("outfile")
-            } else if matches.is_present(NO_OUTFILE_ARG.name) {
+            } else if matches.try_contains_id(NO_OUTFILE_ARG.name)? {
                 None
             } else {
                 path.extend([".config", "solana", key_type.default_file_name()]);
@@ -181,7 +181,7 @@ fn do_main(matches: &ArgMatches) -> Result<(), Box<dyn error::Error>> {
             let (passphrase, passphrase_message) = acquire_passphrase_and_message(matches).unwrap();
             let seed = Seed::new(&mnemonic, &passphrase);
 
-            let silent = matches.is_present("silent");
+            let silent = matches.try_contains_id("silent")?;
 
             match key_type {
                 KeyType::ElGamal => {
@@ -230,7 +230,7 @@ fn do_main(matches: &ArgMatches) -> Result<(), Box<dyn error::Error>> {
             let key_type: KeyType = value_of(matches, "type").unwrap();
 
             let mut path = dirs_next::home_dir().expect("home directory");
-            let path = if matches.is_present("keypair") {
+            let path = if matches.try_contains_id("keypair")? {
                 matches.value_of("keypair").unwrap()
             } else {
                 path.extend([".config", "solana", key_type.default_file_name()]);
@@ -253,7 +253,7 @@ fn do_main(matches: &ArgMatches) -> Result<(), Box<dyn error::Error>> {
             let key_type: KeyType = value_of(matches, "type").unwrap();
 
             let mut path = dirs_next::home_dir().expect("home directory");
-            let outfile = if matches.is_present("outfile") {
+            let outfile = if matches.try_contains_id("outfile")? {
                 matches.value_of("outfile").unwrap()
             } else {
                 path.extend([".config", "solana", key_type.default_file_name()]);
@@ -271,7 +271,7 @@ fn do_main(matches: &ArgMatches) -> Result<(), Box<dyn error::Error>> {
                         elgamal_keypair_from_path(matches, path, name, true)?
                     } else {
                         let skip_validation =
-                            matches.is_present(SKIP_SEED_PHRASE_VALIDATION_ARG.name);
+                            matches.try_contains_id(SKIP_SEED_PHRASE_VALIDATION_ARG.name)?;
                         elgamal_keypair_from_seed_phrase(name, skip_validation, true, None, true)?
                     };
                     output_encodable_key(&keypair, outfile, "recovered ElGamal keypair")?;
@@ -281,7 +281,7 @@ fn do_main(matches: &ArgMatches) -> Result<(), Box<dyn error::Error>> {
                         ae_key_from_path(matches, path, name)?
                     } else {
                         let skip_validation =
-                            matches.is_present(SKIP_SEED_PHRASE_VALIDATION_ARG.name);
+                            matches.try_contains_id(SKIP_SEED_PHRASE_VALIDATION_ARG.name)?;
                         ae_key_from_seed_phrase(name, skip_validation, None, true)?
                     };
                     output_encodable_key(&key, outfile, "recovered AES128 key")?;
