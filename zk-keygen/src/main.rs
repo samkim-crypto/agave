@@ -2,8 +2,7 @@ use {
     bip39::{Mnemonic, MnemonicType, Seed},
     clap::{crate_description, crate_name, Arg, ArgMatches, Command},
     solana_clap_v3_utils::{
-        input_parsers::{value_of, STDOUT_OUTFILE_TOKEN},
-        input_validators::is_prompt_signer_source,
+        input_parsers::{signer::SignerSourceParserBuilder, value_of, STDOUT_OUTFILE_TOKEN},
         keygen::{
             check_for_overwrite,
             mnemonic::{acquire_language, acquire_passphrase_and_message, WORD_COUNT_ARG},
@@ -120,7 +119,7 @@ fn app(crate_version: &str) -> Command {
                         .index(2)
                         .value_name("KEYPAIR")
                         .takes_value(true)
-                        .validator(is_prompt_signer_source)
+                        .value_parser(SignerSourceParserBuilder::default().allow_prompt().allow_legacy().build())
                         .help("`prompt:` URI scheme or `ASK` keyword"),
                 )
                 .arg(
