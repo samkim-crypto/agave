@@ -34,7 +34,7 @@ pub struct ZeroBalanceProofData {
     pub context: ZeroBalanceProofContext, // 96 bytes
 
     /// Proof that the source account available balance is zero
-    pub proof: pod::ZeroBalanceProof, // 96 bytes
+    pub proof: pod::ZeroCiphertextProof, // 96 bytes
 }
 
 /// The context data needed to verify a zero-balance proof.

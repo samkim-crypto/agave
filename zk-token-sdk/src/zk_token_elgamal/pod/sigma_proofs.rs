@@ -134,20 +134,20 @@ impl TryFrom<BatchedGroupedCiphertext2HandlesValidityProof>
 /// The `ZeroCiphertextProof` type as a `Pod`.
 #[derive(Clone, Copy)]
 #[repr(transparent)]
-pub struct ZeroBalanceProof(pub [u8; ZERO_BALANCE_PROOF_LEN]);
+pub struct ZeroCiphertextProof(pub [u8; ZERO_BALANCE_PROOF_LEN]);
 
 #[cfg(not(target_os = "solana"))]
-impl From<DecodedZeroCiphertextProof> for ZeroBalanceProof {
+impl From<DecodedZeroCiphertextProof> for ZeroCiphertextProof {
     fn from(decoded_proof: DecodedZeroCiphertextProof) -> Self {
         Self(decoded_proof.to_bytes())
     }
 }
 
 #[cfg(not(target_os = "solana"))]
-impl TryFrom<ZeroBalanceProof> for DecodedZeroCiphertextProof {
+impl TryFrom<ZeroCiphertextProof> for DecodedZeroCiphertextProof {
     type Error = ZeroBalanceProofVerificationError;
 
-    fn try_from(pod_proof: ZeroBalanceProof) -> Result<Self, Self::Error> {
+    fn try_from(pod_proof: ZeroCiphertextProof) -> Result<Self, Self::Error> {
         Self::from_bytes(&pod_proof.0)
     }
 }
@@ -209,5 +209,5 @@ unsafe impl Pod for GroupedCiphertext2HandlesValidityProof {}
 unsafe impl Zeroable for BatchedGroupedCiphertext2HandlesValidityProof {}
 unsafe impl Pod for BatchedGroupedCiphertext2HandlesValidityProof {}
 
-unsafe impl Zeroable for ZeroBalanceProof {}
-unsafe impl Pod for ZeroBalanceProof {}
+unsafe impl Zeroable for ZeroCiphertextProof {}
+unsafe impl Pod for ZeroCiphertextProof {}
