@@ -28,7 +28,7 @@ const BATCHED_GROUPED_CIPHERTEXT_2_HANDLES_VALIDITY_PROOF_LEN: usize = 160;
 const ZERO_BALANCE_PROOF_LEN: usize = 96;
 
 /// Byte length of a fee sigma proof
-const FEE_SIGMA_PROOF_LEN: usize = 256;
+const PERCENTAGE_WITH_CAP_PROOF_LEN: usize = 256;
 
 /// Byte length of a public key validity proof
 const PUBKEY_VALIDITY_PROOF_LEN: usize = 64;
@@ -152,23 +152,23 @@ impl TryFrom<ZeroBalanceProof> for DecodedZeroBalanceProof {
     }
 }
 
-/// The `FeeSigmaProof` type as a `Pod`.
+/// The `PercentageWithCapProof` type as a `Pod`.
 #[derive(Clone, Copy, Pod, Zeroable)]
 #[repr(transparent)]
-pub struct FeeSigmaProof(pub [u8; FEE_SIGMA_PROOF_LEN]);
+pub struct PercentageWithCapProof(pub [u8; PERCENTAGE_WITH_CAP_PROOF_LEN]);
 
 #[cfg(not(target_os = "solana"))]
-impl From<DecodedPercentageWithCapProof> for FeeSigmaProof {
+impl From<DecodedPercentageWithCapProof> for PercentageWithCapProof {
     fn from(decoded_proof: DecodedPercentageWithCapProof) -> Self {
         Self(decoded_proof.to_bytes())
     }
 }
 
 #[cfg(not(target_os = "solana"))]
-impl TryFrom<FeeSigmaProof> for DecodedPercentageWithCapProof {
+impl TryFrom<PercentageWithCapProof> for DecodedPercentageWithCapProof {
     type Error = FeeSigmaProofVerificationError;
 
-    fn try_from(pod_proof: FeeSigmaProof) -> Result<Self, Self::Error> {
+    fn try_from(pod_proof: PercentageWithCapProof) -> Result<Self, Self::Error> {
         Self::from_bytes(&pod_proof.0)
     }
 }

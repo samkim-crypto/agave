@@ -36,7 +36,7 @@ use {
 pub struct FeeSigmaProofData {
     pub context: FeeSigmaProofContext,
 
-    pub proof: pod::FeeSigmaProof,
+    pub proof: pod::PercentageWithCapProof,
 }
 
 /// The context data needed to verify a pubkey validity proof.
