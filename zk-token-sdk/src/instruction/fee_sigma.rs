@@ -13,7 +13,7 @@ use {
     crate::{
         encryption::pedersen::{PedersenCommitment, PedersenOpening},
         errors::{ProofGenerationError, ProofVerificationError},
-        sigma_proofs::fee_proof::FeeSigmaProof,
+        sigma_proofs::fee_proof::PercentageWithCapProof,
         transcript::TranscriptProtocol,
     },
     merlin::Transcript,
@@ -87,7 +87,7 @@ impl FeeSigmaProofData {
 
         let mut transcript = context.new_transcript();
 
-        let proof = FeeSigmaProof::new(
+        let proof = PercentageWithCapProof::new(
             (fee_amount, fee_commitment, fee_opening),
             (delta_fee, delta_commitment, delta_opening),
             (claimed_commitment, claimed_opening),
@@ -115,7 +115,7 @@ impl ZkProofData<FeeSigmaProofContext> for FeeSigmaProofData {
         let delta_commitment = self.context.delta_commitment.try_into()?;
         let claimed_commitment = self.context.claimed_commitment.try_into()?;
         let max_fee = self.context.max_fee.into();
-        let proof: FeeSigmaProof = self.proof.try_into()?;
+        let proof: PercentageWithCapProof = self.proof.try_into()?;
 
         proof
             .verify(

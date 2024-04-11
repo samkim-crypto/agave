@@ -43,7 +43,7 @@ const FEE_SIGMA_PROOF_LEN: usize = UNIT_LEN * 8;
 /// `fee_equality_proof` is simulated. If the fee is smaller than the maximum fee bound, the
 /// `fee_equality_proof` is properly generated and `fee_max_proof` is simulated.
 #[derive(Clone)]
-pub struct FeeSigmaProof {
+pub struct PercentageWithCapProof {
     /// Proof that the committed fee amount equals the maximum fee bound
     fee_max_proof: FeeMaxProof,
 
@@ -53,7 +53,7 @@ pub struct FeeSigmaProof {
 
 #[allow(non_snake_case, dead_code)]
 #[cfg(not(target_os = "solana"))]
-impl FeeSigmaProof {
+impl PercentageWithCapProof {
     /// Creates a fee sigma proof assuming that the committed fee is greater than the maximum fee
     /// bound.
     ///

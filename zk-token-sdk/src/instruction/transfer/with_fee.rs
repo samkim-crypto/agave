@@ -19,7 +19,7 @@ use {
         sigma_proofs::{
             batched_grouped_ciphertext_validity_proof::BatchedGroupedCiphertext2HandlesValidityProof,
             ciphertext_commitment_equality_proof::CiphertextCommitmentEqualityProof,
-            fee_proof::FeeSigmaProof,
+            fee_proof::PercentageWithCapProof,
         },
         transcript::TranscriptProtocol,
     },
@@ -547,7 +547,7 @@ impl TransferWithFeeProof {
         transcript.append_commitment(b"commitment-delta", &pod_delta_commitment);
 
         // generate fee sigma proof
-        let fee_sigma_proof = FeeSigmaProof::new(
+        let fee_sigma_proof = PercentageWithCapProof::new(
             (
                 combined_fee_amount,
                 &combined_fee_commitment,
@@ -656,7 +656,7 @@ impl TransferWithFeeProof {
         let equality_proof: CiphertextCommitmentEqualityProof = self.equality_proof.try_into()?;
         let ciphertext_amount_validity_proof: BatchedGroupedCiphertext2HandlesValidityProof =
             self.ciphertext_amount_validity_proof.try_into()?;
-        let fee_sigma_proof: FeeSigmaProof = self.fee_sigma_proof.try_into()?;
+        let fee_sigma_proof: PercentageWithCapProof = self.fee_sigma_proof.try_into()?;
         let fee_ciphertext_validity_proof: BatchedGroupedCiphertext2HandlesValidityProof =
             self.fee_ciphertext_validity_proof.try_into()?;
         let range_proof: RangeProof = self.range_proof.try_into()?;

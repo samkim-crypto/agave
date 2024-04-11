@@ -5,7 +5,7 @@ use crate::sigma_proofs::{
     batched_grouped_ciphertext_validity_proof::BatchedGroupedCiphertext2HandlesValidityProof as DecodedBatchedGroupedCiphertext2HandlesValidityProof,
     ciphertext_ciphertext_equality_proof::CiphertextCiphertextEqualityProof as DecodedCiphertextCiphertextEqualityProof,
     ciphertext_commitment_equality_proof::CiphertextCommitmentEqualityProof as DecodedCiphertextCommitmentEqualityProof,
-    errors::*, fee_proof::FeeSigmaProof as DecodedFeeSigmaProof,
+    errors::*, fee_proof::PercentageWithCapProof as DecodedPercentageWithCapProof,
     grouped_ciphertext_validity_proof::GroupedCiphertext2HandlesValidityProof as DecodedGroupedCiphertext2HandlesValidityProof,
     pubkey_proof::PubkeyValidityProof as DecodedPubkeyValidityProof,
     zero_balance_proof::ZeroBalanceProof as DecodedZeroBalanceProof,
@@ -158,14 +158,14 @@ impl TryFrom<ZeroBalanceProof> for DecodedZeroBalanceProof {
 pub struct FeeSigmaProof(pub [u8; FEE_SIGMA_PROOF_LEN]);
 
 #[cfg(not(target_os = "solana"))]
-impl From<DecodedFeeSigmaProof> for FeeSigmaProof {
-    fn from(decoded_proof: DecodedFeeSigmaProof) -> Self {
+impl From<DecodedPercentageWithCapProof> for FeeSigmaProof {
+    fn from(decoded_proof: DecodedPercentageWithCapProof) -> Self {
         Self(decoded_proof.to_bytes())
     }
 }
 
 #[cfg(not(target_os = "solana"))]
-impl TryFrom<FeeSigmaProof> for DecodedFeeSigmaProof {
+impl TryFrom<FeeSigmaProof> for DecodedPercentageWithCapProof {
     type Error = FeeSigmaProofVerificationError;
 
     fn try_from(pod_proof: FeeSigmaProof) -> Result<Self, Self::Error> {
