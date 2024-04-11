@@ -546,7 +546,7 @@ mod test {
         let mut prover_transcript = Transcript::new(b"test");
         let mut verifier_transcript = Transcript::new(b"test");
 
-        let proof = FeeSigmaProof::new(
+        let proof = PercentageWithCapProof::new(
             (fee_amount, &fee_commitment, &fee_opening),
             (delta, &delta_commitment, &delta_opening),
             (&claimed_commitment, &claimed_opening),
@@ -593,7 +593,7 @@ mod test {
         let mut prover_transcript = Transcript::new(b"test");
         let mut verifier_transcript = Transcript::new(b"test");
 
-        let proof = FeeSigmaProof::new(
+        let proof = PercentageWithCapProof::new(
             (fee_amount, &fee_commitment, &fee_opening),
             (delta, &delta_commitment, &delta_opening),
             (&claimed_commitment, &claimed_opening),
@@ -635,7 +635,7 @@ mod test {
         let mut prover_transcript = Transcript::new(b"test");
         let mut verifier_transcript = Transcript::new(b"test");
 
-        let proof = FeeSigmaProof::new(
+        let proof = PercentageWithCapProof::new(
             (fee_amount, &fee_commitment, &fee_opening),
             (delta, &delta_commitment, &delta_opening),
             (&claimed_commitment, &claimed_opening),
