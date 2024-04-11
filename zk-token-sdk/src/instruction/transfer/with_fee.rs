@@ -19,7 +19,7 @@ use {
         sigma_proofs::{
             batched_grouped_ciphertext_validity_proof::BatchedGroupedCiphertext2HandlesValidityProof,
             ciphertext_commitment_equality_proof::CiphertextCommitmentEqualityProof,
-            fee_proof::PercentageWithCapProof,
+            percentage_with_cap_proof::PercentageWithCapProof,
         },
         transcript::TranscriptProtocol,
     },

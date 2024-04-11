@@ -13,7 +13,7 @@ use {
     crate::{
         encryption::pedersen::{PedersenCommitment, PedersenOpening},
         errors::{ProofGenerationError, ProofVerificationError},
-        sigma_proofs::fee_proof::PercentageWithCapProof,
+        sigma_proofs::percentage_with_cap_proof::PercentageWithCapProof,
         transcript::TranscriptProtocol,
     },
     merlin::Transcript,

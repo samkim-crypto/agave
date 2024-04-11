@@ -5,8 +5,9 @@ use crate::sigma_proofs::{
     batched_grouped_ciphertext_validity_proof::BatchedGroupedCiphertext2HandlesValidityProof as DecodedBatchedGroupedCiphertext2HandlesValidityProof,
     ciphertext_ciphertext_equality_proof::CiphertextCiphertextEqualityProof as DecodedCiphertextCiphertextEqualityProof,
     ciphertext_commitment_equality_proof::CiphertextCommitmentEqualityProof as DecodedCiphertextCommitmentEqualityProof,
-    errors::*, fee_proof::PercentageWithCapProof as DecodedPercentageWithCapProof,
+    errors::*,
     grouped_ciphertext_validity_proof::GroupedCiphertext2HandlesValidityProof as DecodedGroupedCiphertext2HandlesValidityProof,
+    percentage_with_cap_proof::PercentageWithCapProof as DecodedPercentageWithCapProof,
     pubkey_proof::PubkeyValidityProof as DecodedPubkeyValidityProof,
     zero_balance_proof::ZeroBalanceProof as DecodedZeroBalanceProof,
 };
