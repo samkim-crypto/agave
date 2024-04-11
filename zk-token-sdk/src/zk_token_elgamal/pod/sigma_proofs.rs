@@ -8,7 +8,7 @@ use crate::sigma_proofs::{
     errors::*, fee_proof::FeeSigmaProof as DecodedFeeSigmaProof,
     grouped_ciphertext_validity_proof::GroupedCiphertext2HandlesValidityProof as DecodedGroupedCiphertext2HandlesValidityProof,
     pubkey_proof::PubkeyValidityProof as DecodedPubkeyValidityProof,
-    zero_balance_proof::ZeroBalanceProof as DecodedZeroBalanceProof,
+    zero_balance_proof::ZeroCiphertextProof as DecodedZeroCiphertextProof,
 };
 use crate::zk_token_elgamal::pod::{Pod, Zeroable};
 
@@ -131,20 +131,20 @@ impl TryFrom<BatchedGroupedCiphertext2HandlesValidityProof>
     }
 }
 
-/// The `ZeroBalanceProof` type as a `Pod`.
+/// The `ZeroCiphertextProof` type as a `Pod`.
 #[derive(Clone, Copy)]
 #[repr(transparent)]
 pub struct ZeroBalanceProof(pub [u8; ZERO_BALANCE_PROOF_LEN]);
 
 #[cfg(not(target_os = "solana"))]
-impl From<DecodedZeroBalanceProof> for ZeroBalanceProof {
-    fn from(decoded_proof: DecodedZeroBalanceProof) -> Self {
+impl From<DecodedZeroCiphertextProof> for ZeroBalanceProof {
+    fn from(decoded_proof: DecodedZeroCiphertextProof) -> Self {
         Self(decoded_proof.to_bytes())
     }
 }
 
 #[cfg(not(target_os = "solana"))]
-impl TryFrom<ZeroBalanceProof> for DecodedZeroBalanceProof {
+impl TryFrom<ZeroBalanceProof> for DecodedZeroCiphertextProof {
     type Error = ZeroBalanceProofVerificationError;
 
     fn try_from(pod_proof: ZeroBalanceProof) -> Result<Self, Self::Error> {

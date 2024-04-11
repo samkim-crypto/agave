@@ -9,7 +9,7 @@ use {
     crate::{
         encryption::elgamal::{ElGamalCiphertext, ElGamalKeypair},
         errors::{ProofGenerationError, ProofVerificationError},
-        sigma_proofs::zero_balance_proof::ZeroBalanceProof,
+        sigma_proofs::zero_balance_proof::ZeroCiphertextProof,
         transcript::TranscriptProtocol,
     },
     merlin::Transcript,
@@ -63,7 +63,7 @@ impl ZeroBalanceProofData {
         };
 
         let mut transcript = context.new_transcript();
-        let proof = ZeroBalanceProof::new(keypair, ciphertext, &mut transcript).into();
+        let proof = ZeroCiphertextProof::new(keypair, ciphertext, &mut transcript).into();
 
         Ok(ZeroBalanceProofData { context, proof })
     }
@@ -81,7 +81,7 @@ impl ZkProofData<ZeroBalanceProofContext> for ZeroBalanceProofData {
         let mut transcript = self.context.new_transcript();
         let pubkey = self.context.pubkey.try_into()?;
         let ciphertext = self.context.ciphertext.try_into()?;
-        let proof: ZeroBalanceProof = self.proof.try_into()?;
+        let proof: ZeroCiphertextProof = self.proof.try_into()?;
         proof
             .verify(&pubkey, &ciphertext, &mut transcript)
             .map_err(|e| e.into())
