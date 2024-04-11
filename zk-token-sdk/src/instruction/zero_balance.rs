@@ -9,7 +9,7 @@ use {
     crate::{
         encryption::elgamal::{ElGamalCiphertext, ElGamalKeypair},
         errors::{ProofGenerationError, ProofVerificationError},
-        sigma_proofs::zero_balance_proof::ZeroCiphertextProof,
+        sigma_proofs::zero_ciphertext_proof::ZeroCiphertextProof,
         transcript::TranscriptProtocol,
     },
     merlin::Transcript,

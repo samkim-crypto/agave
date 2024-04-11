@@ -12,7 +12,7 @@ pub mod errors;
 pub mod fee_proof;
 pub mod grouped_ciphertext_validity_proof;
 pub mod pubkey_proof;
-pub mod zero_balance_proof;
+pub mod zero_ciphertext_proof;
 
 #[cfg(not(target_os = "solana"))]
 use {

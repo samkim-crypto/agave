@@ -8,7 +8,7 @@ use crate::sigma_proofs::{
     errors::*, fee_proof::FeeSigmaProof as DecodedFeeSigmaProof,
     grouped_ciphertext_validity_proof::GroupedCiphertext2HandlesValidityProof as DecodedGroupedCiphertext2HandlesValidityProof,
     pubkey_proof::PubkeyValidityProof as DecodedPubkeyValidityProof,
-    zero_balance_proof::ZeroCiphertextProof as DecodedZeroCiphertextProof,
+    zero_ciphertext_proof::ZeroCiphertextProof as DecodedZeroCiphertextProof,
 };
 use crate::zk_token_elgamal::pod::{Pod, Zeroable};
 
