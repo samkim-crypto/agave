@@ -31,6 +31,7 @@ use {
 };
 
 /// Byte length of a batched grouped ciphertext validity proof for 3 handles
+#[allow(dead_code)]
 const BATCHED_GROUPED_CIPHERTEXT_3_HANDLES_VALIDITY_PROOF_LEN: usize = UNIT_LEN * 6;
 
 /// Batched grouped ciphertext validity proof with two handles.
@@ -39,6 +40,7 @@ const BATCHED_GROUPED_CIPHERTEXT_3_HANDLES_VALIDITY_PROOF_LEN: usize = UNIT_LEN 
 pub struct BatchedGroupedCiphertext3HandlesValidityProof(GroupedCiphertext3HandlesValidityProof);
 
 #[allow(non_snake_case)]
+#[allow(dead_code)]
 #[cfg(not(target_os = "solana"))]
 impl BatchedGroupedCiphertext3HandlesValidityProof {
     /// Creates a batched grouped ciphertext validity proof.
