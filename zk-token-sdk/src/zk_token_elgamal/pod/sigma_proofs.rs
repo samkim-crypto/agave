@@ -23,7 +23,7 @@ const CIPHERTEXT_CIPHERTEXT_EQUALITY_PROOF_LEN: usize = 224;
 /// Byte length of a grouped ciphertext for 2 handles validity proof
 const GROUPED_CIPHERTEXT_2_HANDLES_VALIDITY_PROOF_LEN: usize = 160;
 
-/// Byte length of a grouped ciphertext for 2 handles validity proof
+/// Byte length of a grouped ciphertext for 3 handles validity proof
 const GROUPED_CIPHERTEXT_3_HANDLES_VALIDITY_PROOF_LEN: usize = 192;
 
 /// Byte length of a batched grouped ciphertext for 2 handles validity proof
