@@ -253,7 +253,7 @@ pub enum ProofInstruction {
     ///
     VerifyCiphertextCommitmentEquality,
 
-    /// Verify a grouped-ciphertext validity proof.
+    /// Verify a grouped-ciphertext with 2 handles validity proof.
     ///
     /// A grouped-ciphertext validity proof certifies that a grouped ElGamal ciphertext is
     /// well-defined, i.e. the ciphertext can be decrypted by private keys associated with its
@@ -271,7 +271,7 @@ pub enum ProofInstruction {
     ///
     VerifyGroupedCiphertext2HandlesValidity,
 
-    /// Verify a batched grouped-ciphertext validity proof.
+    /// Verify a batched grouped-ciphertext with 2 handles validity proof.
     ///
     /// A batched grouped-ciphertext validity proof certifies the validity of two grouped ElGamal
     /// ciphertext that are encrypted using the same set of ElGamal public keys. A batched
@@ -306,6 +306,47 @@ pub enum ProofInstruction {
     ///   ii. `u32` byte offset if proof is provided as an account
     ///
     VerifyFeeSigma,
+
+    /// Verify a grouped-ciphertext with 3 handles validity proof.
+    ///
+    /// A grouped-ciphertext validity proof certifies that a grouped ElGamal ciphertext is
+    /// well-defined, i.e. the ciphertext can be decrypted by private keys associated with its
+    /// decryption handles.
+    ///
+    /// Accounts expected by this instruction:
+    ///
+    ///   * Creating a proof context account
+    ///   0. `[writable]` The proof context account
+    ///   1. `[]` The proof context account owner
+    ///
+    ///   * Otherwise
+    ///   None
+    ///
+    /// Data expected by this instruction:
+    ///   `GroupedCiphertextValidityProofContext`
+    ///
+    VerifyGroupedCiphertext3HandlesValidity,
+
+    /// Verify a batched grouped-ciphertext with 3 handles validity proof.
+    ///
+    /// A batched grouped-ciphertext validity proof certifies the validity of two grouped ElGamal
+    /// ciphertext that are encrypted using the same set of ElGamal public keys. A batched
+    /// grouped-ciphertext validity proof is shorter and more efficient than two individual
+    /// grouped-ciphertext validity proofs.
+    ///
+    /// Accounts expected by this instruction:
+    ///
+    ///   * Creating a proof context account
+    ///   0. `[writable]` The proof context account
+    ///   1. `[]` The proof context account owner
+    ///
+    ///   * Otherwise
+    ///   None
+    ///
+    /// Data expected by this instruction:
+    ///   `BatchedGroupedCiphertextValidityProofContext`
+    ///
+    VerifyBatchedGroupedCiphertext3HandlesValidity,
 }
 
 /// Pubkeys associated with a context state account to be used as parameters to functions.
@@ -424,6 +465,24 @@ pub fn verify_ciphertext_commitment_equality(
     proof_data: &PubkeyValidityData,
 ) -> Instruction {
     ProofInstruction::VerifyCiphertextCommitmentEquality
+        .encode_verify_proof(context_state_info, proof_data)
+}
+
+/// Create a `VerifyGroupedCipehrtext3HandlesValidity` instruction.
+pub fn verify_grouped_ciphertext_3_handles_validity(
+    context_state_info: Option<ContextStateInfo>,
+    proof_data: &GroupedCiphertext3HandlesValidityProofData,
+) -> Instruction {
+    ProofInstruction::VerifyGroupedCiphertext3HandlesValidity
+        .encode_verify_proof(context_state_info, proof_data)
+}
+
+/// Create a `VerifyBatchedGroupedCiphertext3HandlesValidity` instruction.
+pub fn verify_batched_grouped_ciphertext_3_handles_validity(
+    context_state_info: Option<ContextStateInfo>,
+    proof_data: &BatchedGroupedCiphertext3HandlesValidityProofData,
+) -> Instruction {
+    ProofInstruction::VerifyBatchedGroupedCiphertext3HandlesValidity
         .encode_verify_proof(context_state_info, proof_data)
 }
 
