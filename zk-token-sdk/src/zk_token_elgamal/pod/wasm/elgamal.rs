@@ -70,6 +70,11 @@ impl PodElGamalPubkey {
         self.0 .0.into()
     }
 
+    /// Return the default representation of the public key
+    pub fn default() -> Self {
+        Self(ElGamalPubkey::default())
+    }
+
     pub fn encoded(decoded: &DecodedElGamalPubkey) -> Self {
         Self((*decoded).into())
     }
