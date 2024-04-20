@@ -322,8 +322,9 @@ pub enum ProofInstruction {
     ///   * Otherwise
     ///   None
     ///
-    /// Data expected by this instruction:
-    ///   `GroupedCiphertextValidityProofContext`
+    /// The instruction expects either:
+    ///   i. `GroupedCiphertext3HandlesValidityProofData` if proof is provided as instruction data
+    ///   ii. `u32` byte offset if proof is provided as an account
     ///
     VerifyGroupedCiphertext3HandlesValidity,
 
@@ -343,8 +344,9 @@ pub enum ProofInstruction {
     ///   * Otherwise
     ///   None
     ///
-    /// Data expected by this instruction:
-    ///   `BatchedGroupedCiphertextValidityProofContext`
+    /// The instruction expects either:
+    ///   i. `BatchedGroupedCiphertext3HandlesValidityProofData` if proof is provided as instruction data
+    ///   ii. `u32` byte offset if proof is provided as an account
     ///
     VerifyBatchedGroupedCiphertext3HandlesValidity,
 }
