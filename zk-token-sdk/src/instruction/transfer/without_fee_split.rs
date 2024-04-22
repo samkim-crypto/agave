@@ -255,3 +255,53 @@ impl TransferProofContext {
         })
     }
 }
+
+#[cfg(test)]
+mod test {
+    use {
+        super::*,
+        crate::{encryption::auth_encryption::AeKey, instruction::ZkProofData},
+    };
+
+    #[test]
+    fn test_transfer_with_split_proof_correctness() {
+        let source_keypair = ElGamalKeypair::new_rand();
+
+        let destination_keypair = ElGamalKeypair::new_rand();
+        let destination_pubkey = destination_keypair.pubkey();
+
+        let auditor_keypair = ElGamalKeypair::new_rand();
+        let auditor_pubkey = auditor_keypair.pubkey();
+
+        let aes_key = AeKey::new_rand();
+        let remaining_balance = 100;
+        let remaining_balance_elgamal_ciphertext =
+            source_keypair.pubkey().encrypt(remaining_balance);
+        let remaining_balance_decryptable_ciphertext = aes_key.encrypt(remaining_balance);
+
+        let transfer_amount = 10;
+
+        let (equality_proof_data, validity_proof_data, range_proof_data) =
+            transfer_split_proof_data(
+                &remaining_balance_elgamal_ciphertext,
+                &remaining_balance_decryptable_ciphertext,
+                transfer_amount,
+                &source_keypair,
+                &aes_key,
+                destination_pubkey,
+                &Some(auditor_pubkey),
+            )
+            .unwrap();
+
+        equality_proof_data.verify_proof().unwrap();
+        validity_proof_data.verify_proof().unwrap();
+        range_proof_data.verify_proof().unwrap();
+
+        TransferProofContext::new_from_split_proofs(
+            equality_proof_data.context_data(),
+            validity_proof_data.context_data(),
+            range_proof_data.context_data(),
+        )
+        .unwrap();
+    }
+}
