@@ -316,8 +316,9 @@ pub enum ProofInstruction {
     /// Accounts expected by this instruction:
     ///
     ///   * Creating a proof context account
-    ///   0. `[writable]` The proof context account
-    ///   1. `[]` The proof context account owner
+    ///   0. `[]` (Optional) Account to read the proof from
+    ///   1. `[writable]` The proof context account
+    ///   2. `[]` The proof context account owner
     ///
     ///   * Otherwise
     ///   None
@@ -338,8 +339,9 @@ pub enum ProofInstruction {
     /// Accounts expected by this instruction:
     ///
     ///   * Creating a proof context account
-    ///   0. `[writable]` The proof context account
-    ///   1. `[]` The proof context account owner
+    ///   0. `[]` (Optional) Account to read the proof from
+    ///   1. `[writable]` The proof context account
+    ///   2. `[]` The proof context account owner
     ///
     ///   * Otherwise
     ///   None
