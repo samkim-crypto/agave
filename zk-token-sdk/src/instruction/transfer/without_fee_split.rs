@@ -8,17 +8,25 @@ use crate::{
     },
     errors::ProofGenerationError,
     instruction::{
-        transfer::{
-            try_combine_lo_hi_ciphertexts, try_split_u64,
-            without_fee::{
-                RANGE_PROOF_PADDING_BIT_LENGTH, REMAINING_BALANCE_BIT_LENGTH,
-                TRANSFER_AMOUNT_HI_BITS, TRANSFER_AMOUNT_LO_BITS,
-            },
-            TransferAmountCiphertext,
-        },
+        transfer::{try_combine_lo_hi_ciphertexts, try_split_u64, TransferAmountCiphertext},
         BatchedGroupedCiphertext3HandlesValidityProofData, BatchedRangeProofU128Data,
         CiphertextCommitmentEqualityProofData,
     },
+};
+use crate::{
+    errors::ProofVerificationError,
+    instruction::transfer::{
+        without_fee::{
+            TransferPubkeys, RANGE_PROOF_PADDING_BIT_LENGTH, REMAINING_BALANCE_BIT_LENGTH,
+            TRANSFER_AMOUNT_HI_BITS, TRANSFER_AMOUNT_LO_BITS,
+        },
+        TransferProofContext,
+    },
+    instruction::{
+        BatchedGroupedCiphertext3HandlesValidityProofContext, BatchedRangeProofContext,
+        CiphertextCommitmentEqualityProofContext,
+    },
+    zk_token_elgamal::pod,
 };
 
 #[cfg(not(target_os = "solana"))]
@@ -147,4 +155,103 @@ pub fn transfer_split_proof_data(
         ciphertext_validity_proof_data,
         range_proof_data,
     ))
+}
+
+impl TransferProofContext {
+    /// Create a transfer proof context information from split proof contexts.
+    pub fn new_from_split_proofs(
+        equality_proof_context: &CiphertextCommitmentEqualityProofContext,
+        ciphertext_validity_proof_context: &BatchedGroupedCiphertext3HandlesValidityProofContext,
+        range_proof_context: &BatchedRangeProofContext,
+    ) -> Result<Self, ProofVerificationError> {
+        // The equality proof context consists of the source ElGamal public key, the new
+        // source available balance ciphertext, and the new source available
+        // commitment. The public key and ciphertext should be returned as parts
+        // of `TransferProofContextInfo` and the commitment should be checked
+        // with range proof for consistency.
+        let CiphertextCommitmentEqualityProofContext {
+            pubkey: source_pubkey_from_equality_proof,
+            ciphertext: new_source_ciphertext,
+            commitment: new_source_commitment,
+        } = equality_proof_context;
+
+        // The ciphertext validity proof context consists of the destination ElGamal
+        // public key, auditor ElGamal public key, and the transfer amount
+        // ciphertexts. All of these fields should be returned as part of
+        // `TransferProofContextInfo`. In addition, the commitments pertaining
+        // to the transfer amount ciphertexts should be checked with range proof for
+        // consistency.
+        let BatchedGroupedCiphertext3HandlesValidityProofContext {
+            source_pubkey: source_pubkey_from_validity_proof,
+            destination_pubkey,
+            auditor_pubkey,
+            grouped_ciphertext_lo: transfer_amount_ciphertext_lo,
+            grouped_ciphertext_hi: transfer_amount_ciphertext_hi,
+        } = ciphertext_validity_proof_context;
+
+        // The range proof context consists of the Pedersen commitments and bit-lengths
+        // for which the range proof is proved. The commitments must consist of
+        // three commitments pertaining to the new source available balance, the
+        // low bits of the transfer amount, and high bits of the transfer
+        // amount. These commitments must be checked for bit lengths `64`, `16`,
+        // and `32`.
+        let BatchedRangeProofContext {
+            commitments: range_proof_commitments,
+            bit_lengths: range_proof_bit_lengths,
+        } = range_proof_context;
+
+        // check that the ElGamal pubkeys from equality and validity proofs are consistent
+        if source_pubkey_from_equality_proof != source_pubkey_from_validity_proof {
+            return Err(ProofVerificationError::ProofContext);
+        }
+
+        // check that the range proof was created for the correct set of Pedersen
+        // commitments
+        let transfer_amount_commitment_lo = transfer_amount_ciphertext_lo.extract_commitment();
+        let transfer_amount_commitment_hi = transfer_amount_ciphertext_hi.extract_commitment();
+
+        let expected_commitments = [
+            *new_source_commitment,
+            transfer_amount_commitment_lo,
+            transfer_amount_commitment_hi,
+            // the fourth dummy commitment can be any commitment
+        ];
+
+        if !range_proof_commitments
+            .iter()
+            .zip(expected_commitments.iter())
+            .all(|(proof_commitment, expected_commitment)| proof_commitment == expected_commitment)
+        {
+            return Err(ProofVerificationError::ProofContext);
+        }
+
+        let expected_bit_lengths = [
+            REMAINING_BALANCE_BIT_LENGTH,
+            TRANSFER_AMOUNT_LO_BITS,
+            TRANSFER_AMOUNT_HI_BITS,
+            RANGE_PROOF_PADDING_BIT_LENGTH,
+        ]
+        .iter();
+
+        if !range_proof_bit_lengths
+            .iter()
+            .zip(expected_bit_lengths)
+            .all(|(proof_len, expected_len)| *proof_len as usize == *expected_len)
+        {
+            return Err(ProofVerificationError::ProofContext);
+        }
+
+        let transfer_pubkeys = TransferPubkeys {
+            source: *source_pubkey_from_equality_proof,
+            destination: *destination_pubkey,
+            auditor: *auditor_pubkey,
+        };
+
+        Ok(Self {
+            ciphertext_lo: pod::TransferAmountCiphertext(*transfer_amount_ciphertext_lo),
+            ciphertext_hi: pod::TransferAmountCiphertext(*transfer_amount_ciphertext_hi),
+            transfer_pubkeys,
+            new_source_ciphertext: *new_source_ciphertext,
+        })
+    }
 }
