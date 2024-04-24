@@ -221,28 +221,6 @@ impl ElGamalKeypair {
         &self.secret
     }
 
-    #[deprecated(note = "please use `into()` instead")]
-    #[allow(deprecated)]
-    pub fn to_bytes(&self) -> [u8; ELGAMAL_KEYPAIR_LEN] {
-        let mut bytes = [0u8; ELGAMAL_KEYPAIR_LEN];
-        bytes[..ELGAMAL_PUBKEY_LEN].copy_from_slice(&self.public.to_bytes());
-        bytes[ELGAMAL_PUBKEY_LEN..].copy_from_slice(self.secret.as_bytes());
-        bytes
-    }
-
-    #[deprecated(note = "please use `try_from()` instead")]
-    #[allow(deprecated)]
-    pub fn from_bytes(bytes: &[u8]) -> Option<Self> {
-        if bytes.len() != ELGAMAL_KEYPAIR_LEN {
-            return None;
-        }
-
-        Some(Self {
-            public: ElGamalPubkey::from_bytes(&bytes[..ELGAMAL_PUBKEY_LEN])?,
-            secret: ElGamalSecretKey::from_bytes(bytes[ELGAMAL_PUBKEY_LEN..].try_into().ok()?)?,
-        })
-    }
-
     /// Reads a JSON-encoded keypair from a `Reader` implementor
     pub fn read_json<R: Read>(reader: &mut R) -> Result<Self, Box<dyn error::Error>> {
         let bytes: Vec<u8> = serde_json::from_reader(reader)?;
@@ -365,22 +343,6 @@ impl ElGamalPubkey {
 
     pub fn get_point(&self) -> &RistrettoPoint {
         &self.0
-    }
-
-    #[deprecated(note = "please use `into()` instead")]
-    pub fn to_bytes(&self) -> [u8; ELGAMAL_PUBKEY_LEN] {
-        self.0.compress().to_bytes()
-    }
-
-    #[deprecated(note = "please use `try_from()` instead")]
-    pub fn from_bytes(bytes: &[u8]) -> Option<ElGamalPubkey> {
-        if bytes.len() != ELGAMAL_PUBKEY_LEN {
-            return None;
-        }
-
-        Some(ElGamalPubkey(
-            CompressedRistretto::from_slice(bytes).decompress()?,
-        ))
     }
 
     /// Encrypts an amount under the public key.
@@ -542,19 +504,6 @@ impl ElGamalSecretKey {
 
     pub fn as_bytes(&self) -> &[u8; ELGAMAL_SECRET_KEY_LEN] {
         self.0.as_bytes()
-    }
-
-    #[deprecated(note = "please use `into()` instead")]
-    pub fn to_bytes(&self) -> [u8; ELGAMAL_SECRET_KEY_LEN] {
-        self.0.to_bytes()
-    }
-
-    #[deprecated(note = "please use `try_from()` instead")]
-    pub fn from_bytes(bytes: &[u8]) -> Option<ElGamalSecretKey> {
-        match bytes.try_into() {
-            Ok(bytes) => Scalar::from_canonical_bytes(bytes).map(ElGamalSecretKey),
-            _ => None,
-        }
     }
 }
 
