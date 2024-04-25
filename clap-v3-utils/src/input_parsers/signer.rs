@@ -1,7 +1,7 @@
 use {
     crate::keypair::{
-        keypair_from_seed_phrase, pubkey_from_path, resolve_signer_from_path, signer_from_path,
-        ASK_KEYWORD, SKIP_SEED_PHRASE_VALIDATION_ARG,
+        keypair_from_seed_phrase, keypair_from_source, pubkey_from_path, resolve_signer_from_path,
+        signer_from_path, ASK_KEYWORD, SKIP_SEED_PHRASE_VALIDATION_ARG,
     },
     clap::{builder::ValueParser, ArgMatches},
     solana_remote_wallet::{
@@ -86,6 +86,33 @@ impl SignerSource {
             kind,
             derivation_path: None,
             legacy: true,
+        }
+    }
+
+    pub fn try_get_keypair(
+        matches: &ArgMatches,
+        name: &str,
+    ) -> Result<Option<Keypair>, Box<dyn error::Error>> {
+        let source = matches.try_get_one::<Self>(name)?;
+        if let Some(source) = source {
+            keypair_from_source(matches, source, name, true).map(Some)
+        } else {
+            Ok(None)
+        }
+    }
+
+    pub fn try_get_keypairs(
+        matches: &ArgMatches,
+        name: &str,
+    ) -> Result<Option<Vec<Keypair>>, Box<dyn error::Error>> {
+        let sources = matches.try_get_many::<Self>(name)?;
+        if let Some(sources) = sources {
+            let keypairs = sources
+                .filter_map(|source| keypair_from_source(matches, source, name, true).ok())
+                .collect();
+            Ok(Some(keypairs))
+        } else {
+            Ok(None)
         }
     }
 
