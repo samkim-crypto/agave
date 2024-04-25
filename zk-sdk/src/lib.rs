@@ -20,9 +20,6 @@
 #![allow(clippy::arithmetic_side_effects, clippy::op_ref)]
 
 #[cfg(not(target_os = "solana"))]
-#[macro_use]
-pub(crate) mod macros;
-#[cfg(not(target_os = "solana"))]
 pub mod encryption;
 
 pub mod errors;
