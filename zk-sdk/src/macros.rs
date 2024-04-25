@@ -1,5 +1,4 @@
 // Internal macros, used to defined the 'main' impls
-#[macro_export]
 macro_rules! define_add_variants {
     (LHS = $lhs:ty, RHS = $rhs:ty, Output = $out:ty) => {
         impl<'b> Add<&'b $rhs> for $lhs {
