@@ -1,8 +1,8 @@
 use {
     crate::keypair::{
         keypair_from_seed_phrase, keypair_from_source, pubkey_from_path, pubkey_from_source,
-        resolve_signer_from_path, signer_from_path, signer_from_source, ASK_KEYWORD,
-        SKIP_SEED_PHRASE_VALIDATION_ARG,
+        resolve_signer_from_path, resolve_signer_from_source, signer_from_path, signer_from_source,
+        ASK_KEYWORD, SKIP_SEED_PHRASE_VALIDATION_ARG,
     },
     clap::{builder::ValueParser, ArgMatches},
     solana_remote_wallet::{
@@ -178,6 +178,19 @@ impl SignerSource {
                 .filter_map(|source| pubkey_from_source(matches, source, name, wallet_manager).ok())
                 .collect();
             Ok(Some(pubkeys))
+        } else {
+            Ok(None)
+        }
+    }
+
+    pub fn try_resolve(
+        matches: &ArgMatches,
+        name: &str,
+        wallet_manager: &mut Option<Rc<RemoteWalletManager>>,
+    ) -> Result<Option<String>, Box<dyn std::error::Error>> {
+        let source = matches.try_get_one::<Self>(name)?;
+        if let Some(source) = source {
+            resolve_signer_from_source(matches, source, name, wallet_manager)
         } else {
             Ok(None)
         }
