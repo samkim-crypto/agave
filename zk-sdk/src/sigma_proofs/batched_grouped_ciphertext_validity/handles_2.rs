@@ -17,7 +17,7 @@ use {
     crate::{
         sigma_proofs::{
             errors::ValidityProofVerificationError,
-            grouped_ciphertext_validity_proof::GroupedCiphertext2HandlesValidityProof,
+            grouped_ciphertext_validity::GroupedCiphertext2HandlesValidityProof,
         },
         transcript::TranscriptProtocol,
     },

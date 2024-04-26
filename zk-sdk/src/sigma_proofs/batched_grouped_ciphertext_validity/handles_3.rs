@@ -21,7 +21,7 @@ use {
     crate::{
         sigma_proofs::{
             errors::ValidityProofVerificationError,
-            grouped_ciphertext_validity_proof::GroupedCiphertext3HandlesValidityProof,
+            grouped_ciphertext_validity::GroupedCiphertext3HandlesValidityProof,
         },
         transcript::TranscriptProtocol,
         UNIT_LEN,
