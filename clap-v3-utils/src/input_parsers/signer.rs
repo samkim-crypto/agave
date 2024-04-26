@@ -1,7 +1,8 @@
 use {
     crate::keypair::{
-        keypair_from_seed_phrase, keypair_from_source, pubkey_from_path, resolve_signer_from_path,
-        signer_from_path, signer_from_source, ASK_KEYWORD, SKIP_SEED_PHRASE_VALIDATION_ARG,
+        keypair_from_seed_phrase, keypair_from_source, pubkey_from_path, pubkey_from_source,
+        resolve_signer_from_path, signer_from_path, signer_from_source, ASK_KEYWORD,
+        SKIP_SEED_PHRASE_VALIDATION_ARG,
     },
     clap::{builder::ValueParser, ArgMatches},
     solana_remote_wallet::{
@@ -148,6 +149,35 @@ impl SignerSource {
                 })
                 .collect();
             Ok(Some(signers))
+        } else {
+            Ok(None)
+        }
+    }
+
+    pub fn try_get_pubkey(
+        matches: &ArgMatches,
+        name: &str,
+        wallet_manager: &mut Option<Rc<RemoteWalletManager>>,
+    ) -> Result<Option<Pubkey>, Box<dyn error::Error>> {
+        let source = matches.try_get_one::<Self>(name)?;
+        if let Some(source) = source {
+            pubkey_from_source(matches, source, name, wallet_manager).map(Some)
+        } else {
+            Ok(None)
+        }
+    }
+
+    pub fn try_get_pubkeys(
+        matches: &ArgMatches,
+        name: &str,
+        wallet_manager: &mut Option<Rc<RemoteWalletManager>>,
+    ) -> Result<Option<Vec<Pubkey>>, Box<dyn std::error::Error>> {
+        let sources = matches.try_get_many::<Self>(name)?;
+        if let Some(sources) = sources {
+            let pubkeys = sources
+                .filter_map(|source| pubkey_from_source(matches, source, name, wallet_manager).ok())
+                .collect();
+            Ok(Some(pubkeys))
         } else {
             Ok(None)
         }
