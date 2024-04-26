@@ -7703,6 +7703,7 @@ dependencies = [
  "curve25519-dalek",
  "itertools",
  "lazy_static",
+ "merlin",
  "rand 0.7.3",
  "serde",
  "serde_json",
