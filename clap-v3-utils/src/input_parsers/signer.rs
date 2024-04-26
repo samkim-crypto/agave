@@ -1,7 +1,7 @@
 use {
     crate::keypair::{
         keypair_from_seed_phrase, keypair_from_source, pubkey_from_path, resolve_signer_from_path,
-        signer_from_path, ASK_KEYWORD, SKIP_SEED_PHRASE_VALIDATION_ARG,
+        signer_from_path, signer_from_source, ASK_KEYWORD, SKIP_SEED_PHRASE_VALIDATION_ARG,
     },
     clap::{builder::ValueParser, ArgMatches},
     solana_remote_wallet::{
@@ -111,6 +111,43 @@ impl SignerSource {
                 .filter_map(|source| keypair_from_source(matches, source, name, true).ok())
                 .collect();
             Ok(Some(keypairs))
+        } else {
+            Ok(None)
+        }
+    }
+
+    #[allow(clippy::type_complexity)]
+    pub fn try_get_signer(
+        matches: &ArgMatches,
+        name: &str,
+        wallet_manager: &mut Option<Rc<RemoteWalletManager>>,
+    ) -> Result<Option<(Box<dyn Signer>, Pubkey)>, Box<dyn error::Error>> {
+        let source = matches.try_get_one::<Self>(name)?;
+        if let Some(source) = source {
+            let signer = signer_from_source(matches, source, name, wallet_manager)?;
+            let signer_pubkey = signer.pubkey();
+            Ok(Some((signer, signer_pubkey)))
+        } else {
+            Ok(None)
+        }
+    }
+
+    #[allow(clippy::type_complexity)]
+    pub fn try_get_signers(
+        matches: &ArgMatches,
+        name: &str,
+        wallet_manager: &mut Option<Rc<RemoteWalletManager>>,
+    ) -> Result<Option<Vec<(Box<dyn Signer>, Pubkey)>>, Box<dyn error::Error>> {
+        let sources = matches.try_get_many::<Self>(name)?;
+        if let Some(sources) = sources {
+            let signers = sources
+                .filter_map(|source| {
+                    let signer = signer_from_source(matches, source, name, wallet_manager).ok()?;
+                    let signer_pubkey = signer.pubkey();
+                    Some((signer, signer_pubkey))
+                })
+                .collect();
+            Ok(Some(signers))
         } else {
             Ok(None)
         }
