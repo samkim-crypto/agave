@@ -100,17 +100,14 @@ impl PercentageWithCapProof {
     /// * `max_fee` - The maximum fee bound
     /// * `transcript` - The transcript that does the bookkeeping for the Fiat-Shamir heuristic
     pub fn new(
-        (percentage_amount, percentage_commitment, percentage_opening): (
-            u64,
-            &PedersenCommitment,
-            &PedersenOpening,
-        ),
-        (delta_percentage, delta_commitment, delta_opening): (
-            u64,
-            &PedersenCommitment,
-            &PedersenOpening,
-        ),
-        (claimed_commitment, claimed_opening): (&PedersenCommitment, &PedersenOpening),
+        percentage_commitment: &PedersenCommitment,
+        percentage_opening: &PedersenOpening,
+        percentage_amount: u64,
+        delta_commitment: &PedersenCommitment,
+        delta_opening: &PedersenOpening,
+        delta_amount: u64,
+        claimed_commitment: &PedersenCommitment,
+        claimed_opening: &PedersenOpening,
         max_value: u64,
         transcript: &mut Transcript,
     ) -> Self {
@@ -127,7 +124,8 @@ impl PercentageWithCapProof {
 
         let proof_below_max = Self::create_proof_percentage_below_max(
             percentage_commitment,
-            (delta_percentage, delta_opening),
+            delta_opening,
+            delta_amount,
             claimed_opening,
             max_value,
             &mut transcript_percentage_below_max,
@@ -243,7 +241,8 @@ impl PercentageWithCapProof {
     /// * `transcript` - The transcript that does the bookkeeping for the Fiat-Shamir heuristic
     fn create_proof_percentage_below_max(
         percentage_commitment: &PedersenCommitment,
-        (delta_amount, delta_opening): (u64, &PedersenOpening),
+        delta_opening: &PedersenOpening,
+        delta_amount: u64,
         claimed_opening: &PedersenOpening,
         max_value: u64,
         transcript: &mut Transcript,
@@ -561,13 +560,14 @@ mod test {
         let mut verifier_transcript = Transcript::new(b"test");
 
         let proof = PercentageWithCapProof::new(
-            (
-                percentage_amount,
-                &percentage_commitment,
-                &percentage_opening,
-            ),
-            (delta, &delta_commitment, &delta_opening),
-            (&claimed_commitment, &claimed_opening),
+            &percentage_commitment,
+            &percentage_opening,
+            percentage_amount,
+            &delta_commitment,
+            &delta_opening,
+            delta,
+            &claimed_commitment,
+            &claimed_opening,
             max_value,
             &mut prover_transcript,
         );
@@ -612,13 +612,14 @@ mod test {
         let mut verifier_transcript = Transcript::new(b"test");
 
         let proof = PercentageWithCapProof::new(
-            (
-                percentage_amount,
-                &percentage_commitment,
-                &percentage_opening,
-            ),
-            (delta, &delta_commitment, &delta_opening),
-            (&claimed_commitment, &claimed_opening),
+            &percentage_commitment,
+            &percentage_opening,
+            percentage_amount,
+            &delta_commitment,
+            &delta_opening,
+            delta,
+            &claimed_commitment,
+            &claimed_opening,
             max_value,
             &mut prover_transcript,
         );
@@ -658,13 +659,14 @@ mod test {
         let mut verifier_transcript = Transcript::new(b"test");
 
         let proof = PercentageWithCapProof::new(
-            (
-                percentage_amount,
-                &percentage_commitment,
-                &percentage_opening,
-            ),
-            (delta, &delta_commitment, &delta_opening),
-            (&claimed_commitment, &claimed_opening),
+            &percentage_commitment,
+            &percentage_opening,
+            percentage_amount,
+            &delta_commitment,
+            &delta_opening,
+            delta,
+            &claimed_commitment,
+            &claimed_opening,
             max_value,
             &mut prover_transcript,
         );
