@@ -38,7 +38,7 @@ const ZERO_BALANCE_PROOF_LEN: usize = UNIT_LEN * 3;
 /// Contains all the elliptic curve and scalar components that make up the sigma protocol.
 #[allow(non_snake_case)]
 #[derive(Clone)]
-pub struct ZeroBalanceProof {
+pub struct ZeroCiphertextProof {
     Y_P: CompressedRistretto,
     Y_D: CompressedRistretto,
     z: Scalar,
@@ -46,7 +46,7 @@ pub struct ZeroBalanceProof {
 
 #[allow(non_snake_case)]
 #[cfg(not(target_os = "solana"))]
-impl ZeroBalanceProof {
+impl ZeroCiphertextProof {
     /// Creates a zero-balance proof.
     ///
     /// The function does *not* hash the public key and ciphertext into the transcript. For
@@ -172,7 +172,7 @@ impl ZeroBalanceProof {
         let Y_P = ristretto_point_from_optional_slice(chunks.next())?;
         let Y_D = ristretto_point_from_optional_slice(chunks.next())?;
         let z = canonical_scalar_from_optional_slice(chunks.next())?;
-        Ok(ZeroBalanceProof { Y_P, Y_D, z })
+        Ok(ZeroCiphertextProof { Y_P, Y_D, z })
     }
 }
 
@@ -196,7 +196,7 @@ mod test {
         // general case: encryption of 0
         let elgamal_ciphertext = source_keypair.pubkey().encrypt(0_u64);
         let proof =
-            ZeroBalanceProof::new(&source_keypair, &elgamal_ciphertext, &mut prover_transcript);
+            ZeroCiphertextProof::new(&source_keypair, &elgamal_ciphertext, &mut prover_transcript);
         assert!(proof
             .verify(
                 source_keypair.pubkey(),
@@ -208,7 +208,7 @@ mod test {
         // general case: encryption of > 0
         let elgamal_ciphertext = source_keypair.pubkey().encrypt(1_u64);
         let proof =
-            ZeroBalanceProof::new(&source_keypair, &elgamal_ciphertext, &mut prover_transcript);
+            ZeroCiphertextProof::new(&source_keypair, &elgamal_ciphertext, &mut prover_transcript);
         assert!(proof
             .verify(
                 source_keypair.pubkey(),
@@ -228,7 +228,7 @@ mod test {
         // all zero ciphertext should always be a valid encryption of 0
         let ciphertext = ElGamalCiphertext::from_bytes(&[0u8; 64]).unwrap();
 
-        let proof = ZeroBalanceProof::new(&source_keypair, &ciphertext, &mut prover_transcript);
+        let proof = ZeroCiphertextProof::new(&source_keypair, &ciphertext, &mut prover_transcript);
 
         assert!(proof
             .verify(
@@ -253,7 +253,7 @@ mod test {
             handle,
         };
 
-        let proof = ZeroBalanceProof::new(&source_keypair, &ciphertext, &mut prover_transcript);
+        let proof = ZeroCiphertextProof::new(&source_keypair, &ciphertext, &mut prover_transcript);
 
         assert!(proof
             .verify(
@@ -272,7 +272,7 @@ mod test {
             handle: DecryptHandle::from_bytes(&[0u8; 32]).unwrap(),
         };
 
-        let proof = ZeroBalanceProof::new(&source_keypair, &ciphertext, &mut prover_transcript);
+        let proof = ZeroCiphertextProof::new(&source_keypair, &ciphertext, &mut prover_transcript);
 
         assert!(proof
             .verify(
@@ -289,7 +289,7 @@ mod test {
         let public = ElGamalPubkey::try_from([0u8; 32].as_slice()).unwrap();
         let ciphertext = public.encrypt(0_u64);
 
-        let proof = ZeroBalanceProof::new(&source_keypair, &ciphertext, &mut prover_transcript);
+        let proof = ZeroCiphertextProof::new(&source_keypair, &ciphertext, &mut prover_transcript);
 
         assert!(proof
             .verify(
