@@ -22,7 +22,9 @@ use {
 };
 use {
     crate::{
-        sigma_proofs::errors::{FeeSigmaProofVerificationError, SigmaProofVerificationError},
+        sigma_proofs::errors::{
+            PercentageWithCapProofVerificationError, SigmaProofVerificationError,
+        },
         transcript::TranscriptProtocol,
     },
     curve25519_dalek::{
@@ -322,7 +324,7 @@ impl PercentageWithCapProof {
         claimed_commitment: &PedersenCommitment,
         max_value: u64,
         transcript: &mut Transcript,
-    ) -> Result<(), FeeSigmaProofVerificationError> {
+    ) -> Result<(), PercentageWithCapProofVerificationError> {
         // extract the relevant scalar and Ristretto points from the input
         let m = Scalar::from(max_value);
 
@@ -441,7 +443,7 @@ impl PercentageWithCapProof {
         buf
     }
 
-    pub fn from_bytes(bytes: &[u8]) -> Result<Self, FeeSigmaProofVerificationError> {
+    pub fn from_bytes(bytes: &[u8]) -> Result<Self, PercentageWithCapProofVerificationError> {
         let mut chunks = bytes.chunks(UNIT_LEN);
         let Y_max_proof = ristretto_point_from_optional_slice(chunks.next())?;
         let z_max_proof = canonical_scalar_from_optional_slice(chunks.next())?;
