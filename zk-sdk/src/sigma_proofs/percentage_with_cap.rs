@@ -46,10 +46,10 @@ const PERCENTAGE_WITH_CAP_PROOF_LEN: usize = UNIT_LEN * 8;
 #[derive(Clone)]
 pub struct PercentageWithCapProof {
     /// Proof that the committed fee amount equals the maximum fee bound
-    fee_max_proof: FeeMaxProof,
+    fee_max_proof: PercentageMaxProof,
 
     /// Proof that the "real" delta value is equal to the "claimed" delta value
-    fee_equality_proof: FeeEqualityProof,
+    fee_equality_proof: PercentageEqualityProof,
 }
 
 #[allow(non_snake_case, dead_code)]
@@ -127,13 +127,13 @@ impl PercentageWithCapProof {
 
         // choose one of `proof_fee_above_max` or `proof_fee_below_max` according to whether the
         // fee amount is greater than `max_fee` or not
-        let fee_max_proof = FeeMaxProof::conditional_select(
+        let fee_max_proof = PercentageMaxProof::conditional_select(
             &proof_fee_above_max.fee_max_proof,
             &proof_fee_below_max.fee_max_proof,
             below_max,
         );
 
-        let fee_equality_proof = FeeEqualityProof::conditional_select(
+        let fee_equality_proof = PercentageEqualityProof::conditional_select(
             &proof_fee_above_max.fee_equality_proof,
             &proof_fee_below_max.fee_equality_proof,
             below_max,
@@ -185,7 +185,7 @@ impl PercentageWithCapProof {
         )
         .compress();
 
-        let fee_equality_proof = FeeEqualityProof {
+        let fee_equality_proof = PercentageEqualityProof {
             Y_delta,
             Y_claimed,
             z_x,
@@ -210,7 +210,7 @@ impl PercentageWithCapProof {
 
         let z_max_proof = c_max_proof * r_fee + y_max_proof;
 
-        let fee_max_proof = FeeMaxProof {
+        let fee_max_proof = PercentageMaxProof {
             Y_max_proof,
             z_max_proof,
             c_max_proof,
@@ -252,7 +252,7 @@ impl PercentageWithCapProof {
         )
         .compress();
 
-        let fee_max_proof = FeeMaxProof {
+        let fee_max_proof = PercentageMaxProof {
             Y_max_proof,
             z_max_proof,
             c_max_proof,
@@ -286,7 +286,7 @@ impl PercentageWithCapProof {
         let z_delta = c_equality * r_delta + y_delta;
         let z_claimed = c_equality * r_claimed + y_claimed;
 
-        let fee_equality_proof = FeeEqualityProof {
+        let fee_equality_proof = PercentageEqualityProof {
             Y_delta,
             Y_claimed,
             z_x,
@@ -443,12 +443,12 @@ impl PercentageWithCapProof {
         let z_claimed = canonical_scalar_from_optional_slice(chunks.next())?;
 
         Ok(Self {
-            fee_max_proof: FeeMaxProof {
+            fee_max_proof: PercentageMaxProof {
                 Y_max_proof,
                 z_max_proof,
                 c_max_proof,
             },
-            fee_equality_proof: FeeEqualityProof {
+            fee_equality_proof: PercentageEqualityProof {
                 Y_delta,
                 Y_claimed,
                 z_x,
@@ -464,13 +464,13 @@ impl PercentageWithCapProof {
 /// The proof certifies that the transfer fee Pedersen commitment encodes the maximum fee bound.
 #[allow(non_snake_case)]
 #[derive(Clone, Copy)]
-pub struct FeeMaxProof {
+pub struct PercentageMaxProof {
     Y_max_proof: CompressedRistretto,
     z_max_proof: Scalar,
     c_max_proof: Scalar,
 }
 
-impl ConditionallySelectable for FeeMaxProof {
+impl ConditionallySelectable for PercentageMaxProof {
     fn conditional_select(a: &Self, b: &Self, choice: Choice) -> Self {
         Self {
             Y_max_proof: conditional_select_ristretto(&a.Y_max_proof, &b.Y_max_proof, choice),
@@ -486,7 +486,7 @@ impl ConditionallySelectable for FeeMaxProof {
 /// commitment encode the same message.
 #[allow(non_snake_case)]
 #[derive(Clone, Copy)]
-pub struct FeeEqualityProof {
+pub struct PercentageEqualityProof {
     Y_delta: CompressedRistretto,
     Y_claimed: CompressedRistretto,
     z_x: Scalar,
@@ -494,7 +494,7 @@ pub struct FeeEqualityProof {
     z_claimed: Scalar,
 }
 
-impl ConditionallySelectable for FeeEqualityProof {
+impl ConditionallySelectable for PercentageEqualityProof {
     fn conditional_select(a: &Self, b: &Self, choice: Choice) -> Self {
         Self {
             Y_delta: conditional_select_ristretto(&a.Y_delta, &b.Y_delta, choice),
