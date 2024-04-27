@@ -19,7 +19,7 @@ use {
 };
 use {
     crate::{
-        sigma_proofs::errors::{SigmaProofVerificationError, ZeroBalanceProofVerificationError},
+        sigma_proofs::errors::{SigmaProofVerificationError, ZeroCiphertextProofVerificationError},
         transcript::TranscriptProtocol,
     },
     curve25519_dalek::{
@@ -104,7 +104,7 @@ impl ZeroCiphertextProof {
         elgamal_pubkey: &ElGamalPubkey,
         ciphertext: &ElGamalCiphertext,
         transcript: &mut Transcript,
-    ) -> Result<(), ZeroBalanceProofVerificationError> {
+    ) -> Result<(), ZeroCiphertextProofVerificationError> {
         transcript.zero_balance_proof_domain_separator();
 
         // extract the relevant scalar and Ristretto points from the input
@@ -167,7 +167,7 @@ impl ZeroCiphertextProof {
         buf
     }
 
-    pub fn from_bytes(bytes: &[u8]) -> Result<Self, ZeroBalanceProofVerificationError> {
+    pub fn from_bytes(bytes: &[u8]) -> Result<Self, ZeroCiphertextProofVerificationError> {
         let mut chunks = bytes.chunks(UNIT_LEN);
         let Y_P = ristretto_point_from_optional_slice(chunks.next())?;
         let Y_D = ristretto_point_from_optional_slice(chunks.next())?;
