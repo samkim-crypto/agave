@@ -1,9 +1,10 @@
-//! The fee sigma proof.
+//! The percentage-with-cap sigma proof.
 //!
-//! A fee sigma proof certifies that an ElGamal ciphertext encrypts a properly computed transfer fee.
+//! Given two ElGamal ciphertexts, a percentage-with-cap proof certifies that one ciphertext holds
+//! a percentage of the value that is encrypted in the other ciphertext.
 //!
-//! A detailed description of how transfer fees and proofs are calculated is provided in the [`ZK
-//! Token proof program`] documentation.
+//! A detailed description of how the proof is computed is provided in the [`ZK Token proof
+//! program`] documentation.
 //!
 //! The protocol guarantees computational soundness (by the hardness of discrete log) and perfect
 //! zero-knowledge in the random oracle model.
@@ -34,16 +35,16 @@ use {
 };
 
 /// Byte length of a fee sigma proof.
-const FEE_SIGMA_PROOF_LEN: usize = UNIT_LEN * 8;
+const PERCENTAGE_WITH_CAP_PROOF_LEN: usize = UNIT_LEN * 8;
 
-/// Fee sigma proof.
+/// Percentage-with-cap proof.
 ///
 /// The proof consists of two main components: `fee_max_proof` and `fee_equality_proof`. If the fee
 /// is greater than the maximum fee bound, then the `fee_max_proof` is properly generated and
 /// `fee_equality_proof` is simulated. If the fee is smaller than the maximum fee bound, the
 /// `fee_equality_proof` is properly generated and `fee_max_proof` is simulated.
 #[derive(Clone)]
-pub struct FeeSigmaProof {
+pub struct PercentageWithCapProof {
     /// Proof that the committed fee amount equals the maximum fee bound
     fee_max_proof: FeeMaxProof,
 
@@ -53,9 +54,9 @@ pub struct FeeSigmaProof {
 
 #[allow(non_snake_case, dead_code)]
 #[cfg(not(target_os = "solana"))]
-impl FeeSigmaProof {
-    /// Creates a fee sigma proof assuming that the committed fee is greater than the maximum fee
-    /// bound.
+impl PercentageWithCapProof {
+    /// Creates a percentage-with-cap sigma proof assuming that the committed fee is greater than
+    /// the maximum fee bound.
     ///
     /// A transfer fee amount `fee_amount` for a `transfer_amount` is determined by two parameters:
     /// - the `fee_rate_basis_point`, which defines the fee rate in units of 0.01%,
@@ -150,8 +151,8 @@ impl FeeSigmaProof {
         }
     }
 
-    /// Creates a fee sigma proof assuming that the committed fee is greater than the maximum fee
-    /// bound.
+    /// Creates a percentage-with-cap sigma proof assuming that the committed fee is greater than
+    /// the maximum fee bound.
     ///
     /// * `fee_opening` - The opening of the Pedersen commitment of the transfer fee
     /// * `delta_commitment` - The Pedersen commitment of the "real" delta value
@@ -221,8 +222,8 @@ impl FeeSigmaProof {
         }
     }
 
-    /// Creates a fee sigma proof assuming that the committed fee is less than the maximum fee
-    /// bound.
+    /// Creates a percentage-with-cap sigma proof assuming that the committed fee is less than the
+    /// maximum fee bound.
     ///
     /// * `fee_commitment` - The Pedersen commitment of the transfer fee
     /// * `(delta_fee, delta_opening)` - The Pedersen commitment and opening of the "real" delta
@@ -299,7 +300,7 @@ impl FeeSigmaProof {
         }
     }
 
-    /// Verifies a fee sigma proof
+    /// Verifies a percentage-with-cap proof.
     ///
     /// * `fee_commitment` - The Pedersen commitment of the transfer fee
     /// * `delta_commitment` - The Pedersen commitment of the "real" delta value
@@ -391,8 +392,8 @@ impl FeeSigmaProof {
         }
     }
 
-    pub fn to_bytes(&self) -> [u8; FEE_SIGMA_PROOF_LEN] {
-        let mut buf = [0_u8; FEE_SIGMA_PROOF_LEN];
+    pub fn to_bytes(&self) -> [u8; PERCENTAGE_WITH_CAP_PROOF_LEN] {
+        let mut buf = [0_u8; PERCENTAGE_WITH_CAP_PROOF_LEN];
         let mut chunks = buf.chunks_mut(UNIT_LEN);
         chunks
             .next()
@@ -546,7 +547,7 @@ mod test {
         let mut prover_transcript = Transcript::new(b"test");
         let mut verifier_transcript = Transcript::new(b"test");
 
-        let proof = FeeSigmaProof::new(
+        let proof = PercentageWithCapProof::new(
             (fee_amount, &fee_commitment, &fee_opening),
             (delta, &delta_commitment, &delta_opening),
             (&claimed_commitment, &claimed_opening),
@@ -593,7 +594,7 @@ mod test {
         let mut prover_transcript = Transcript::new(b"test");
         let mut verifier_transcript = Transcript::new(b"test");
 
-        let proof = FeeSigmaProof::new(
+        let proof = PercentageWithCapProof::new(
             (fee_amount, &fee_commitment, &fee_opening),
             (delta, &delta_commitment, &delta_opening),
             (&claimed_commitment, &claimed_opening),
@@ -635,7 +636,7 @@ mod test {
         let mut prover_transcript = Transcript::new(b"test");
         let mut verifier_transcript = Transcript::new(b"test");
 
-        let proof = FeeSigmaProof::new(
+        let proof = PercentageWithCapProof::new(
             (fee_amount, &fee_commitment, &fee_opening),
             (delta, &delta_commitment, &delta_opening),
             (&claimed_commitment, &claimed_opening),
