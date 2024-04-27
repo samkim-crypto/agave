@@ -10,6 +10,8 @@
 //! the original Bulletproofs [paper](https://eprint.iacr.org/2017/1066) (Section 4.3).
 //!
 
+#![allow(dead_code)]
+
 #[cfg(not(target_os = "solana"))]
 use {
     crate::encryption::pedersen::{Pedersen, PedersenCommitment, PedersenOpening},
