@@ -116,14 +116,14 @@ impl PercentageWithCapProof {
         let mut transcript_percentage_below_max = transcript.clone();
 
         // compute proof for both cases `fee_amount' >= `max_fee` and `fee_amount` < `max_fee`
-        let proof_above_max = Self::create_proof_fee_above_max(
+        let proof_above_max = Self::create_proof_percentage_above_max(
             percentage_opening,
             delta_commitment,
             claimed_commitment,
             &mut transcript_percentage_above_max,
         );
 
-        let proof_below_max = Self::create_proof_fee_below_max(
+        let proof_below_max = Self::create_proof_percentage_below_max(
             percentage_commitment,
             (delta_percentage, delta_opening),
             claimed_opening,
@@ -166,7 +166,7 @@ impl PercentageWithCapProof {
     /// * `delta_commitment` - The Pedersen commitment of the "real" delta value
     /// * `claimed_commitment` - The Pedersen commitment of the "claimed" delta value
     /// * `transcript` - The transcript that does the bookkeeping for the Fiat-Shamir heuristic
-    fn create_proof_fee_above_max(
+    fn create_proof_percentage_above_max(
         percentage_opening: &PedersenOpening,
         delta_commitment: &PedersenCommitment,
         claimed_commitment: &PedersenCommitment,
@@ -239,7 +239,7 @@ impl PercentageWithCapProof {
     /// * `claimed_opening` - The opening of the Pedersen commitment of the "claimed" delta value
     /// * `max_fee` - The maximum fee bound
     /// * `transcript` - The transcript that does the bookkeeping for the Fiat-Shamir heuristic
-    fn create_proof_fee_below_max(
+    fn create_proof_percentage_below_max(
         percentage_commitment: &PedersenCommitment,
         (delta_amount, delta_opening): (u64, &PedersenOpening),
         claimed_opening: &PedersenOpening,
