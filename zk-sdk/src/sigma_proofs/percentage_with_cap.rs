@@ -46,10 +46,10 @@ const PERCENTAGE_WITH_CAP_PROOF_LEN: usize = UNIT_LEN * 8;
 #[derive(Clone)]
 pub struct PercentageWithCapProof {
     /// Proof that the committed fee amount equals the maximum fee bound
-    fee_max_proof: PercentageMaxProof,
+    percentage_max_proof: PercentageMaxProof,
 
     /// Proof that the "real" delta value is equal to the "claimed" delta value
-    fee_equality_proof: PercentageEqualityProof,
+    percentage_equality_proof: PercentageEqualityProof,
 }
 
 #[allow(non_snake_case, dead_code)]
@@ -98,56 +98,64 @@ impl PercentageWithCapProof {
     /// * `max_fee` - The maximum fee bound
     /// * `transcript` - The transcript that does the bookkeeping for the Fiat-Shamir heuristic
     pub fn new(
-        (fee_amount, fee_commitment, fee_opening): (u64, &PedersenCommitment, &PedersenOpening),
-        (delta_fee, delta_commitment, delta_opening): (u64, &PedersenCommitment, &PedersenOpening),
+        (percentage_amount, percentage_commitment, percentage_opening): (
+            u64,
+            &PedersenCommitment,
+            &PedersenOpening,
+        ),
+        (delta_percentage, delta_commitment, delta_opening): (
+            u64,
+            &PedersenCommitment,
+            &PedersenOpening,
+        ),
         (claimed_commitment, claimed_opening): (&PedersenCommitment, &PedersenOpening),
-        max_fee: u64,
+        max_value: u64,
         transcript: &mut Transcript,
     ) -> Self {
-        let mut transcript_fee_above_max = transcript.clone();
-        let mut transcript_fee_below_max = transcript.clone();
+        let mut transcript_percentage_above_max = transcript.clone();
+        let mut transcript_percentage_below_max = transcript.clone();
 
         // compute proof for both cases `fee_amount' >= `max_fee` and `fee_amount` < `max_fee`
-        let proof_fee_above_max = Self::create_proof_fee_above_max(
-            fee_opening,
+        let proof_above_max = Self::create_proof_fee_above_max(
+            percentage_opening,
             delta_commitment,
             claimed_commitment,
-            &mut transcript_fee_above_max,
+            &mut transcript_percentage_above_max,
         );
 
-        let proof_fee_below_max = Self::create_proof_fee_below_max(
-            fee_commitment,
-            (delta_fee, delta_opening),
+        let proof_below_max = Self::create_proof_fee_below_max(
+            percentage_commitment,
+            (delta_percentage, delta_opening),
             claimed_opening,
-            max_fee,
-            &mut transcript_fee_below_max,
+            max_value,
+            &mut transcript_percentage_below_max,
         );
 
-        let below_max = u64::ct_gt(&max_fee, &fee_amount);
+        let below_max = u64::ct_gt(&max_value, &percentage_amount);
 
         // choose one of `proof_fee_above_max` or `proof_fee_below_max` according to whether the
         // fee amount is greater than `max_fee` or not
-        let fee_max_proof = PercentageMaxProof::conditional_select(
-            &proof_fee_above_max.fee_max_proof,
-            &proof_fee_below_max.fee_max_proof,
+        let percentage_max_proof = PercentageMaxProof::conditional_select(
+            &proof_above_max.percentage_max_proof,
+            &proof_below_max.percentage_max_proof,
             below_max,
         );
 
-        let fee_equality_proof = PercentageEqualityProof::conditional_select(
-            &proof_fee_above_max.fee_equality_proof,
-            &proof_fee_below_max.fee_equality_proof,
+        let percentage_equality_proof = PercentageEqualityProof::conditional_select(
+            &proof_above_max.percentage_equality_proof,
+            &proof_below_max.percentage_equality_proof,
             below_max,
         );
 
-        transcript.append_point(b"Y_max_proof", &fee_max_proof.Y_max_proof);
-        transcript.append_point(b"Y_delta", &fee_equality_proof.Y_delta);
-        transcript.append_point(b"Y_claimed", &fee_equality_proof.Y_claimed);
+        transcript.append_point(b"Y_max_proof", &percentage_max_proof.Y_max_proof);
+        transcript.append_point(b"Y_delta", &percentage_equality_proof.Y_delta);
+        transcript.append_point(b"Y_claimed", &percentage_equality_proof.Y_claimed);
         transcript.challenge_scalar(b"c");
         transcript.challenge_scalar(b"w");
 
         Self {
-            fee_max_proof,
-            fee_equality_proof,
+            percentage_max_proof,
+            percentage_equality_proof,
         }
     }
 
@@ -159,7 +167,7 @@ impl PercentageWithCapProof {
     /// * `claimed_commitment` - The Pedersen commitment of the "claimed" delta value
     /// * `transcript` - The transcript that does the bookkeeping for the Fiat-Shamir heuristic
     fn create_proof_fee_above_max(
-        fee_opening: &PedersenOpening,
+        percentage_opening: &PedersenOpening,
         delta_commitment: &PedersenCommitment,
         claimed_commitment: &PedersenCommitment,
         transcript: &mut Transcript,
@@ -185,7 +193,7 @@ impl PercentageWithCapProof {
         )
         .compress();
 
-        let fee_equality_proof = PercentageEqualityProof {
+        let percentage_equality_proof = PercentageEqualityProof {
             Y_delta,
             Y_claimed,
             z_x,
@@ -194,7 +202,7 @@ impl PercentageWithCapProof {
         };
 
         // generate max proof
-        let r_fee = fee_opening.get_scalar();
+        let r_percentage = percentage_opening.get_scalar();
 
         let y_max_proof = Scalar::random(&mut OsRng);
         let Y_max_proof = (y_max_proof * &(*H)).compress();
@@ -208,17 +216,17 @@ impl PercentageWithCapProof {
 
         transcript.challenge_scalar(b"w");
 
-        let z_max_proof = c_max_proof * r_fee + y_max_proof;
+        let z_max_proof = c_max_proof * r_percentage + y_max_proof;
 
-        let fee_max_proof = PercentageMaxProof {
+        let percentage_max_proof = PercentageMaxProof {
             Y_max_proof,
             z_max_proof,
             c_max_proof,
         };
 
         Self {
-            fee_max_proof,
-            fee_equality_proof,
+            percentage_max_proof,
+            percentage_equality_proof,
         }
     }
 
@@ -232,15 +240,15 @@ impl PercentageWithCapProof {
     /// * `max_fee` - The maximum fee bound
     /// * `transcript` - The transcript that does the bookkeeping for the Fiat-Shamir heuristic
     fn create_proof_fee_below_max(
-        fee_commitment: &PedersenCommitment,
-        (delta_fee, delta_opening): (u64, &PedersenOpening),
+        percentage_commitment: &PedersenCommitment,
+        (delta_amount, delta_opening): (u64, &PedersenOpening),
         claimed_opening: &PedersenOpening,
-        max_fee: u64,
+        max_value: u64,
         transcript: &mut Transcript,
     ) -> Self {
         // simulate max proof
-        let m = Scalar::from(max_fee);
-        let C_fee = fee_commitment.get_point();
+        let m = Scalar::from(max_value);
+        let C_percentage = percentage_commitment.get_point();
 
         let z_max_proof = Scalar::random(&mut OsRng);
         let c_max_proof = Scalar::random(&mut OsRng); // random challenge
@@ -248,18 +256,18 @@ impl PercentageWithCapProof {
         // solve for Y_max in the verification algebraic relation
         let Y_max_proof = RistrettoPoint::multiscalar_mul(
             vec![z_max_proof, -c_max_proof, c_max_proof * m],
-            vec![&(*H), C_fee, &(*G)],
+            vec![&(*H), C_percentage, &(*G)],
         )
         .compress();
 
-        let fee_max_proof = PercentageMaxProof {
+        let percentage_max_proof = PercentageMaxProof {
             Y_max_proof,
             z_max_proof,
             c_max_proof,
         };
 
         // generate equality proof
-        let x = Scalar::from(delta_fee);
+        let x = Scalar::from(delta_amount);
 
         let r_delta = delta_opening.get_scalar();
         let r_claimed = claimed_opening.get_scalar();
@@ -286,7 +294,7 @@ impl PercentageWithCapProof {
         let z_delta = c_equality * r_delta + y_delta;
         let z_claimed = c_equality * r_claimed + y_claimed;
 
-        let fee_equality_proof = PercentageEqualityProof {
+        let percentage_equality_proof = PercentageEqualityProof {
             Y_delta,
             Y_claimed,
             z_x,
@@ -295,8 +303,8 @@ impl PercentageWithCapProof {
         };
 
         Self {
-            fee_max_proof,
-            fee_equality_proof,
+            percentage_max_proof,
+            percentage_equality_proof,
         }
     }
 
@@ -309,46 +317,49 @@ impl PercentageWithCapProof {
     /// * `transcript` - The transcript that does the bookkeeping for the Fiat-Shamir heuristic
     pub fn verify(
         self,
-        fee_commitment: &PedersenCommitment,
+        percentage_commitment: &PedersenCommitment,
         delta_commitment: &PedersenCommitment,
         claimed_commitment: &PedersenCommitment,
-        max_fee: u64,
+        max_value: u64,
         transcript: &mut Transcript,
     ) -> Result<(), FeeSigmaProofVerificationError> {
         // extract the relevant scalar and Ristretto points from the input
-        let m = Scalar::from(max_fee);
+        let m = Scalar::from(max_value);
 
-        let C_max = fee_commitment.get_point();
+        let C_max = percentage_commitment.get_point();
         let C_delta = delta_commitment.get_point();
         let C_claimed = claimed_commitment.get_point();
 
-        transcript.validate_and_append_point(b"Y_max_proof", &self.fee_max_proof.Y_max_proof)?;
-        transcript.validate_and_append_point(b"Y_delta", &self.fee_equality_proof.Y_delta)?;
-        transcript.validate_and_append_point(b"Y_claimed", &self.fee_equality_proof.Y_claimed)?;
+        transcript
+            .validate_and_append_point(b"Y_max_proof", &self.percentage_max_proof.Y_max_proof)?;
+        transcript
+            .validate_and_append_point(b"Y_delta", &self.percentage_equality_proof.Y_delta)?;
+        transcript
+            .validate_and_append_point(b"Y_claimed", &self.percentage_equality_proof.Y_claimed)?;
 
         let Y_max = self
-            .fee_max_proof
+            .percentage_max_proof
             .Y_max_proof
             .decompress()
             .ok_or(SigmaProofVerificationError::Deserialization)?;
-        let z_max = self.fee_max_proof.z_max_proof;
+        let z_max = self.percentage_max_proof.z_max_proof;
 
         let Y_delta_real = self
-            .fee_equality_proof
+            .percentage_equality_proof
             .Y_delta
             .decompress()
             .ok_or(SigmaProofVerificationError::Deserialization)?;
         let Y_claimed = self
-            .fee_equality_proof
+            .percentage_equality_proof
             .Y_claimed
             .decompress()
             .ok_or(SigmaProofVerificationError::Deserialization)?;
-        let z_x = self.fee_equality_proof.z_x;
-        let z_delta_real = self.fee_equality_proof.z_delta;
-        let z_claimed = self.fee_equality_proof.z_claimed;
+        let z_x = self.percentage_equality_proof.z_x;
+        let z_delta_real = self.percentage_equality_proof.z_delta;
+        let z_claimed = self.percentage_equality_proof.z_claimed;
 
         let c = transcript.challenge_scalar(b"c");
-        let c_max_proof = self.fee_max_proof.c_max_proof;
+        let c_max_proof = self.percentage_max_proof.c_max_proof;
         let c_equality = c - c_max_proof;
 
         let w = transcript.challenge_scalar(b"w");
@@ -398,35 +409,35 @@ impl PercentageWithCapProof {
         chunks
             .next()
             .unwrap()
-            .copy_from_slice(self.fee_max_proof.Y_max_proof.as_bytes());
+            .copy_from_slice(self.percentage_max_proof.Y_max_proof.as_bytes());
         chunks
             .next()
             .unwrap()
-            .copy_from_slice(self.fee_max_proof.z_max_proof.as_bytes());
+            .copy_from_slice(self.percentage_max_proof.z_max_proof.as_bytes());
         chunks
             .next()
             .unwrap()
-            .copy_from_slice(self.fee_max_proof.c_max_proof.as_bytes());
+            .copy_from_slice(self.percentage_max_proof.c_max_proof.as_bytes());
         chunks
             .next()
             .unwrap()
-            .copy_from_slice(self.fee_equality_proof.Y_delta.as_bytes());
+            .copy_from_slice(self.percentage_equality_proof.Y_delta.as_bytes());
         chunks
             .next()
             .unwrap()
-            .copy_from_slice(self.fee_equality_proof.Y_claimed.as_bytes());
+            .copy_from_slice(self.percentage_equality_proof.Y_claimed.as_bytes());
         chunks
             .next()
             .unwrap()
-            .copy_from_slice(self.fee_equality_proof.z_x.as_bytes());
+            .copy_from_slice(self.percentage_equality_proof.z_x.as_bytes());
         chunks
             .next()
             .unwrap()
-            .copy_from_slice(self.fee_equality_proof.z_delta.as_bytes());
+            .copy_from_slice(self.percentage_equality_proof.z_delta.as_bytes());
         chunks
             .next()
             .unwrap()
-            .copy_from_slice(self.fee_equality_proof.z_claimed.as_bytes());
+            .copy_from_slice(self.percentage_equality_proof.z_claimed.as_bytes());
         buf
     }
 
@@ -443,12 +454,12 @@ impl PercentageWithCapProof {
         let z_claimed = canonical_scalar_from_optional_slice(chunks.next())?;
 
         Ok(Self {
-            fee_max_proof: PercentageMaxProof {
+            percentage_max_proof: PercentageMaxProof {
                 Y_max_proof,
                 z_max_proof,
                 c_max_proof,
             },
-            fee_equality_proof: PercentageEqualityProof {
+            percentage_equality_proof: PercentageEqualityProof {
                 Y_delta,
                 Y_claimed,
                 z_x,
@@ -527,20 +538,20 @@ mod test {
     #[test]
     fn test_fee_above_max_proof() {
         let transfer_amount: u64 = 55;
-        let max_fee: u64 = 3;
+        let max_value: u64 = 3;
 
-        let fee_rate: u16 = 555; // 5.55%
-        let fee_amount: u64 = 4;
+        let percentage_rate: u16 = 555; // 5.55%
+        let percentage_amount: u64 = 4;
         let delta: u64 = 9475; // 4*10000 - 55*555
 
         let (transfer_commitment, transfer_opening) = Pedersen::new(transfer_amount);
-        let (fee_commitment, fee_opening) = Pedersen::new(max_fee);
+        let (percentage_commitment, percentage_opening) = Pedersen::new(max_value);
 
-        let scalar_rate = Scalar::from(fee_rate);
+        let scalar_rate = Scalar::from(percentage_rate);
         let delta_commitment =
-            &fee_commitment * &Scalar::from(10000_u64) - &transfer_commitment * &scalar_rate;
+            &percentage_commitment * &Scalar::from(10000_u64) - &transfer_commitment * &scalar_rate;
         let delta_opening =
-            &fee_opening * &Scalar::from(10000_u64) - &transfer_opening * &scalar_rate;
+            &percentage_opening * &Scalar::from(10000_u64) - &transfer_opening * &scalar_rate;
 
         let (claimed_commitment, claimed_opening) = Pedersen::new(0_u64);
 
@@ -548,19 +559,23 @@ mod test {
         let mut verifier_transcript = Transcript::new(b"test");
 
         let proof = PercentageWithCapProof::new(
-            (fee_amount, &fee_commitment, &fee_opening),
+            (
+                percentage_amount,
+                &percentage_commitment,
+                &percentage_opening,
+            ),
             (delta, &delta_commitment, &delta_opening),
             (&claimed_commitment, &claimed_opening),
-            max_fee,
+            max_value,
             &mut prover_transcript,
         );
 
         assert!(proof
             .verify(
-                &fee_commitment,
+                &percentage_commitment,
                 &delta_commitment,
                 &claimed_commitment,
-                max_fee,
+                max_value,
                 &mut verifier_transcript,
             )
             .is_ok());
@@ -569,20 +584,20 @@ mod test {
     #[test]
     fn test_fee_below_max_proof() {
         let transfer_amount: u64 = 1;
-        let max_fee: u64 = 3;
+        let max_value: u64 = 3;
 
-        let fee_rate: u16 = 400; // 5.55%
-        let fee_amount: u64 = 1;
+        let percentage_rate: u16 = 400; // 5.55%
+        let percentage_amount: u64 = 1;
         let delta: u64 = 9600; // 4*10000 - 55*555
 
         let (transfer_commitment, transfer_opening) = Pedersen::new(transfer_amount);
-        let (fee_commitment, fee_opening) = Pedersen::new(fee_amount);
+        let (percentage_commitment, percentage_opening) = Pedersen::new(percentage_amount);
 
-        let scalar_rate = Scalar::from(fee_rate);
+        let scalar_rate = Scalar::from(percentage_rate);
         let delta_commitment =
-            &fee_commitment * &Scalar::from(10000_u64) - &transfer_commitment * &scalar_rate;
+            &percentage_commitment * &Scalar::from(10000_u64) - &transfer_commitment * &scalar_rate;
         let delta_opening =
-            &fee_opening * &Scalar::from(10000_u64) - &transfer_opening * &scalar_rate;
+            &percentage_opening * &Scalar::from(10000_u64) - &transfer_opening * &scalar_rate;
 
         let (claimed_commitment, claimed_opening) = Pedersen::new(delta);
 
@@ -595,19 +610,23 @@ mod test {
         let mut verifier_transcript = Transcript::new(b"test");
 
         let proof = PercentageWithCapProof::new(
-            (fee_amount, &fee_commitment, &fee_opening),
+            (
+                percentage_amount,
+                &percentage_commitment,
+                &percentage_opening,
+            ),
             (delta, &delta_commitment, &delta_opening),
             (&claimed_commitment, &claimed_opening),
-            max_fee,
+            max_value,
             &mut prover_transcript,
         );
 
         assert!(proof
             .verify(
-                &fee_commitment,
+                &percentage_commitment,
                 &delta_commitment,
                 &claimed_commitment,
-                max_fee,
+                max_value,
                 &mut verifier_transcript,
             )
             .is_ok());
@@ -616,20 +635,20 @@ mod test {
     #[test]
     fn test_fee_delta_is_zero() {
         let transfer_amount: u64 = 100;
-        let max_fee: u64 = 3;
+        let max_value: u64 = 3;
 
-        let fee_rate: u16 = 100; // 1.00%
-        let fee_amount: u64 = 1;
+        let percentage_rate: u16 = 100; // 1.00%
+        let percentage_amount: u64 = 1;
         let delta: u64 = 0; // 1*10000 - 100*100
 
         let (transfer_commitment, transfer_opening) = Pedersen::new(transfer_amount);
-        let (fee_commitment, fee_opening) = Pedersen::new(fee_amount);
+        let (percentage_commitment, percentage_opening) = Pedersen::new(percentage_amount);
 
-        let scalar_rate = Scalar::from(fee_rate);
-        let delta_commitment =
-            &(&fee_commitment * &Scalar::from(10000_u64)) - &(&transfer_commitment * &scalar_rate);
+        let scalar_rate = Scalar::from(percentage_rate);
+        let delta_commitment = &(&percentage_commitment * &Scalar::from(10000_u64))
+            - &(&transfer_commitment * &scalar_rate);
         let delta_opening =
-            &(&fee_opening * &Scalar::from(10000_u64)) - &(&transfer_opening * &scalar_rate);
+            &(&percentage_opening * &Scalar::from(10000_u64)) - &(&transfer_opening * &scalar_rate);
 
         let (claimed_commitment, claimed_opening) = Pedersen::new(delta);
 
@@ -637,19 +656,23 @@ mod test {
         let mut verifier_transcript = Transcript::new(b"test");
 
         let proof = PercentageWithCapProof::new(
-            (fee_amount, &fee_commitment, &fee_opening),
+            (
+                percentage_amount,
+                &percentage_commitment,
+                &percentage_opening,
+            ),
             (delta, &delta_commitment, &delta_opening),
             (&claimed_commitment, &claimed_opening),
-            max_fee,
+            max_value,
             &mut prover_transcript,
         );
 
         assert!(proof
             .verify(
-                &fee_commitment,
+                &percentage_commitment,
                 &delta_commitment,
                 &claimed_commitment,
-                max_fee,
+                max_value,
                 &mut verifier_transcript,
             )
             .is_ok());
