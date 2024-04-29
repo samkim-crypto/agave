@@ -1,4 +1,4 @@
-//! The zero-balance sigma proof system.
+//! The zero-ciphertext sigma proof system.
 //!
 //! The protocol guarantees computationally soundness (by the hardness of discrete log) and perfect
 //! zero-knowledge in the random oracle model.
@@ -30,10 +30,10 @@ use {
     merlin::Transcript,
 };
 
-/// Byte length of a zero-balance proof.
+/// Byte length of a zero-ciphertext proof.
 const ZERO_CIPHERTEXT_PROOF_LEN: usize = UNIT_LEN * 3;
 
-/// Zero-balance proof.
+/// Zero-ciphertext proof.
 ///
 /// Contains all the elliptic curve and scalar components that make up the sigma protocol.
 #[allow(non_snake_case)]
@@ -47,7 +47,7 @@ pub struct ZeroCiphertextProof {
 #[allow(non_snake_case)]
 #[cfg(not(target_os = "solana"))]
 impl ZeroCiphertextProof {
-    /// Creates a zero-balance proof.
+    /// Creates a zero-ciphertext proof.
     ///
     /// The function does *not* hash the public key and ciphertext into the transcript. For
     /// security, the caller (the main protocol) should hash these public components prior to
@@ -94,7 +94,7 @@ impl ZeroCiphertextProof {
         Self { Y_P, Y_D, z }
     }
 
-    /// Verifies a zero-balance proof.
+    /// Verifies a zero-ciphertext proof.
     ///
     /// * `elgamal_pubkey` - The ElGamal pubkey associated with the ciphertext to be proved
     /// * `ciphertext` - The main ElGamal ciphertext to be proved
