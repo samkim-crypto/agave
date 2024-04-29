@@ -187,7 +187,7 @@ mod test {
     };
 
     #[test]
-    fn test_zero_balance_proof_correctness() {
+    fn test_zero_cipehrtext_proof_correctness() {
         let source_keypair = ElGamalKeypair::new_rand();
 
         let mut prover_transcript = Transcript::new(b"test");
@@ -219,7 +219,7 @@ mod test {
     }
 
     #[test]
-    fn test_zero_balance_proof_edge_cases() {
+    fn test_zero_ciphertext_proof_edge_cases() {
         let source_keypair = ElGamalKeypair::new_rand();
 
         let mut prover_transcript = Transcript::new(b"test");
