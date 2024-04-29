@@ -1,6 +1,7 @@
 /// Utility functions for Bulletproofs.
 ///
-/// The code is copied from https://github.com/dalek-cryptography/bulletproofs for now...
+/// The code is adapted from the `utility` module in the dalek bulletproof implementation
+/// https://github.com/dalek-cryptography/bulletproofs.
 use curve25519_dalek::scalar::Scalar;
 
 /// Represents a degree-1 vector polynomial \\(\mathbf{a} + \mathbf{b} \cdot x\\).
