@@ -1,10 +1,16 @@
 //! The percentage-with-cap sigma proof.
 //!
-//! Given two ElGamal ciphertexts, a percentage-with-cap proof certifies that one ciphertext holds
-//! a percentage of the value that is encrypted in the other ciphertext.
+//! The proof is defined with respect to three Pedersen commitments that encodes values referred to
+//! as a `percentage`, `delta`, and `claimed` amounts. The proof certifies that either
+//! - the `percentage` amount is equal to a constant (referred to as the `max_value`)
+//! - the `delta` and `claimed` amounts are equal
 //!
-//! A detailed description of how the proof is computed is provided in the [`ZK Token proof
-//! program`] documentation.
+//! This type of proof is useful as a building block to prove that, given two Pedersen commitments,
+//! one encodes a percentage value of the number encoded by the other commitment with a specified
+//! max cap value.
+//!
+//! A more detailed description of the context and how the proof is computed is provided in the
+//! [`ZK Token proof program`] documentation.
 //!
 //! The protocol guarantees computational soundness (by the hardness of discrete log) and perfect
 //! zero-knowledge in the random oracle model.
@@ -36,68 +42,74 @@ use {
     subtle::{Choice, ConditionallySelectable, ConstantTimeGreater},
 };
 
-/// Byte length of a fee sigma proof.
+/// Byte length of a percentage-with-cap proof.
 const PERCENTAGE_WITH_CAP_PROOF_LEN: usize = UNIT_LEN * 8;
 
 /// Percentage-with-cap proof.
 ///
-/// The proof consists of two main components: `fee_max_proof` and `fee_equality_proof`. If the fee
-/// is greater than the maximum fee bound, then the `fee_max_proof` is properly generated and
-/// `fee_equality_proof` is simulated. If the fee is smaller than the maximum fee bound, the
-/// `fee_equality_proof` is properly generated and `fee_max_proof` is simulated.
+/// The proof consists of two main components: `percentage_max_proof` and
+/// `percentage_equality_proof`. If the committed amount is greater than the maximum cap value,
+/// then the `percentage_max_proof` is properly generated and `percentage_equality_proof` is
+/// simulated. If the encrypted amount is smaller than the maximum cap bound, the
+/// `percentage_equality_proof` is properly generated and `percentage_max_proof` is simulated.
 #[derive(Clone)]
 pub struct PercentageWithCapProof {
-    /// Proof that the committed fee amount equals the maximum fee bound
+    /// Proof that the committed amount equals the maximum cap bound
     percentage_max_proof: PercentageMaxProof,
 
-    /// Proof that the "real" delta value is equal to the "claimed" delta value
+    /// Proof that the `delta` value is equal to the `claimed` value
     percentage_equality_proof: PercentageEqualityProof,
 }
 
 #[allow(non_snake_case, dead_code)]
 #[cfg(not(target_os = "solana"))]
 impl PercentageWithCapProof {
-    /// Creates a percentage-with-cap sigma proof assuming that the committed fee is greater than
-    /// the maximum fee bound.
+    /// Creates a percentage-with-cap sigma proof.
     ///
-    /// A transfer fee amount `fee_amount` for a `transfer_amount` is determined by two parameters:
-    /// - the `fee_rate_basis_point`, which defines the fee rate in units of 0.01%,
-    /// - the `max_fee`, which defines the cap amount for a transfer fee.
+    /// A typical percentage-with-cap application is defined with respect to the following values:
+    /// - a commitment encoding a `base_amount` and a commitment encoding a `percentage_amount`
+    /// - two constants `percentage_rate_basis_point`, which defines the percentage rate in units
+    /// of 0.01% and `max_value`, which defines the max cap amount.
     ///
-    /// This means that there are two cases to consider. If `fee_amount >= max_fee`, then the
-    /// `fee_amount` must always equal `max_fee`.
+    /// This setting requires that the `percentage_amount` is either a certain percentage of the
+    /// `base_amount` (determined by the `percentage_rate_basis_point`) or is equal to the max cap
+    /// amount (determined by `max_value`).
     ///
-    /// If `fee_amount < max_fee`, then assuming that there is no division rounding, the
-    /// `fee_amount` must satisfy the relation `transfer_amount * (fee_rate_basis_point /
-    /// 10_000) = fee_amount` or equivalently, `(transfer_amount * fee_rate_basis_point) - (10_000
-    /// * fee_amount) = 0`. More generally, let `delta_fee = (transfer_amount *
-    /// fee_rate_basis_point) - (10_000 * fee_amount)`. Then assuming that a division rounding
-    /// could occur, the `delta_fee` must satisfy the bound `0 <= delta_fee < 10_000`.
+    /// If `percentage_amount < max_value`, then assuming that there is no division rounding, the
+    /// `percentage_amount` must satisfy the relation `transfer_amount *
+    /// (percentage_rate_basis_point / 10_000) = percentage_amount` or equivalently, `(base_amount
+    /// * percentage_rate_basis_point) - (10_000 * percentage_amount) = 0`. More generally, let
+    /// `delta_amount = (base_amount * percentage_rate_basis_point) - (10_000 * percentage_amount)`.
+    /// Then assuming that a division rounding could occur, the `delta_amount` must satisfy the
+    /// bound `0 <= delta_amount < 10_000`.
     ///
-    /// If `fee_amount >= max_fee`, then `fee_amount = max_fee` and therefore, the prover can
-    /// generate a proof certifying that a fee commitment exactly encodes `max_fee`. If
-    /// `fee_amount < max_fee`, then the prover can create a commitment to `delta_fee` and
-    /// create a range proof certifying that the committed value satisfies the bound `0 <=
-    /// delta_fee < 10_000`.
+    /// If `percentage_amount >= max_amount`, then `percentage_amount = max_value` and therefore,
+    /// the prover can generate a proof certifying that a percentage commitment exactly encodes
+    /// `max_value`. If `percentage_amount < max_value`, then the prover can create a commitment
+    /// (referred to as the `claimed_amount`) to `delta_amount` and create a range proof certifying
+    /// that the committed value satisfies the bound `0 <= delta_amount < 10_000`.
     ///
-    /// Since the type of proof that a prover generates reveals information about the transfer
-    /// amount and transfer fee, the prover must generate and include both types of proof. If
-    /// `fee_amount >= max_fee`, then the prover generates a valid `fee_max_proof`, but commits
-    /// to 0 as the "claimed" delta value and simulates ("fakes") a proof (`fee_equality_proof`)
-    /// that this is valid. If `fee_amount > max_fee`, then the prover simulates a
-    /// `fee_max_proof`, and creates a valid `fee_equality_proof` certifying that the claimed delta
-    /// value is equal to the "real" delta value.
+    /// Since the type of proof that a prover generates reveals information about the base and
+    /// percentage amounts, the prover must generate and include both types of proofs. If
+    /// `percentage_amount >= max_value`, then the prover generates a valid `percentage_max_proof`,
+    /// but commits to 0 as the `claimed_amount` and simulates ("fakes") a proof
+    /// (`percentage_equality_proof`) that this is valid. If `percentage_amount > max_value`, then
+    /// the prover simulates a `percentage_max_proof`, and creates a valid
+    /// `percentage_equality_proof` certifying that the claimed delta value is equal to the "real"
+    /// delta value.
     ///
-    /// Note: In the implementation, the proof is generated twice via `create_proof_fee_above_max`
-    /// and `create_proof_fee_below_max` to enforce that the function executes in constant time.
+    /// Note: In the implementation, the proof is generated twice via `create_proof_above_max`
+    /// and `create_proof_below_max` to enforce that the function executes in constant time.
     ///
-    /// * `(fee_amount, fee_commitment, fee_opening)` - The amount, Pedersen commitment, and
-    /// opening of the transfer fee
-    /// * `(delta_fee, delta_commitment, delta_opening)` - The amount, Pedersen commitment, and
-    /// opening of the "real" delta amount
-    /// * `(claimed_commitment, claimed_opening)` - The Pedersen commitment and opening of the
-    /// "claimed" delta amount
-    /// * `max_fee` - The maximum fee bound
+    /// * `percentage_commitment` - The Pedersen commitment to a percentage amount
+    /// * `percentage_opening` - The Pedersen opening of a percentage amount
+    /// * `percentage_amount` - The percentage amount
+    /// * `delta_commitment` - The Pedersen commitment to a delta amount
+    /// * `delta_opening` - The Pedersen opening of a delta amount
+    /// * `delta_amount` - The delta amount
+    /// * `claimed_commitment` - The Pedersen commitment to a claimed amount
+    /// * `claimed_opening` - The Pedersen opening of a claimed amount
+    /// * `max_value` - The maximum cap bound
     /// * `transcript` - The transcript that does the bookkeeping for the Fiat-Shamir heuristic
     pub fn new(
         percentage_commitment: &PedersenCommitment,
@@ -114,7 +126,8 @@ impl PercentageWithCapProof {
         let mut transcript_percentage_above_max = transcript.clone();
         let mut transcript_percentage_below_max = transcript.clone();
 
-        // compute proof for both cases `fee_amount' >= `max_fee` and `fee_amount` < `max_fee`
+        // compute proof for both cases `percentage_amount' >= `max_value` and
+        // `percentage_amount` < `max_value`
         let proof_above_max = Self::create_proof_percentage_above_max(
             percentage_opening,
             delta_commitment,
@@ -133,8 +146,8 @@ impl PercentageWithCapProof {
 
         let below_max = u64::ct_gt(&max_value, &percentage_amount);
 
-        // choose one of `proof_fee_above_max` or `proof_fee_below_max` according to whether the
-        // fee amount is greater than `max_fee` or not
+        // choose one of `proof_above_max` or `proof_below_max` according to whether the
+        // percentage amount is greater than `max_value` or not
         let percentage_max_proof = PercentageMaxProof::conditional_select(
             &proof_above_max.percentage_max_proof,
             &proof_below_max.percentage_max_proof,
@@ -159,12 +172,12 @@ impl PercentageWithCapProof {
         }
     }
 
-    /// Creates a percentage-with-cap sigma proof assuming that the committed fee is greater than
-    /// the maximum fee bound.
+    /// Creates a percentage-with-cap proof assuming that the committed percentage is greater than
+    /// the maximum cap bound.
     ///
-    /// * `fee_opening` - The opening of the Pedersen commitment of the transfer fee
-    /// * `delta_commitment` - The Pedersen commitment of the "real" delta value
-    /// * `claimed_commitment` - The Pedersen commitment of the "claimed" delta value
+    /// * `percentage_opening` - The Pedersen opening of a percentage amount
+    /// * `delta_commitment` - The Pedersen commitment to a delta amount
+    /// * `claimed_commitment` - The Pedersen commitment to a claimed amount
     /// * `transcript` - The transcript that does the bookkeeping for the Fiat-Shamir heuristic
     fn create_proof_percentage_above_max(
         percentage_opening: &PedersenOpening,
@@ -230,14 +243,13 @@ impl PercentageWithCapProof {
         }
     }
 
-    /// Creates a percentage-with-cap sigma proof assuming that the committed fee is less than the
-    /// maximum fee bound.
+    /// Creates a percentage-with-cap proof assuming that the committed amount is less than the
+    /// maximum cap bound.
     ///
-    /// * `fee_commitment` - The Pedersen commitment of the transfer fee
-    /// * `(delta_fee, delta_opening)` - The Pedersen commitment and opening of the "real" delta
-    /// value
-    /// * `claimed_opening` - The opening of the Pedersen commitment of the "claimed" delta value
-    /// * `max_fee` - The maximum fee bound
+    /// * `percentage_commitment` - The Pedersen commitment to a percentage amount
+    /// * `delta_opening` - The Pedersen opening of a delta amount
+    /// * `delta_amount` - The delta amount
+    /// * `max_value` - The maximum cap bound
     /// * `transcript` - The transcript that does the bookkeeping for the Fiat-Shamir heuristic
     fn create_proof_percentage_below_max(
         percentage_commitment: &PedersenCommitment,
@@ -311,10 +323,16 @@ impl PercentageWithCapProof {
 
     /// Verifies a percentage-with-cap proof.
     ///
-    /// * `fee_commitment` - The Pedersen commitment of the transfer fee
+    /// * `percentage_commitment` - The Pedersen commitment of the value being proved
     /// * `delta_commitment` - The Pedersen commitment of the "real" delta value
     /// * `claimed_commitment` - The Pedersen commitment of the "claimed" delta value
-    /// * `max_fee` - The maximum fee bound
+    /// * `max_value` - The maximum cap bound
+    /// * `transcript` - The transcript that does the bookkeeping for the Fiat-Shamir heuristic
+    ///
+    /// * `percentage_commitment` - The Pedersen commitment to a percentage amount
+    /// * `delta_commitment` - The Pedersen commitment to a delta amount
+    /// * `claimed_commitment` - The Pedersen commitment to a claimed amount
+    /// * `max_value` - The maximum cap bound
     /// * `transcript` - The transcript that does the bookkeeping for the Fiat-Shamir heuristic
     pub fn verify(
         self,
@@ -471,9 +489,9 @@ impl PercentageWithCapProof {
     }
 }
 
-/// The fee max proof.
+/// The percentage max proof.
 ///
-/// The proof certifies that the transfer fee Pedersen commitment encodes the maximum fee bound.
+/// The proof certifies that a Pedersen commitment encodes the maximum cap bound.
 #[allow(non_snake_case)]
 #[derive(Clone, Copy)]
 pub struct PercentageMaxProof {
@@ -492,7 +510,7 @@ impl ConditionallySelectable for PercentageMaxProof {
     }
 }
 
-/// The fee equality proof.
+/// The percentage equality proof.
 ///
 /// The proof certifies that the "real" delta value commitment and the "claimed" delta value
 /// commitment encode the same message.
