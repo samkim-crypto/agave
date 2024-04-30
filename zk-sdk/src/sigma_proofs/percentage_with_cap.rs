@@ -111,6 +111,7 @@ impl PercentageWithCapProof {
     /// * `claimed_opening` - The Pedersen opening of a claimed amount
     /// * `max_value` - The maximum cap bound
     /// * `transcript` - The transcript that does the bookkeeping for the Fiat-Shamir heuristic
+    #[allow(clippy::too_many_arguments)]
     pub fn new(
         percentage_commitment: &PedersenCommitment,
         percentage_opening: &PedersenOpening,
