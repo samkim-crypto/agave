@@ -555,7 +555,7 @@ mod test {
     use {super::*, crate::encryption::pedersen::Pedersen};
 
     #[test]
-    fn test_fee_above_max_proof() {
+    fn test_proof_above_max_proof() {
         let transfer_amount: u64 = 55;
         let max_value: u64 = 3;
 
@@ -602,7 +602,7 @@ mod test {
     }
 
     #[test]
-    fn test_fee_below_max_proof() {
+    fn test_proof_below_max_proof() {
         let transfer_amount: u64 = 1;
         let max_value: u64 = 3;
 
@@ -654,7 +654,7 @@ mod test {
     }
 
     #[test]
-    fn test_fee_delta_is_zero() {
+    fn test_proof_delta_is_zero() {
         let transfer_amount: u64 = 100;
         let max_value: u64 = 3;
 
