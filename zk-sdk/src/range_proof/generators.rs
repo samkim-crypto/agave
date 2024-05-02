@@ -7,7 +7,6 @@ use {
     sha3::{Sha3XofReader, Shake256},
 };
 
-#[cfg(not(target_os = "solana"))]
 const MAX_GENERATOR_LENGTH: usize = u32::MAX as usize;
 
 /// Generators for Pedersen vector commitments that are used for inner-product proofs.
