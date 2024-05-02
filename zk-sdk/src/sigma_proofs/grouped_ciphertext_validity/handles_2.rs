@@ -66,7 +66,7 @@ impl GroupedCiphertext2HandlesValidityProof {
     /// handles as input; it only takes the associated Pedersen opening instead.
     ///
     /// * `destination_pubkey` - The destination ElGamal public key
-    /// * `auditor` - The auditor ElGamal public key
+    /// * `auditor_pubkey` - The auditor ElGamal public key
     /// * `amount` - The committed message in the commitment
     /// * `opening` - The opening associated with the Pedersen commitment
     /// * `transcript` - The transcript that does the bookkeeping for the Fiat-Shamir heuristic
