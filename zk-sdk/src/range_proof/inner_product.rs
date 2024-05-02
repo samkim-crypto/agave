@@ -423,8 +423,7 @@ impl InnerProductProof {
 #[cfg(test)]
 mod tests {
     use {
-        super::*, crate::range_proof::generators::BulletproofGens, rand::rngs::OsRng,
-        sha3::Sha3_512,
+        super::*, crate::range_proof::generators::RangeProofGens, rand::rngs::OsRng, sha3::Sha3_512,
     };
 
     #[test]
@@ -432,7 +431,7 @@ mod tests {
     fn test_basic_correctness() {
         let n = 32;
 
-        let bp_gens = BulletproofGens::new(n).unwrap();
+        let bp_gens = RangeProofGens::new(n).unwrap();
         let G: Vec<RistrettoPoint> = bp_gens.G(n).cloned().collect();
         let H: Vec<RistrettoPoint> = bp_gens.H(n).cloned().collect();
 

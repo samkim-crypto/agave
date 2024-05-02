@@ -19,7 +19,7 @@ use {
         encryption::pedersen::{G, H},
         range_proof::{
             errors::{RangeProofGenerationError, RangeProofVerificationError},
-            generators::BulletproofGens,
+            generators::RangeProofGens,
             inner_product::InnerProductProof,
         },
         transcript::TranscriptProtocol,
@@ -98,7 +98,7 @@ impl RangeProof {
             return Err(RangeProofGenerationError::VectorLengthMismatch);
         }
 
-        let bp_gens = BulletproofGens::new(nm)
+        let bp_gens = RangeProofGens::new(nm)
             .map_err(|_| RangeProofGenerationError::MaximumGeneratorLengthExceeded)?;
 
         // bit-decompose values and generate their Pedersen vector commitment
@@ -269,7 +269,7 @@ impl RangeProof {
 
         let m = bit_lengths.len();
         let nm: usize = bit_lengths.iter().sum();
-        let bp_gens = BulletproofGens::new(nm)
+        let bp_gens = RangeProofGens::new(nm)
             .map_err(|_| RangeProofVerificationError::MaximumGeneratorLengthExceeded)?;
 
         if !nm.is_power_of_two() {

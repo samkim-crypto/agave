@@ -60,7 +60,7 @@ impl Iterator for GeneratorsChain {
 
 #[allow(non_snake_case)]
 #[derive(Clone)]
-pub struct BulletproofGens {
+pub struct RangeProofGens {
     /// The maximum number of usable generators.
     pub gens_capacity: usize,
     /// Precomputed \\(\mathbf G\\) generators.
@@ -69,9 +69,9 @@ pub struct BulletproofGens {
     H_vec: Vec<RistrettoPoint>,
 }
 
-impl BulletproofGens {
+impl RangeProofGens {
     pub fn new(gens_capacity: usize) -> Result<Self, RangeProofGeneratorError> {
-        let mut gens = BulletproofGens {
+        let mut gens = RangeProofGens {
             gens_capacity: 0,
             G_vec: Vec::new(),
             H_vec: Vec::new(),
