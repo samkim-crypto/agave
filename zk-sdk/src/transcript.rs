@@ -27,10 +27,10 @@ pub trait TranscriptProtocol {
     fn zero_ciphertext_proof_domain_separator(&mut self);
 
     /// Append a domain separator for grouped ciphertext validity proof.
-    fn grouped_ciphertext_validity_proof_domain_separator(&mut self);
+    fn grouped_ciphertext_validity_proof_domain_separator(&mut self, handles: u64);
 
     /// Append a domain separator for batched grouped ciphertext validity proof.
-    fn batched_grouped_ciphertext_validity_proof_domain_separator(&mut self);
+    fn batched_grouped_ciphertext_validity_proof_domain_separator(&mut self, handles: u64);
 
     /// Append a domain separator for fee sigma proof.
     fn fee_sigma_proof_domain_separator(&mut self);
@@ -101,12 +101,14 @@ impl TranscriptProtocol for Transcript {
         self.append_message(b"dom-sep", b"zero-ciphertext-proof")
     }
 
-    fn grouped_ciphertext_validity_proof_domain_separator(&mut self) {
-        self.append_message(b"dom-sep", b"validity-proof")
+    fn grouped_ciphertext_validity_proof_domain_separator(&mut self, handles: u64) {
+        self.append_message(b"dom-sep", b"validity-proof");
+        self.append_u64(b"handles", handles);
     }
 
-    fn batched_grouped_ciphertext_validity_proof_domain_separator(&mut self) {
-        self.append_message(b"dom-sep", b"batched-validity-proof")
+    fn batched_grouped_ciphertext_validity_proof_domain_separator(&mut self, handles: u64) {
+        self.append_message(b"dom-sep", b"batched-validity-proof");
+        self.append_u64(b"handles", handles);
     }
 
     fn fee_sigma_proof_domain_separator(&mut self) {
