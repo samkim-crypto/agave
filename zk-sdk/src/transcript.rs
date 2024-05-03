@@ -11,12 +11,6 @@ pub trait TranscriptProtocol {
     /// Append a domain separator for a length-`n` inner product proof.
     fn inner_product_proof_domain_separator(&mut self, n: u64);
 
-    /// Append a domain separator for withdraw proof.
-    fn withdraw_proof_domain_separator(&mut self);
-
-    /// Append a domain separator for transfer proof.
-    fn transfer_proof_domain_separator(&mut self);
-
     /// Append a `scalar` with the given `label`.
     fn append_scalar(&mut self, label: &'static [u8], scalar: &Scalar);
 
@@ -62,14 +56,6 @@ impl TranscriptProtocol for Transcript {
     fn inner_product_proof_domain_separator(&mut self, n: u64) {
         self.append_message(b"dom-sep", b"inner-product");
         self.append_u64(b"n", n);
-    }
-
-    fn withdraw_proof_domain_separator(&mut self) {
-        self.append_message(b"dom-sep", b"WithdrawProof");
-    }
-
-    fn transfer_proof_domain_separator(&mut self) {
-        self.append_message(b"dom-sep", b"TransferProof");
     }
 
     fn append_scalar(&mut self, label: &'static [u8], scalar: &Scalar) {
