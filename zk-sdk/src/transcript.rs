@@ -17,8 +17,11 @@ pub trait TranscriptProtocol {
     /// Append a `point` with the given `label`.
     fn append_point(&mut self, label: &'static [u8], point: &CompressedRistretto);
 
-    /// Append a domain separator for equality proof.
-    fn equality_proof_domain_separator(&mut self);
+    /// Append a domain separator for ciphertext-ciphertext equality proof.
+    fn ciphertext_ciphertext_equality_proof_domain_separator(&mut self);
+
+    /// Append a domain separator for ciphertext-commitment equality proof.
+    fn ciphertext_commitment_equality_proof_domain_separator(&mut self);
 
     /// Append a domain separator for zero-balance proof.
     fn zero_balance_proof_domain_separator(&mut self);
@@ -86,8 +89,12 @@ impl TranscriptProtocol for Transcript {
         Scalar::from_bytes_mod_order_wide(&buf)
     }
 
-    fn equality_proof_domain_separator(&mut self) {
-        self.append_message(b"dom-sep", b"equality-proof")
+    fn ciphertext_ciphertext_equality_proof_domain_separator(&mut self) {
+        self.append_message(b"dom-sep", b"ciphertext-ciphertext-equality-proof")
+    }
+
+    fn ciphertext_commitment_equality_proof_domain_separator(&mut self) {
+        self.append_message(b"dom-sep", b"ciphertext-commitment-equality-proof")
     }
 
     fn zero_balance_proof_domain_separator(&mut self) {
