@@ -32,8 +32,8 @@ pub trait TranscriptProtocol {
     /// Append a domain separator for batched grouped ciphertext validity proof.
     fn batched_grouped_ciphertext_validity_proof_domain_separator(&mut self, handles: u64);
 
-    /// Append a domain separator for fee sigma proof.
-    fn fee_sigma_proof_domain_separator(&mut self);
+    /// Append a domain separator for percentage with cap proof.
+    fn percentage_with_cap_proof_domain_separator(&mut self);
 
     /// Append a domain separator for public-key proof.
     fn pubkey_proof_domain_separator(&mut self);
@@ -111,8 +111,8 @@ impl TranscriptProtocol for Transcript {
         self.append_u64(b"handles", handles);
     }
 
-    fn fee_sigma_proof_domain_separator(&mut self) {
-        self.append_message(b"dom-sep", b"fee-sigma-proof")
+    fn percentage_with_cap_proof_domain_separator(&mut self) {
+        self.append_message(b"dom-sep", b"percentage-with-cap-proof")
     }
 
     fn pubkey_proof_domain_separator(&mut self) {
