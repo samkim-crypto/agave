@@ -5,17 +5,25 @@ use {
 };
 
 pub trait TranscriptProtocol {
-    /// Append a domain separator for an `n`-bit range proof
-    fn range_proof_domain_separator(&mut self, n: u64);
-
-    /// Append a domain separator for a length-`n` inner product proof.
-    fn inner_product_proof_domain_separator(&mut self, n: u64);
-
     /// Append a `scalar` with the given `label`.
     fn append_scalar(&mut self, label: &'static [u8], scalar: &Scalar);
 
     /// Append a `point` with the given `label`.
     fn append_point(&mut self, label: &'static [u8], point: &CompressedRistretto);
+
+    /// Check that a point is not the identity, then append it to the
+    /// transcript.  Otherwise, return an error.
+    fn validate_and_append_point(
+        &mut self,
+        label: &'static [u8],
+        point: &CompressedRistretto,
+    ) -> Result<(), TranscriptError>;
+
+    /// Append a domain separator for an `n`-bit range proof
+    fn range_proof_domain_separator(&mut self, n: u64);
+
+    /// Append a domain separator for a length-`n` inner product proof.
+    fn inner_product_proof_domain_separator(&mut self, n: u64);
 
     /// Append a domain separator for ciphertext-ciphertext equality proof.
     fn ciphertext_ciphertext_equality_proof_domain_separator(&mut self);
@@ -38,29 +46,11 @@ pub trait TranscriptProtocol {
     /// Append a domain separator for public-key proof.
     fn pubkey_proof_domain_separator(&mut self);
 
-    /// Check that a point is not the identity, then append it to the
-    /// transcript.  Otherwise, return an error.
-    fn validate_and_append_point(
-        &mut self,
-        label: &'static [u8],
-        point: &CompressedRistretto,
-    ) -> Result<(), TranscriptError>;
-
     /// Compute a `label`ed challenge variable.
     fn challenge_scalar(&mut self, label: &'static [u8]) -> Scalar;
 }
 
 impl TranscriptProtocol for Transcript {
-    fn range_proof_domain_separator(&mut self, n: u64) {
-        self.append_message(b"dom-sep", b"range-proof");
-        self.append_u64(b"n", n);
-    }
-
-    fn inner_product_proof_domain_separator(&mut self, n: u64) {
-        self.append_message(b"dom-sep", b"inner-product");
-        self.append_u64(b"n", n);
-    }
-
     fn append_scalar(&mut self, label: &'static [u8], scalar: &Scalar) {
         self.append_message(label, scalar.as_bytes());
     }
@@ -82,11 +72,14 @@ impl TranscriptProtocol for Transcript {
         }
     }
 
-    fn challenge_scalar(&mut self, label: &'static [u8]) -> Scalar {
-        let mut buf = [0u8; 64];
-        self.challenge_bytes(label, &mut buf);
+    fn range_proof_domain_separator(&mut self, n: u64) {
+        self.append_message(b"dom-sep", b"range-proof");
+        self.append_u64(b"n", n);
+    }
 
-        Scalar::from_bytes_mod_order_wide(&buf)
+    fn inner_product_proof_domain_separator(&mut self, n: u64) {
+        self.append_message(b"dom-sep", b"inner-product");
+        self.append_u64(b"n", n);
     }
 
     fn ciphertext_ciphertext_equality_proof_domain_separator(&mut self) {
@@ -117,5 +110,12 @@ impl TranscriptProtocol for Transcript {
 
     fn pubkey_proof_domain_separator(&mut self) {
         self.append_message(b"dom-sep", b"pubkey-proof")
+    }
+
+    fn challenge_scalar(&mut self, label: &'static [u8]) -> Scalar {
+        let mut buf = [0u8; 64];
+        self.challenge_bytes(label, &mut buf);
+
+        Scalar::from_bytes_mod_order_wide(&buf)
     }
 }
