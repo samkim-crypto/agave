@@ -11,9 +11,6 @@ pub trait TranscriptProtocol {
     /// Append a domain separator for a length-`n` inner product proof.
     fn inner_product_proof_domain_separator(&mut self, n: u64);
 
-    /// Append a domain separator for close account proof.
-    fn close_account_proof_domain_separator(&mut self);
-
     /// Append a domain separator for withdraw proof.
     fn withdraw_proof_domain_separator(&mut self);
 
@@ -65,10 +62,6 @@ impl TranscriptProtocol for Transcript {
     fn inner_product_proof_domain_separator(&mut self, n: u64) {
         self.append_message(b"dom-sep", b"inner-product");
         self.append_u64(b"n", n);
-    }
-
-    fn close_account_proof_domain_separator(&mut self) {
-        self.append_message(b"dom-sep", b"CloseAccountProof");
     }
 
     fn withdraw_proof_domain_separator(&mut self) {
