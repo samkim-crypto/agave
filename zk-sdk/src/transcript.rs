@@ -23,8 +23,8 @@ pub trait TranscriptProtocol {
     /// Append a domain separator for ciphertext-commitment equality proof.
     fn ciphertext_commitment_equality_proof_domain_separator(&mut self);
 
-    /// Append a domain separator for zero-balance proof.
-    fn zero_balance_proof_domain_separator(&mut self);
+    /// Append a domain separator for zero-ciphertext proof.
+    fn zero_ciphertext_proof_domain_separator(&mut self);
 
     /// Append a domain separator for grouped ciphertext validity proof.
     fn grouped_ciphertext_validity_proof_domain_separator(&mut self);
@@ -97,8 +97,8 @@ impl TranscriptProtocol for Transcript {
         self.append_message(b"dom-sep", b"ciphertext-commitment-equality-proof")
     }
 
-    fn zero_balance_proof_domain_separator(&mut self) {
-        self.append_message(b"dom-sep", b"zero-balance-proof")
+    fn zero_ciphertext_proof_domain_separator(&mut self) {
+        self.append_message(b"dom-sep", b"zero-ciphertext-proof")
     }
 
     fn grouped_ciphertext_validity_proof_domain_separator(&mut self) {
