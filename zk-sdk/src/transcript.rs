@@ -5,16 +5,11 @@ use {
 };
 
 pub trait TranscriptProtocol {
-    /// Append a domain separator for an `n`-bit rangeproof for ElGamalKeypair
-    /// ciphertext using a decryption key
-    fn rangeproof_from_key_domain_separator(&mut self, n: u64);
-
-    /// Append a domain separator for an `n`-bit rangeproof for ElGamalKeypair
-    /// ciphertext using an opening
-    fn rangeproof_from_opening_domain_separator(&mut self, n: u64);
+    /// Append a domain separator for an `n`-bit range proof
+    fn range_proof_domain_separator(&mut self, n: u64);
 
     /// Append a domain separator for a length-`n` inner product proof.
-    fn innerproduct_domain_separator(&mut self, n: u64);
+    fn inner_product_proof_domain_separator(&mut self, n: u64);
 
     /// Append a domain separator for close account proof.
     fn close_account_proof_domain_separator(&mut self);
@@ -62,18 +57,13 @@ pub trait TranscriptProtocol {
 }
 
 impl TranscriptProtocol for Transcript {
-    fn rangeproof_from_key_domain_separator(&mut self, n: u64) {
-        self.append_message(b"dom-sep", b"rangeproof from opening v1");
+    fn range_proof_domain_separator(&mut self, n: u64) {
+        self.append_message(b"dom-sep", b"range-proof");
         self.append_u64(b"n", n);
     }
 
-    fn rangeproof_from_opening_domain_separator(&mut self, n: u64) {
-        self.append_message(b"dom-sep", b"rangeproof from opening v1");
-        self.append_u64(b"n", n);
-    }
-
-    fn innerproduct_domain_separator(&mut self, n: u64) {
-        self.append_message(b"dom-sep", b"ipp v1");
+    fn inner_product_proof_domain_separator(&mut self, n: u64) {
+        self.append_message(b"dom-sep", b"inner-product");
         self.append_u64(b"n", n);
     }
 
