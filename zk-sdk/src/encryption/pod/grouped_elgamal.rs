@@ -4,13 +4,14 @@
 use crate::encryption::grouped_elgamal::GroupedElGamalCiphertext;
 use {
     crate::{
-        errors::ElGamalError,
-        zk_token_elgamal::pod::{
-            elgamal::{ElGamalCiphertext, DECRYPT_HANDLE_LEN, ELGAMAL_CIPHERTEXT_LEN},
-            pedersen::{PedersenCommitment, PEDERSEN_COMMITMENT_LEN},
-            Pod, Zeroable,
+        encryption::{
+            elgamal::{DECRYPT_HANDLE_LEN, ELGAMAL_CIPHERTEXT_LEN},
+            pedersen::PEDERSEN_COMMITMENT_LEN,
+            pod::{elgamal::PodElGamalCiphertext, pedersen::PodPedersenCommitment},
         },
+        errors::ElGamalError,
     },
+    bytemuck::{Pod, Zeroable},
     std::fmt,
 };
 
@@ -18,17 +19,17 @@ macro_rules! impl_extract {
     (TYPE = $type:ident) => {
         impl $type {
             /// Extract the commitment component from a grouped ciphertext
-            pub fn extract_commitment(&self) -> PedersenCommitment {
+            pub fn extract_commitment(&self) -> PodPedersenCommitment {
                 // `GROUPED_ELGAMAL_CIPHERTEXT_2_HANDLES` guaranteed to be at least `PEDERSEN_COMMITMENT_LEN`
                 let commitment = self.0[..PEDERSEN_COMMITMENT_LEN].try_into().unwrap();
-                PedersenCommitment(commitment)
+                PodPedersenCommitment(commitment)
             }
 
             /// Extract a regular ElGamal ciphertext using the decrypt handle at a specified index.
             pub fn try_extract_ciphertext(
                 &self,
                 index: usize,
-            ) -> Result<ElGamalCiphertext, ElGamalError> {
+            ) -> Result<PodElGamalCiphertext, ElGamalError> {
                 let mut ciphertext_bytes = [0u8; ELGAMAL_CIPHERTEXT_LEN];
                 ciphertext_bytes[..PEDERSEN_COMMITMENT_LEN]
                     .copy_from_slice(&self.0[..PEDERSEN_COMMITMENT_LEN]);
@@ -46,7 +47,7 @@ macro_rules! impl_extract {
                         .ok_or(ElGamalError::CiphertextDeserialization)?,
                 );
 
-                Ok(ElGamalCiphertext(ciphertext_bytes))
+                Ok(PodElGamalCiphertext(ciphertext_bytes))
             }
         }
     };
@@ -63,81 +64,83 @@ const GROUPED_ELGAMAL_CIPHERTEXT_3_HANDLES: usize =
 /// The `GroupedElGamalCiphertext` type with two decryption handles as a `Pod`
 #[derive(Clone, Copy, Pod, Zeroable, PartialEq, Eq)]
 #[repr(transparent)]
-pub struct GroupedElGamalCiphertext2Handles(pub [u8; GROUPED_ELGAMAL_CIPHERTEXT_2_HANDLES]);
+pub struct PodGroupedElGamalCiphertext2Handles(
+    pub(crate) [u8; GROUPED_ELGAMAL_CIPHERTEXT_2_HANDLES],
+);
 
-impl fmt::Debug for GroupedElGamalCiphertext2Handles {
+impl fmt::Debug for PodGroupedElGamalCiphertext2Handles {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{:?}", self.0)
     }
 }
 
-impl Default for GroupedElGamalCiphertext2Handles {
+impl Default for PodGroupedElGamalCiphertext2Handles {
     fn default() -> Self {
         Self::zeroed()
     }
 }
 #[cfg(not(target_os = "solana"))]
-impl From<GroupedElGamalCiphertext<2>> for GroupedElGamalCiphertext2Handles {
+impl From<GroupedElGamalCiphertext<2>> for PodGroupedElGamalCiphertext2Handles {
     fn from(decoded_ciphertext: GroupedElGamalCiphertext<2>) -> Self {
         Self(decoded_ciphertext.to_bytes().try_into().unwrap())
     }
 }
 
 #[cfg(not(target_os = "solana"))]
-impl TryFrom<GroupedElGamalCiphertext2Handles> for GroupedElGamalCiphertext<2> {
+impl TryFrom<PodGroupedElGamalCiphertext2Handles> for GroupedElGamalCiphertext<2> {
     type Error = ElGamalError;
 
-    fn try_from(pod_ciphertext: GroupedElGamalCiphertext2Handles) -> Result<Self, Self::Error> {
+    fn try_from(pod_ciphertext: PodGroupedElGamalCiphertext2Handles) -> Result<Self, Self::Error> {
         Self::from_bytes(&pod_ciphertext.0).ok_or(ElGamalError::CiphertextDeserialization)
     }
 }
 
-impl_extract!(TYPE = GroupedElGamalCiphertext2Handles);
+impl_extract!(TYPE = PodGroupedElGamalCiphertext2Handles);
 
 /// The `GroupedElGamalCiphertext` type with three decryption handles as a `Pod`
 #[derive(Clone, Copy, Pod, Zeroable, PartialEq, Eq)]
 #[repr(transparent)]
-pub struct GroupedElGamalCiphertext3Handles(pub [u8; GROUPED_ELGAMAL_CIPHERTEXT_3_HANDLES]);
+pub struct PodGroupedElGamalCiphertext3Handles(
+    pub(crate) [u8; GROUPED_ELGAMAL_CIPHERTEXT_3_HANDLES],
+);
 
-impl fmt::Debug for GroupedElGamalCiphertext3Handles {
+impl fmt::Debug for PodGroupedElGamalCiphertext3Handles {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{:?}", self.0)
     }
 }
 
-impl Default for GroupedElGamalCiphertext3Handles {
+impl Default for PodGroupedElGamalCiphertext3Handles {
     fn default() -> Self {
         Self::zeroed()
     }
 }
 
 #[cfg(not(target_os = "solana"))]
-impl From<GroupedElGamalCiphertext<3>> for GroupedElGamalCiphertext3Handles {
+impl From<GroupedElGamalCiphertext<3>> for PodGroupedElGamalCiphertext3Handles {
     fn from(decoded_ciphertext: GroupedElGamalCiphertext<3>) -> Self {
         Self(decoded_ciphertext.to_bytes().try_into().unwrap())
     }
 }
 
 #[cfg(not(target_os = "solana"))]
-impl TryFrom<GroupedElGamalCiphertext3Handles> for GroupedElGamalCiphertext<3> {
+impl TryFrom<PodGroupedElGamalCiphertext3Handles> for GroupedElGamalCiphertext<3> {
     type Error = ElGamalError;
 
-    fn try_from(pod_ciphertext: GroupedElGamalCiphertext3Handles) -> Result<Self, Self::Error> {
+    fn try_from(pod_ciphertext: PodGroupedElGamalCiphertext3Handles) -> Result<Self, Self::Error> {
         Self::from_bytes(&pod_ciphertext.0).ok_or(ElGamalError::CiphertextDeserialization)
     }
 }
 
-impl_extract!(TYPE = GroupedElGamalCiphertext3Handles);
+impl_extract!(TYPE = PodGroupedElGamalCiphertext3Handles);
 
 #[cfg(test)]
 mod tests {
     use {
         super::*,
-        crate::{
-            encryption::{
-                elgamal::ElGamalKeypair, grouped_elgamal::GroupedElGamal, pedersen::Pedersen,
-            },
-            zk_token_elgamal::pod::pedersen::PedersenCommitment,
+        crate::encryption::{
+            elgamal::ElGamalKeypair, grouped_elgamal::GroupedElGamal, pedersen::Pedersen,
+            pod::pedersen::PodPedersenCommitment,
         },
     };
 
@@ -154,19 +157,19 @@ mod tests {
             amount,
             &opening,
         );
-        let pod_grouped_ciphertext: GroupedElGamalCiphertext2Handles = grouped_ciphertext.into();
+        let pod_grouped_ciphertext: PodGroupedElGamalCiphertext2Handles = grouped_ciphertext.into();
 
-        let expected_pod_commitment: PedersenCommitment = commitment.into();
+        let expected_pod_commitment: PodPedersenCommitment = commitment.into();
         let actual_pod_commitment = pod_grouped_ciphertext.extract_commitment();
         assert_eq!(expected_pod_commitment, actual_pod_commitment);
 
         let expected_ciphertext_0 = elgamal_keypair_0.pubkey().encrypt_with(amount, &opening);
-        let expected_pod_ciphertext_0: ElGamalCiphertext = expected_ciphertext_0.into();
+        let expected_pod_ciphertext_0: PodElGamalCiphertext = expected_ciphertext_0.into();
         let actual_pod_ciphertext_0 = pod_grouped_ciphertext.try_extract_ciphertext(0).unwrap();
         assert_eq!(expected_pod_ciphertext_0, actual_pod_ciphertext_0);
 
         let expected_ciphertext_1 = elgamal_keypair_1.pubkey().encrypt_with(amount, &opening);
-        let expected_pod_ciphertext_1: ElGamalCiphertext = expected_ciphertext_1.into();
+        let expected_pod_ciphertext_1: PodElGamalCiphertext = expected_ciphertext_1.into();
         let actual_pod_ciphertext_1 = pod_grouped_ciphertext.try_extract_ciphertext(1).unwrap();
         assert_eq!(expected_pod_ciphertext_1, actual_pod_ciphertext_1);
 
@@ -194,24 +197,24 @@ mod tests {
             amount,
             &opening,
         );
-        let pod_grouped_ciphertext: GroupedElGamalCiphertext3Handles = grouped_ciphertext.into();
+        let pod_grouped_ciphertext: PodGroupedElGamalCiphertext3Handles = grouped_ciphertext.into();
 
-        let expected_pod_commitment: PedersenCommitment = commitment.into();
+        let expected_pod_commitment: PodPedersenCommitment = commitment.into();
         let actual_pod_commitment = pod_grouped_ciphertext.extract_commitment();
         assert_eq!(expected_pod_commitment, actual_pod_commitment);
 
         let expected_ciphertext_0 = elgamal_keypair_0.pubkey().encrypt_with(amount, &opening);
-        let expected_pod_ciphertext_0: ElGamalCiphertext = expected_ciphertext_0.into();
+        let expected_pod_ciphertext_0: PodElGamalCiphertext = expected_ciphertext_0.into();
         let actual_pod_ciphertext_0 = pod_grouped_ciphertext.try_extract_ciphertext(0).unwrap();
         assert_eq!(expected_pod_ciphertext_0, actual_pod_ciphertext_0);
 
         let expected_ciphertext_1 = elgamal_keypair_1.pubkey().encrypt_with(amount, &opening);
-        let expected_pod_ciphertext_1: ElGamalCiphertext = expected_ciphertext_1.into();
+        let expected_pod_ciphertext_1: PodElGamalCiphertext = expected_ciphertext_1.into();
         let actual_pod_ciphertext_1 = pod_grouped_ciphertext.try_extract_ciphertext(1).unwrap();
         assert_eq!(expected_pod_ciphertext_1, actual_pod_ciphertext_1);
 
         let expected_ciphertext_2 = elgamal_keypair_2.pubkey().encrypt_with(amount, &opening);
-        let expected_pod_ciphertext_2: ElGamalCiphertext = expected_ciphertext_2.into();
+        let expected_pod_ciphertext_2: PodElGamalCiphertext = expected_ciphertext_2.into();
         let actual_pod_ciphertext_2 = pod_grouped_ciphertext.try_extract_ciphertext(2).unwrap();
         assert_eq!(expected_pod_ciphertext_2, actual_pod_ciphertext_2);
 
