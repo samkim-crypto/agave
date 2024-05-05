@@ -7,5 +7,7 @@
 //!
 //! [`ZK ElGamal proof`]: https://docs.solanalabs.com/runtime/zk-token-proof
 
+pub mod instruction;
+
 // Program Id of the ZK ElGamal Proof program
 solana_program::declare_id!("ZkTokenProof1111111111111111111111111111111");

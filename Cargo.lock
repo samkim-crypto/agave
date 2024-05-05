@@ -7684,6 +7684,8 @@ dependencies = [
  "itertools",
  "lazy_static",
  "merlin",
+ "num-derive",
+ "num-traits",
  "rand 0.7.3",
  "serde",
  "serde_json",

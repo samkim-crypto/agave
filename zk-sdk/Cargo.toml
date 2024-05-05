@@ -11,6 +11,8 @@ edition = { workspace = true }
 
 [dependencies]
 base64 = { workspace = true }
+num-derive = { workspace = true }
+num-traits = { workspace = true }
 solana-program = { workspace = true }
 thiserror = { workspace = true }
 
