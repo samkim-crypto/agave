@@ -9,6 +9,7 @@
 
 pub mod instruction;
 pub mod proof_data;
+pub mod state;
 
 // Program Id of the ZK ElGamal Proof program
 solana_program::declare_id!("ZkTokenProof1111111111111111111111111111111");
