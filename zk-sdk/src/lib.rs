@@ -22,6 +22,7 @@
 #[cfg(not(target_os = "solana"))]
 pub mod encryption;
 pub mod errors;
+pub mod program;
 mod range_proof;
 #[cfg(not(target_os = "solana"))]
 mod sigma_proofs;
