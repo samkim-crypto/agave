@@ -19,10 +19,10 @@
 // `clippy::op_ref` is turned off to prevent clippy from warning that this is not idiomatic code.
 #![allow(clippy::arithmetic_side_effects, clippy::op_ref)]
 
+pub mod elgamal_program;
 #[cfg(not(target_os = "solana"))]
 pub mod encryption;
 pub mod errors;
-pub mod program;
 mod range_proof;
 #[cfg(not(target_os = "solana"))]
 mod sigma_proofs;

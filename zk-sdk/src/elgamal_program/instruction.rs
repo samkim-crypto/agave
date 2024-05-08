@@ -78,7 +78,7 @@ pub fn close_context_state(
     let data = vec![ToPrimitive::to_u8(&ProofInstruction::CloseContextState).unwrap()];
 
     Instruction {
-        program_id: crate::program::id(),
+        program_id: crate::elgamal_program::id(),
         accounts,
         data,
     }

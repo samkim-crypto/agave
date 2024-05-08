@@ -1,5 +1,5 @@
 use {
-    crate::program::proof_data::{pod::PodProofType, ProofType},
+    crate::elgamal_program::proof_data::{pod::PodProofType, ProofType},
     bytemuck::{bytes_of, Pod, Zeroable},
     num_traits::ToPrimitive,
     solana_program::{

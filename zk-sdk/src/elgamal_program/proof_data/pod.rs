@@ -1,5 +1,5 @@
 use {
-    crate::program::proof_data::{errors::ElGamalProofProgramError, ProofType},
+    crate::elgamal_program::proof_data::{errors::ElGamalProofProgramError, ProofType},
     bytemuck::{Pod, Zeroable},
     num_traits::{FromPrimitive, ToPrimitive},
 };
