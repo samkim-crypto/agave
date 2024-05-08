@@ -1,5 +1,5 @@
 use {
-    crate::errors::ProofVerificationError,
+    crate::elgamal_program::errors::ProofVerificationError,
     bytemuck::Pod,
     num_derive::{FromPrimitive, ToPrimitive},
 };

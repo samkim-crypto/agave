@@ -1,7 +1,7 @@
 use thiserror::Error;
 
 #[derive(Error, Clone, Debug, Eq, PartialEq)]
-pub enum ElGamalProofProgramError {
+pub enum ProofDataError {
     #[error("decryption error")]
     Decryption,
     #[error("missing ciphertext")]

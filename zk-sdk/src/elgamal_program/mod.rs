@@ -7,6 +7,7 @@
 //!
 //! [`ZK ElGamal proof`]: https://docs.solanalabs.com/runtime/zk-token-proof
 
+pub mod errors;
 pub mod instruction;
 pub mod proof_data;
 pub mod state;

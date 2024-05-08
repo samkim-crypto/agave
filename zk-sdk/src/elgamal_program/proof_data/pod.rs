@@ -1,5 +1,5 @@
 use {
-    crate::elgamal_program::proof_data::{errors::ElGamalProofProgramError, ProofType},
+    crate::elgamal_program::proof_data::{errors::ProofDataError, ProofType},
     bytemuck::{Pod, Zeroable},
     num_traits::{FromPrimitive, ToPrimitive},
 };
@@ -13,7 +13,7 @@ impl From<ProofType> for PodProofType {
     }
 }
 impl TryFrom<PodProofType> for ProofType {
-    type Error = ElGamalProofProgramError;
+    type Error = ProofDataError;
 
     fn try_from(pod: PodProofType) -> Result<Self, Self::Error> {
         FromPrimitive::from_u8(pod.0).ok_or(Self::Error::InvalidProofType)

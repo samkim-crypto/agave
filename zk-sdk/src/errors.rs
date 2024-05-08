@@ -36,9 +36,3 @@ pub enum TranscriptError {
     #[error("point is the identity")]
     ValidationError,
 }
-
-#[derive(Error, Clone, Debug, Eq, PartialEq)]
-pub enum ProofVerificationError {
-    #[error("Invalid proof context")]
-    ProofContext,
-}
