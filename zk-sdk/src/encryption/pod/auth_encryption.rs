@@ -20,9 +20,9 @@ const AE_CIPHERTEXT_MAX_BASE64_LEN: usize = 48;
 #[repr(transparent)]
 pub struct PodAeCiphertext(pub(crate) [u8; AE_CIPHERTEXT_LEN]);
 
-// `AeCiphertext` is a wrapper type for a byte array, which is both `Pod` and `Zeroable`. However,
+// `PodAeCiphertext` is a wrapper type for a byte array, which is both `Pod` and `Zeroable`. However,
 // the marker traits `bytemuck::Pod` and `bytemuck::Zeroable` can only be derived for power-of-two
-// length byte arrays. Directly implement these traits for `AeCiphertext`.
+// length byte arrays. Directly implement these traits for `PodAeCiphertext`.
 unsafe impl Zeroable for PodAeCiphertext {}
 unsafe impl Pod for PodAeCiphertext {}
 
