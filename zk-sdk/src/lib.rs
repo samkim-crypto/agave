@@ -23,7 +23,6 @@ pub mod elgamal_program;
 pub mod encryption;
 pub mod errors;
 mod range_proof;
-#[cfg(not(target_os = "solana"))]
 mod sigma_proofs;
 #[cfg(not(target_os = "solana"))]
 mod transcript;
