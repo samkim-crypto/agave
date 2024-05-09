@@ -3,7 +3,10 @@
 //! This module is a simple wrapper of the `Aes128GcmSiv` implementation specialized for SPL
 //! token-2022 where the plaintext is always `u64`.
 use {
-    crate::errors::AuthenticatedEncryptionError,
+    crate::{
+        encryption::{AE_CIPHERTEXT_LEN, AE_KEY_LEN},
+        errors::AuthenticatedEncryptionError,
+    },
     aes_gcm_siv::{
         aead::{Aead, NewAead},
         Aes128GcmSiv,
@@ -28,18 +31,11 @@ use {
     zeroize::Zeroize,
 };
 
-/// Byte length of an authenticated encryption secret key
-pub const AE_KEY_LEN: usize = 16;
-
 /// Byte length of an authenticated encryption nonce component
 const NONCE_LEN: usize = 12;
 
 /// Byte lenth of an authenticated encryption ciphertext component
 const CIPHERTEXT_LEN: usize = 24;
-
-/// Byte length of a complete authenticated encryption ciphertext component that includes the
-/// ciphertext and nonce components
-const AE_CIPHERTEXT_LEN: usize = 36;
 
 struct AuthenticatedEncryption;
 impl AuthenticatedEncryption {

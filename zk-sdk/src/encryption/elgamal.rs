@@ -17,12 +17,11 @@ use {
     crate::{
         encryption::{
             discrete_log::DiscreteLog,
-            pedersen::{
-                Pedersen, PedersenCommitment, PedersenOpening, G, H, PEDERSEN_COMMITMENT_LEN,
-            },
+            pedersen::{Pedersen, PedersenCommitment, PedersenOpening, G, H},
+            DECRYPT_HANDLE_LEN, ELGAMAL_CIPHERTEXT_LEN, ELGAMAL_KEYPAIR_LEN, ELGAMAL_PUBKEY_LEN,
+            ELGAMAL_SECRET_KEY_LEN, PEDERSEN_COMMITMENT_LEN,
         },
         errors::ElGamalError,
-        RISTRETTO_POINT_LEN, SCALAR_LEN,
     },
     base64::{prelude::BASE64_STANDARD, Engine},
     core::ops::{Add, Mul, Sub},
@@ -51,21 +50,6 @@ use {
     subtle::{Choice, ConstantTimeEq},
     zeroize::Zeroize,
 };
-
-/// Byte length of a decrypt handle
-const DECRYPT_HANDLE_LEN: usize = RISTRETTO_POINT_LEN;
-
-/// Byte length of an ElGamal ciphertext
-const ELGAMAL_CIPHERTEXT_LEN: usize = PEDERSEN_COMMITMENT_LEN + DECRYPT_HANDLE_LEN;
-
-/// Byte length of an ElGamal public key
-const ELGAMAL_PUBKEY_LEN: usize = RISTRETTO_POINT_LEN;
-
-/// Byte length of an ElGamal secret key
-const ELGAMAL_SECRET_KEY_LEN: usize = SCALAR_LEN;
-
-/// Byte length of an ElGamal keypair
-pub const ELGAMAL_KEYPAIR_LEN: usize = ELGAMAL_PUBKEY_LEN + ELGAMAL_SECRET_KEY_LEN;
 
 /// Algorithm handle for the twisted ElGamal encryption scheme
 pub struct ElGamal;

@@ -1,7 +1,7 @@
 //! Pedersen commitment implementation using the Ristretto prime-order group.
 
 use {
-    crate::{RISTRETTO_POINT_LEN, SCALAR_LEN},
+    crate::encryption::{PEDERSEN_COMMITMENT_LEN, PEDERSEN_OPENING_LEN},
     core::ops::{Add, Mul, Sub},
     curve25519_dalek::{
         constants::{RISTRETTO_BASEPOINT_COMPRESSED, RISTRETTO_BASEPOINT_POINT},
@@ -16,12 +16,6 @@ use {
     subtle::{Choice, ConstantTimeEq},
     zeroize::Zeroize,
 };
-
-/// Byte length of a Pedersen opening.
-const PEDERSEN_OPENING_LEN: usize = SCALAR_LEN;
-
-/// Byte length of a Pedersen commitment.
-pub(crate) const PEDERSEN_COMMITMENT_LEN: usize = RISTRETTO_POINT_LEN;
 
 lazy_static::lazy_static! {
     /// Pedersen base point for encoding messages to be committed.
