@@ -24,7 +24,6 @@ pub mod encryption;
 pub mod errors;
 mod range_proof;
 mod sigma_proofs;
-#[cfg(not(target_os = "solana"))]
 mod transcript;
 
 /// Byte length of a compressed Ristretto point or scalar in Curve255519
