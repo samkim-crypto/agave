@@ -4,7 +4,12 @@
 //! token-2022 where the plaintext is always `u64`.
 use {
     crate::errors::AuthenticatedEncryptionError,
+    aes_gcm_siv::{
+        aead::{Aead, NewAead},
+        Aes128GcmSiv,
+    },
     base64::{prelude::BASE64_STANDARD, Engine},
+    rand::{rngs::OsRng, Rng},
     sha3::{Digest, Sha3_512},
     solana_sdk::{
         derivation_path::DerivationPath,
@@ -21,14 +26,6 @@ use {
     },
     subtle::ConstantTimeEq,
     zeroize::Zeroize,
-};
-#[cfg(not(target_os = "solana"))]
-use {
-    aes_gcm_siv::{
-        aead::{Aead, NewAead},
-        Aes128GcmSiv,
-    },
-    rand::{rngs::OsRng, Rng},
 };
 
 /// Byte length of an authenticated encryption secret key
@@ -49,14 +46,12 @@ impl AuthenticatedEncryption {
     /// Generates an authenticated encryption key.
     ///
     /// This function is randomized. It internally samples a 128-bit key using `OsRng`.
-    #[cfg(not(target_os = "solana"))]
     fn keygen() -> AeKey {
         AeKey(OsRng.gen::<[u8; AE_KEY_LEN]>())
     }
 
     /// On input of an authenticated encryption key and an amount, the function returns a
     /// corresponding authenticated encryption ciphertext.
-    #[cfg(not(target_os = "solana"))]
     fn encrypt(key: &AeKey, balance: u64) -> AeCiphertext {
         let mut plaintext = balance.to_le_bytes();
         let nonce: Nonce = OsRng.gen::<[u8; NONCE_LEN]>();
@@ -76,7 +71,6 @@ impl AuthenticatedEncryption {
 
     /// On input of an authenticated encryption key and a ciphertext, the function returns the
     /// originally encrypted amount.
-    #[cfg(not(target_os = "solana"))]
     fn decrypt(key: &AeKey, ciphertext: &AeCiphertext) -> Option<u64> {
         let plaintext = Aes128GcmSiv::new(&key.0.into())
             .decrypt(&ciphertext.nonce.into(), ciphertext.ciphertext.as_ref());

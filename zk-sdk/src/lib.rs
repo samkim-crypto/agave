@@ -20,7 +20,6 @@
 #![allow(clippy::arithmetic_side_effects, clippy::op_ref)]
 
 pub mod elgamal_program;
-#[cfg(not(target_os = "solana"))]
 pub mod encryption;
 pub mod errors;
 mod range_proof;

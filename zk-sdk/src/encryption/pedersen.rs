@@ -1,7 +1,5 @@
 //! Pedersen commitment implementation using the Ristretto prime-order group.
 
-#[cfg(not(target_os = "solana"))]
-use rand::rngs::OsRng;
 use {
     crate::{RISTRETTO_POINT_LEN, SCALAR_LEN},
     core::ops::{Add, Mul, Sub},
@@ -11,6 +9,7 @@ use {
         scalar::Scalar,
         traits::MultiscalarMul,
     },
+    rand::rngs::OsRng,
     serde::{Deserialize, Serialize},
     sha3::Sha3_512,
     std::convert::TryInto,
@@ -39,7 +38,6 @@ impl Pedersen {
     /// message and the corresponding opening.
     ///
     /// This function is randomized. It internally samples a Pedersen opening using `OsRng`.
-    #[cfg(not(target_os = "solana"))]
     #[allow(clippy::new_ret_no_self)]
     pub fn new<T: Into<Scalar>>(amount: T) -> (PedersenCommitment, PedersenOpening) {
         let opening = PedersenOpening::new_rand();
@@ -84,7 +82,6 @@ impl PedersenOpening {
         &self.0
     }
 
-    #[cfg(not(target_os = "solana"))]
     pub fn new_rand() -> Self {
         PedersenOpening(Scalar::random(&mut OsRng))
     }
