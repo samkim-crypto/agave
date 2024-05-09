@@ -2,8 +2,7 @@
 
 use {
     crate::encryption::{
-        elgamal::{DECRYPT_HANDLE_LEN, ELGAMAL_CIPHERTEXT_LEN, ELGAMAL_PUBKEY_LEN},
-        pod::impl_from_str,
+        pod::impl_from_str, DECRYPT_HANDLE_LEN, ELGAMAL_CIPHERTEXT_LEN, ELGAMAL_PUBKEY_LEN,
     },
     base64::{prelude::BASE64_STANDARD, Engine},
     bytemuck::{Pod, Zeroable},

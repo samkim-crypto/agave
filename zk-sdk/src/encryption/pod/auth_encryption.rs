@@ -1,12 +1,9 @@
 //! Plain Old Data types for the AES128-GCM-SIV authenticated encryption scheme.
 
 #[cfg(not(target_os = "solana"))]
-use crate::{
-    encryption::auth_encryption::{AeCiphertext, AE_CIPHERTEXT_LEN},
-    errors::AuthenticatedEncryptionError,
-};
+use crate::{encryption::auth_encryption::AeCiphertext, errors::AuthenticatedEncryptionError};
 use {
-    crate::encryption::pod::impl_from_str,
+    crate::encryption::{pod::impl_from_str, AE_CIPHERTEXT_LEN},
     base64::{prelude::BASE64_STANDARD, Engine},
     bytemuck::{Pod, Zeroable},
     std::fmt,

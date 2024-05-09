@@ -1,7 +1,7 @@
 //! Plain Old Data type for the Pedersen commitment scheme.
 
 use {
-    crate::encryption::pedersen::PEDERSEN_COMMITMENT_LEN,
+    crate::encryption::PEDERSEN_COMMITMENT_LEN,
     bytemuck::{Pod, Zeroable},
     std::fmt,
 };

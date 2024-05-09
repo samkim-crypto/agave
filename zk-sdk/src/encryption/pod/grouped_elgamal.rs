@@ -5,9 +5,8 @@ use crate::encryption::grouped_elgamal::GroupedElGamalCiphertext;
 use {
     crate::{
         encryption::{
-            elgamal::{DECRYPT_HANDLE_LEN, ELGAMAL_CIPHERTEXT_LEN},
-            pedersen::PEDERSEN_COMMITMENT_LEN,
             pod::{elgamal::PodElGamalCiphertext, pedersen::PodPedersenCommitment},
+            DECRYPT_HANDLE_LEN, ELGAMAL_CIPHERTEXT_LEN, PEDERSEN_COMMITMENT_LEN,
         },
         errors::ElGamalError,
     },
