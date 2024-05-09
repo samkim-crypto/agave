@@ -41,8 +41,8 @@ use {
             SeedDerivable, Signer, SignerError,
         },
     },
-    std::convert::TryInto,
     std::{
+        convert::TryInto,
         error, fmt,
         io::{Read, Write},
         path::Path,
