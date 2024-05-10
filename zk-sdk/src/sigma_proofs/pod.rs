@@ -2,62 +2,43 @@
 
 #[cfg(not(target_os = "solana"))]
 use crate::sigma_proofs::{
-    batched_grouped_ciphertext_validity_proof::BatchedGroupedCiphertext2HandlesValidityProof as DecodedBatchedGroupedCiphertext2HandlesValidityProof,
-    batched_grouped_ciphertext_validity_proof::BatchedGroupedCiphertext3HandlesValidityProof as DecodedBatchedGroupedCiphertext3HandlesValidityProof,
-    ciphertext_ciphertext_equality_proof::CiphertextCiphertextEqualityProof as DecodedCiphertextCiphertextEqualityProof,
-    ciphertext_commitment_equality_proof::CiphertextCommitmentEqualityProof as DecodedCiphertextCommitmentEqualityProof,
-    errors::*, fee_proof::FeeSigmaProof as DecodedFeeSigmaProof,
-    grouped_ciphertext_validity_proof::GroupedCiphertext2HandlesValidityProof as DecodedGroupedCiphertext2HandlesValidityProof,
-    grouped_ciphertext_validity_proof::GroupedCiphertext3HandlesValidityProof as DecodedGroupedCiphertext3HandlesValidityProof,
-    pubkey_proof::PubkeyValidityProof as DecodedPubkeyValidityProof,
-    zero_balance_proof::ZeroBalanceProof as DecodedZeroBalanceProof,
+    batched_grouped_ciphertext_validity::{
+        BatchedGroupedCiphertext2HandlesValidityProof,
+        BatchedGroupedCiphertext3HandlesValidityProof,
+    },
+    ciphertext_ciphertext_equality::CiphertextCiphertextEqualityProof,
+    ciphertext_commitment_equality::CiphertextCommitmentEqualityProof,
+    grouped_ciphertext_validity::{
+        GroupedCiphertext2HandlesValidityProof, GroupedCiphertext3HandlesValidityProof,
+    },
+    percentage_with_cap::PercentageWithCapProof,
+    pubkey::PubkeyValidityProof,
+    zero_ciphertext::ZeroCiphertextProof,
 };
-use crate::zk_token_elgamal::pod::{Pod, Zeroable};
-
-/// Byte length of a ciphertext-commitment equality proof
-const CIPHERTEXT_COMMITMENT_EQUALITY_PROOF_LEN: usize = 192;
-
-/// Byte length of a ciphertext-ciphertext equality proof
-const CIPHERTEXT_CIPHERTEXT_EQUALITY_PROOF_LEN: usize = 224;
-
-/// Byte length of a grouped ciphertext for 2 handles validity proof
-const GROUPED_CIPHERTEXT_2_HANDLES_VALIDITY_PROOF_LEN: usize = 160;
-
-/// Byte length of a grouped ciphertext for 3 handles validity proof
-const GROUPED_CIPHERTEXT_3_HANDLES_VALIDITY_PROOF_LEN: usize = 192;
-
-/// Byte length of a batched grouped ciphertext for 2 handles validity proof
-const BATCHED_GROUPED_CIPHERTEXT_2_HANDLES_VALIDITY_PROOF_LEN: usize = 160;
-
-/// Byte length of a batched grouped ciphertext for 3 handles validity proof
-const BATCHED_GROUPED_CIPHERTEXT_3_HANDLES_VALIDITY_PROOF_LEN: usize = 192;
-
-/// Byte length of a zero-balance proof
-const ZERO_BALANCE_PROOF_LEN: usize = 96;
-
-/// Byte length of a fee sigma proof
-const FEE_SIGMA_PROOF_LEN: usize = 256;
-
-/// Byte length of a public key validity proof
-const PUBKEY_VALIDITY_PROOF_LEN: usize = 64;
+use {
+    crate::sigma_proofs::{errors::*, *},
+    bytemuck::{Pod, Zeroable},
+};
 
 /// The `CiphertextCommitmentEqualityProof` type as a `Pod`.
 #[derive(Clone, Copy)]
 #[repr(transparent)]
-pub struct CiphertextCommitmentEqualityProof(pub [u8; CIPHERTEXT_COMMITMENT_EQUALITY_PROOF_LEN]);
+pub struct PodCiphertextCommitmentEqualityProof(
+    pub(crate) [u8; CIPHERTEXT_COMMITMENT_EQUALITY_PROOF_LEN],
+);
 
 #[cfg(not(target_os = "solana"))]
-impl From<DecodedCiphertextCommitmentEqualityProof> for CiphertextCommitmentEqualityProof {
-    fn from(decoded_proof: DecodedCiphertextCommitmentEqualityProof) -> Self {
+impl From<CiphertextCommitmentEqualityProof> for PodCiphertextCommitmentEqualityProof {
+    fn from(decoded_proof: CiphertextCommitmentEqualityProof) -> Self {
         Self(decoded_proof.to_bytes())
     }
 }
 
 #[cfg(not(target_os = "solana"))]
-impl TryFrom<CiphertextCommitmentEqualityProof> for DecodedCiphertextCommitmentEqualityProof {
+impl TryFrom<PodCiphertextCommitmentEqualityProof> for CiphertextCommitmentEqualityProof {
     type Error = EqualityProofVerificationError;
 
-    fn try_from(pod_proof: CiphertextCommitmentEqualityProof) -> Result<Self, Self::Error> {
+    fn try_from(pod_proof: PodCiphertextCommitmentEqualityProof) -> Result<Self, Self::Error> {
         Self::from_bytes(&pod_proof.0)
     }
 }
@@ -65,20 +46,22 @@ impl TryFrom<CiphertextCommitmentEqualityProof> for DecodedCiphertextCommitmentE
 /// The `CiphertextCiphertextEqualityProof` type as a `Pod`.
 #[derive(Clone, Copy)]
 #[repr(transparent)]
-pub struct CiphertextCiphertextEqualityProof(pub [u8; CIPHERTEXT_CIPHERTEXT_EQUALITY_PROOF_LEN]);
+pub struct PodCiphertextCiphertextEqualityProof(
+    pub(crate) [u8; CIPHERTEXT_CIPHERTEXT_EQUALITY_PROOF_LEN],
+);
 
 #[cfg(not(target_os = "solana"))]
-impl From<DecodedCiphertextCiphertextEqualityProof> for CiphertextCiphertextEqualityProof {
-    fn from(decoded_proof: DecodedCiphertextCiphertextEqualityProof) -> Self {
+impl From<CiphertextCiphertextEqualityProof> for PodCiphertextCiphertextEqualityProof {
+    fn from(decoded_proof: CiphertextCiphertextEqualityProof) -> Self {
         Self(decoded_proof.to_bytes())
     }
 }
 
 #[cfg(not(target_os = "solana"))]
-impl TryFrom<CiphertextCiphertextEqualityProof> for DecodedCiphertextCiphertextEqualityProof {
+impl TryFrom<PodCiphertextCiphertextEqualityProof> for CiphertextCiphertextEqualityProof {
     type Error = EqualityProofVerificationError;
 
-    fn try_from(pod_proof: CiphertextCiphertextEqualityProof) -> Result<Self, Self::Error> {
+    fn try_from(pod_proof: PodCiphertextCiphertextEqualityProof) -> Result<Self, Self::Error> {
         Self::from_bytes(&pod_proof.0)
     }
 }
@@ -86,26 +69,22 @@ impl TryFrom<CiphertextCiphertextEqualityProof> for DecodedCiphertextCiphertextE
 /// The `GroupedCiphertext2HandlesValidityProof` type as a `Pod`.
 #[derive(Clone, Copy)]
 #[repr(transparent)]
-pub struct GroupedCiphertext2HandlesValidityProof(
-    pub [u8; GROUPED_CIPHERTEXT_2_HANDLES_VALIDITY_PROOF_LEN],
+pub struct PodGroupedCiphertext2HandlesValidityProof(
+    pub(crate) [u8; GROUPED_CIPHERTEXT_2_HANDLES_VALIDITY_PROOF_LEN],
 );
 
 #[cfg(not(target_os = "solana"))]
-impl From<DecodedGroupedCiphertext2HandlesValidityProof>
-    for GroupedCiphertext2HandlesValidityProof
-{
-    fn from(decoded_proof: DecodedGroupedCiphertext2HandlesValidityProof) -> Self {
+impl From<GroupedCiphertext2HandlesValidityProof> for PodGroupedCiphertext2HandlesValidityProof {
+    fn from(decoded_proof: GroupedCiphertext2HandlesValidityProof) -> Self {
         Self(decoded_proof.to_bytes())
     }
 }
-
 #[cfg(not(target_os = "solana"))]
-impl TryFrom<GroupedCiphertext2HandlesValidityProof>
-    for DecodedGroupedCiphertext2HandlesValidityProof
-{
+
+impl TryFrom<PodGroupedCiphertext2HandlesValidityProof> for GroupedCiphertext2HandlesValidityProof {
     type Error = ValidityProofVerificationError;
 
-    fn try_from(pod_proof: GroupedCiphertext2HandlesValidityProof) -> Result<Self, Self::Error> {
+    fn try_from(pod_proof: PodGroupedCiphertext2HandlesValidityProof) -> Result<Self, Self::Error> {
         Self::from_bytes(&pod_proof.0)
     }
 }
@@ -113,26 +92,22 @@ impl TryFrom<GroupedCiphertext2HandlesValidityProof>
 /// The `GroupedCiphertext3HandlesValidityProof` type as a `Pod`.
 #[derive(Clone, Copy)]
 #[repr(transparent)]
-pub struct GroupedCiphertext3HandlesValidityProof(
-    pub [u8; GROUPED_CIPHERTEXT_3_HANDLES_VALIDITY_PROOF_LEN],
+pub struct PodGroupedCiphertext3HandlesValidityProof(
+    pub(crate) [u8; GROUPED_CIPHERTEXT_3_HANDLES_VALIDITY_PROOF_LEN],
 );
 
 #[cfg(not(target_os = "solana"))]
-impl From<DecodedGroupedCiphertext3HandlesValidityProof>
-    for GroupedCiphertext3HandlesValidityProof
-{
-    fn from(decoded_proof: DecodedGroupedCiphertext3HandlesValidityProof) -> Self {
+impl From<GroupedCiphertext3HandlesValidityProof> for PodGroupedCiphertext3HandlesValidityProof {
+    fn from(decoded_proof: GroupedCiphertext3HandlesValidityProof) -> Self {
         Self(decoded_proof.to_bytes())
     }
 }
 
 #[cfg(not(target_os = "solana"))]
-impl TryFrom<GroupedCiphertext3HandlesValidityProof>
-    for DecodedGroupedCiphertext3HandlesValidityProof
-{
+impl TryFrom<PodGroupedCiphertext3HandlesValidityProof> for GroupedCiphertext3HandlesValidityProof {
     type Error = ValidityProofVerificationError;
 
-    fn try_from(pod_proof: GroupedCiphertext3HandlesValidityProof) -> Result<Self, Self::Error> {
+    fn try_from(pod_proof: PodGroupedCiphertext3HandlesValidityProof) -> Result<Self, Self::Error> {
         Self::from_bytes(&pod_proof.0)
     }
 }
@@ -140,27 +115,27 @@ impl TryFrom<GroupedCiphertext3HandlesValidityProof>
 /// The `BatchedGroupedCiphertext2HandlesValidityProof` type as a `Pod`.
 #[derive(Clone, Copy)]
 #[repr(transparent)]
-pub struct BatchedGroupedCiphertext2HandlesValidityProof(
-    pub [u8; BATCHED_GROUPED_CIPHERTEXT_2_HANDLES_VALIDITY_PROOF_LEN],
+pub struct PodBatchedGroupedCiphertext2HandlesValidityProof(
+    pub(crate) [u8; BATCHED_GROUPED_CIPHERTEXT_2_HANDLES_VALIDITY_PROOF_LEN],
 );
 
 #[cfg(not(target_os = "solana"))]
-impl From<DecodedBatchedGroupedCiphertext2HandlesValidityProof>
-    for BatchedGroupedCiphertext2HandlesValidityProof
+impl From<BatchedGroupedCiphertext2HandlesValidityProof>
+    for PodBatchedGroupedCiphertext2HandlesValidityProof
 {
-    fn from(decoded_proof: DecodedBatchedGroupedCiphertext2HandlesValidityProof) -> Self {
+    fn from(decoded_proof: BatchedGroupedCiphertext2HandlesValidityProof) -> Self {
         Self(decoded_proof.to_bytes())
     }
 }
 
 #[cfg(not(target_os = "solana"))]
-impl TryFrom<BatchedGroupedCiphertext2HandlesValidityProof>
-    for DecodedBatchedGroupedCiphertext2HandlesValidityProof
+impl TryFrom<PodBatchedGroupedCiphertext2HandlesValidityProof>
+    for BatchedGroupedCiphertext2HandlesValidityProof
 {
     type Error = ValidityProofVerificationError;
 
     fn try_from(
-        pod_proof: BatchedGroupedCiphertext2HandlesValidityProof,
+        pod_proof: PodBatchedGroupedCiphertext2HandlesValidityProof,
     ) -> Result<Self, Self::Error> {
         Self::from_bytes(&pod_proof.0)
     }
@@ -169,27 +144,27 @@ impl TryFrom<BatchedGroupedCiphertext2HandlesValidityProof>
 /// The `BatchedGroupedCiphertext3HandlesValidityProof` type as a `Pod`.
 #[derive(Clone, Copy)]
 #[repr(transparent)]
-pub struct BatchedGroupedCiphertext3HandlesValidityProof(
-    pub [u8; BATCHED_GROUPED_CIPHERTEXT_3_HANDLES_VALIDITY_PROOF_LEN],
+pub struct PodBatchedGroupedCiphertext3HandlesValidityProof(
+    pub(crate) [u8; BATCHED_GROUPED_CIPHERTEXT_3_HANDLES_VALIDITY_PROOF_LEN],
 );
 
 #[cfg(not(target_os = "solana"))]
-impl From<DecodedBatchedGroupedCiphertext3HandlesValidityProof>
-    for BatchedGroupedCiphertext3HandlesValidityProof
+impl From<BatchedGroupedCiphertext3HandlesValidityProof>
+    for PodBatchedGroupedCiphertext3HandlesValidityProof
 {
-    fn from(decoded_proof: DecodedBatchedGroupedCiphertext3HandlesValidityProof) -> Self {
+    fn from(decoded_proof: BatchedGroupedCiphertext3HandlesValidityProof) -> Self {
         Self(decoded_proof.to_bytes())
     }
 }
 
 #[cfg(not(target_os = "solana"))]
-impl TryFrom<BatchedGroupedCiphertext3HandlesValidityProof>
-    for DecodedBatchedGroupedCiphertext3HandlesValidityProof
+impl TryFrom<PodBatchedGroupedCiphertext3HandlesValidityProof>
+    for BatchedGroupedCiphertext3HandlesValidityProof
 {
     type Error = ValidityProofVerificationError;
 
     fn try_from(
-        pod_proof: BatchedGroupedCiphertext3HandlesValidityProof,
+        pod_proof: PodBatchedGroupedCiphertext3HandlesValidityProof,
     ) -> Result<Self, Self::Error> {
         Self::from_bytes(&pod_proof.0)
     }
@@ -198,20 +173,20 @@ impl TryFrom<BatchedGroupedCiphertext3HandlesValidityProof>
 /// The `ZeroBalanceProof` type as a `Pod`.
 #[derive(Clone, Copy)]
 #[repr(transparent)]
-pub struct ZeroBalanceProof(pub [u8; ZERO_BALANCE_PROOF_LEN]);
+pub struct PodZeroCiphertextProof(pub(crate) [u8; ZERO_BALANCE_PROOF_LEN]);
 
 #[cfg(not(target_os = "solana"))]
-impl From<DecodedZeroBalanceProof> for ZeroBalanceProof {
-    fn from(decoded_proof: DecodedZeroBalanceProof) -> Self {
+impl From<ZeroCiphertextProof> for PodZeroCiphertextProof {
+    fn from(decoded_proof: ZeroCiphertextProof) -> Self {
         Self(decoded_proof.to_bytes())
     }
 }
 
 #[cfg(not(target_os = "solana"))]
-impl TryFrom<ZeroBalanceProof> for DecodedZeroBalanceProof {
-    type Error = ZeroBalanceProofVerificationError;
+impl TryFrom<PodZeroCiphertextProof> for ZeroCiphertextProof {
+    type Error = ZeroCiphertextProofVerificationError;
 
-    fn try_from(pod_proof: ZeroBalanceProof) -> Result<Self, Self::Error> {
+    fn try_from(pod_proof: PodZeroCiphertextProof) -> Result<Self, Self::Error> {
         Self::from_bytes(&pod_proof.0)
     }
 }
@@ -219,20 +194,20 @@ impl TryFrom<ZeroBalanceProof> for DecodedZeroBalanceProof {
 /// The `FeeSigmaProof` type as a `Pod`.
 #[derive(Clone, Copy, Pod, Zeroable)]
 #[repr(transparent)]
-pub struct FeeSigmaProof(pub [u8; FEE_SIGMA_PROOF_LEN]);
+pub struct PodPercentageWithCapProof(pub(crate) [u8; FEE_SIGMA_PROOF_LEN]);
 
 #[cfg(not(target_os = "solana"))]
-impl From<DecodedFeeSigmaProof> for FeeSigmaProof {
-    fn from(decoded_proof: DecodedFeeSigmaProof) -> Self {
+impl From<PercentageWithCapProof> for PodPercentageWithCapProof {
+    fn from(decoded_proof: PercentageWithCapProof) -> Self {
         Self(decoded_proof.to_bytes())
     }
 }
 
 #[cfg(not(target_os = "solana"))]
-impl TryFrom<FeeSigmaProof> for DecodedFeeSigmaProof {
-    type Error = FeeSigmaProofVerificationError;
+impl TryFrom<PodPercentageWithCapProof> for PercentageWithCapProof {
+    type Error = PercentageWithCapProofVerificationError;
 
-    fn try_from(pod_proof: FeeSigmaProof) -> Result<Self, Self::Error> {
+    fn try_from(pod_proof: PodPercentageWithCapProof) -> Result<Self, Self::Error> {
         Self::from_bytes(&pod_proof.0)
     }
 }
@@ -240,20 +215,20 @@ impl TryFrom<FeeSigmaProof> for DecodedFeeSigmaProof {
 /// The `PubkeyValidityProof` type as a `Pod`.
 #[derive(Clone, Copy, Pod, Zeroable)]
 #[repr(transparent)]
-pub struct PubkeyValidityProof(pub [u8; PUBKEY_VALIDITY_PROOF_LEN]);
+pub struct PodPubkeyValidityProof(pub(crate) [u8; PUBKEY_VALIDITY_PROOF_LEN]);
 
 #[cfg(not(target_os = "solana"))]
-impl From<DecodedPubkeyValidityProof> for PubkeyValidityProof {
-    fn from(decoded_proof: DecodedPubkeyValidityProof) -> Self {
+impl From<PubkeyValidityProof> for PodPubkeyValidityProof {
+    fn from(decoded_proof: PubkeyValidityProof) -> Self {
         Self(decoded_proof.to_bytes())
     }
 }
 
 #[cfg(not(target_os = "solana"))]
-impl TryFrom<PubkeyValidityProof> for DecodedPubkeyValidityProof {
+impl TryFrom<PodPubkeyValidityProof> for PubkeyValidityProof {
     type Error = PubkeyValidityProofVerificationError;
 
-    fn try_from(pod_proof: PubkeyValidityProof) -> Result<Self, Self::Error> {
+    fn try_from(pod_proof: PodPubkeyValidityProof) -> Result<Self, Self::Error> {
         Self::from_bytes(&pod_proof.0)
     }
 }
@@ -261,23 +236,23 @@ impl TryFrom<PubkeyValidityProof> for DecodedPubkeyValidityProof {
 // The sigma proof pod types are wrappers for byte arrays, which are both `Pod` and `Zeroable`. However,
 // the marker traits `bytemuck::Pod` and `bytemuck::Zeroable` can only be derived for power-of-two
 // length byte arrays. Directly implement these traits for the sigma proof pod types.
-unsafe impl Zeroable for CiphertextCommitmentEqualityProof {}
-unsafe impl Pod for CiphertextCommitmentEqualityProof {}
+unsafe impl Zeroable for PodCiphertextCommitmentEqualityProof {}
+unsafe impl Pod for PodCiphertextCommitmentEqualityProof {}
 
-unsafe impl Zeroable for CiphertextCiphertextEqualityProof {}
-unsafe impl Pod for CiphertextCiphertextEqualityProof {}
+unsafe impl Zeroable for PodCiphertextCiphertextEqualityProof {}
+unsafe impl Pod for PodCiphertextCiphertextEqualityProof {}
 
-unsafe impl Zeroable for GroupedCiphertext2HandlesValidityProof {}
-unsafe impl Pod for GroupedCiphertext2HandlesValidityProof {}
+unsafe impl Zeroable for PodGroupedCiphertext2HandlesValidityProof {}
+unsafe impl Pod for PodGroupedCiphertext2HandlesValidityProof {}
 
-unsafe impl Zeroable for GroupedCiphertext3HandlesValidityProof {}
-unsafe impl Pod for GroupedCiphertext3HandlesValidityProof {}
+unsafe impl Zeroable for PodGroupedCiphertext3HandlesValidityProof {}
+unsafe impl Pod for PodGroupedCiphertext3HandlesValidityProof {}
 
-unsafe impl Zeroable for BatchedGroupedCiphertext2HandlesValidityProof {}
-unsafe impl Pod for BatchedGroupedCiphertext2HandlesValidityProof {}
+unsafe impl Zeroable for PodBatchedGroupedCiphertext2HandlesValidityProof {}
+unsafe impl Pod for PodBatchedGroupedCiphertext2HandlesValidityProof {}
 
-unsafe impl Zeroable for BatchedGroupedCiphertext3HandlesValidityProof {}
-unsafe impl Pod for BatchedGroupedCiphertext3HandlesValidityProof {}
+unsafe impl Zeroable for PodBatchedGroupedCiphertext3HandlesValidityProof {}
+unsafe impl Pod for PodBatchedGroupedCiphertext3HandlesValidityProof {}
 
-unsafe impl Zeroable for ZeroBalanceProof {}
-unsafe impl Pod for ZeroBalanceProof {}
+unsafe impl Zeroable for PodZeroCiphertextProof {}
+unsafe impl Pod for PodZeroCiphertextProof {}
