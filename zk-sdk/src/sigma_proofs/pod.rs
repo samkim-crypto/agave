@@ -191,7 +191,7 @@ impl TryFrom<PodZeroCiphertextProof> for ZeroCiphertextProof {
     }
 }
 
-/// The `FeeSigmaProof` type as a `Pod`.
+/// The `PercentageWithCapProof` type as a `Pod`.
 #[derive(Clone, Copy, Pod, Zeroable)]
 #[repr(transparent)]
 pub struct PodPercentageWithCapProof(pub(crate) [u8; PERCENTAGE_WITH_CAP_PROOF_LEN]);
