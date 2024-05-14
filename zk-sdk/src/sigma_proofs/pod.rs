@@ -170,7 +170,7 @@ impl TryFrom<PodBatchedGroupedCiphertext3HandlesValidityProof>
     }
 }
 
-/// The `ZeroBalanceProof` type as a `Pod`.
+/// The `ZeroCiphertextProof` type as a `Pod`.
 #[derive(Clone, Copy)]
 #[repr(transparent)]
 pub struct PodZeroCiphertextProof(pub(crate) [u8; ZERO_CIPHERTEXT_PROOF_LEN]);
