@@ -43,11 +43,11 @@ pub const BATCHED_GROUPED_CIPHERTEXT_2_HANDLES_VALIDITY_PROOF_LEN: usize = 160;
 /// Byte length of a batched grouped ciphertext for 3 handles validity proof
 pub const BATCHED_GROUPED_CIPHERTEXT_3_HANDLES_VALIDITY_PROOF_LEN: usize = 192;
 
-/// Byte length of a zero-balance proof
-pub const ZERO_BALANCE_PROOF_LEN: usize = 96;
+/// Byte length of a zero-ciphertext proof
+pub const ZERO_CIPHERTEXT_PROOF_LEN: usize = 96;
 
-/// Byte length of a fee sigma proof
-pub const FEE_SIGMA_PROOF_LEN: usize = 256;
+/// Byte length of a percentage with cap proof
+pub const PERCENTAGE_WITH_CAP_PROOF_LEN: usize = 256;
 
 /// Byte length of a public key validity proof
 pub const PUBKEY_VALIDITY_PROOF_LEN: usize = 64;

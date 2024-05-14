@@ -173,7 +173,7 @@ impl TryFrom<PodBatchedGroupedCiphertext3HandlesValidityProof>
 /// The `ZeroBalanceProof` type as a `Pod`.
 #[derive(Clone, Copy)]
 #[repr(transparent)]
-pub struct PodZeroCiphertextProof(pub(crate) [u8; ZERO_BALANCE_PROOF_LEN]);
+pub struct PodZeroCiphertextProof(pub(crate) [u8; ZERO_CIPHERTEXT_PROOF_LEN]);
 
 #[cfg(not(target_os = "solana"))]
 impl From<ZeroCiphertextProof> for PodZeroCiphertextProof {
@@ -194,7 +194,7 @@ impl TryFrom<PodZeroCiphertextProof> for ZeroCiphertextProof {
 /// The `FeeSigmaProof` type as a `Pod`.
 #[derive(Clone, Copy, Pod, Zeroable)]
 #[repr(transparent)]
-pub struct PodPercentageWithCapProof(pub(crate) [u8; FEE_SIGMA_PROOF_LEN]);
+pub struct PodPercentageWithCapProof(pub(crate) [u8; PERCENTAGE_WITH_CAP_PROOF_LEN]);
 
 #[cfg(not(target_os = "solana"))]
 impl From<PercentageWithCapProof> for PodPercentageWithCapProof {
