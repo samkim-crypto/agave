@@ -10,8 +10,6 @@ use {
 #[cfg(not(target_os = "solana"))]
 #[derive(Error, Clone, Debug, Eq, PartialEq)]
 pub enum ProofGenerationError {
-    #[error("not enough funds in account")]
-    NotEnoughFunds,
     #[error("illegal number of commitments")]
     IllegalCommitmentLength,
     #[error("illegal amount bit length")]
