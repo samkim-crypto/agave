@@ -43,4 +43,12 @@ pub enum ProofVerificationError {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct SigmaProofType;
+pub enum SigmaProofType {
+    ZeroCiphertext,
+}
+
+impl From<ZeroCiphertextProofVerificationError> for ProofVerificationError {
+    fn from(err: ZeroCiphertextProofVerificationError) -> Self {
+        Self::SigmaProof(SigmaProofType::ZeroCiphertext, err.0)
+    }
+}
