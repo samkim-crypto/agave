@@ -12,8 +12,6 @@ use {
 pub enum ProofGenerationError {
     #[error("not enough funds in account")]
     NotEnoughFunds,
-    #[error("transfer fee calculation error")]
-    FeeCalculation,
     #[error("illegal number of commitments")]
     IllegalCommitmentLength,
     #[error("illegal amount bit length")]
