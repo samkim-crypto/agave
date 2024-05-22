@@ -124,4 +124,3 @@ mod test {
         assert!(zero_ciphertext_proof_data.verify_proof().is_err());
     }
 }
-
