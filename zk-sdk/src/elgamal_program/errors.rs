@@ -1,7 +1,8 @@
+#[cfg(not(target_os = "solana"))]
+use crate::range_proof::errors::RangeProofGenerationError;
 use {
     crate::{
-        errors::ElGamalError,
-        range_proof::errors::{RangeProofGenerationError, RangeProofVerificationError},
+        errors::ElGamalError, range_proof::errors::RangeProofVerificationError,
         sigma_proofs::errors::*,
     },
     thiserror::Error,
@@ -41,10 +42,17 @@ pub enum ProofVerificationError {
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum SigmaProofType {
     ZeroCiphertext,
+    CiphertextCiphertextEquality,
 }
 
 impl From<ZeroCiphertextProofVerificationError> for ProofVerificationError {
     fn from(err: ZeroCiphertextProofVerificationError) -> Self {
         Self::SigmaProof(SigmaProofType::ZeroCiphertext, err.0)
+    }
+}
+
+impl From<EqualityProofVerificationError> for ProofVerificationError {
+    fn from(err: EqualityProofVerificationError) -> Self {
+        Self::SigmaProof(SigmaProofType::CiphertextCiphertextEquality, err.0)
     }
 }

@@ -73,6 +73,23 @@ pub enum ProofInstruction {
     ///   ii. `u32` byte offset if proof is provided as an account
     ///
     VerifyZeroCiphertext,
+
+    /// Verify a ciphertext-ciphertext equality proof.
+    ///
+    /// A ciphertext-ciphertext equality proof certifies that two ElGamal ciphertexts encrypt the
+    /// same message.
+    ///
+    /// Accounts expected by this instruction:
+    ///
+    ///   0. `[]` (Optional) Account to read the proof from
+    ///   1. `[writable]` (Optional) The proof context account
+    ///   2. `[]` (Optional) The proof context account owner
+    ///
+    /// The instruction expects either:
+    ///   i. `CiphertextCiphertextEqualityProofData` if proof is provided as instruction data
+    ///   ii. `u32` byte offset if proof is provided as an account
+    ///
+    VerifyCiphertextCiphertextEquality,
 }
 
 /// Pubkeys associated with a context state account to be used as parameters to functions.

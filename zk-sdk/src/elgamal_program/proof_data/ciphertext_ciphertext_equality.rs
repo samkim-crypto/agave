@@ -11,21 +11,22 @@
 #[cfg(not(target_os = "solana"))]
 use {
     crate::{
+        elgamal_program::errors::{ProofGenerationError, ProofVerificationError},
         encryption::{
             elgamal::{ElGamalCiphertext, ElGamalKeypair, ElGamalPubkey},
             pedersen::PedersenOpening,
         },
-        errors::{ProofGenerationError, ProofVerificationError},
-        sigma_proofs::ciphertext_ciphertext_equality_proof::CiphertextCiphertextEqualityProof,
-        transcript::TranscriptProtocol,
+        sigma_proofs::ciphertext_ciphertext_equality::CiphertextCiphertextEqualityProof,
     },
+    bytemuck::bytes_of,
     merlin::Transcript,
     std::convert::TryInto,
 };
 use {
     crate::{
-        instruction::{ProofType, ZkProofData},
-        zk_token_elgamal::pod,
+        elgamal_program::proof_data::{ProofType, ZkProofData},
+        encryption::pod::elgamal::{PodElGamalCiphertext, PodElGamalPubkey},
+        sigma_proofs::pod::PodCiphertextCiphertextEqualityProof,
     },
     bytemuck::{Pod, Zeroable},
 };
@@ -40,20 +41,20 @@ use {
 pub struct CiphertextCiphertextEqualityProofData {
     pub context: CiphertextCiphertextEqualityProofContext,
 
-    pub proof: pod::CiphertextCiphertextEqualityProof,
+    pub proof: PodCiphertextCiphertextEqualityProof,
 }
 
 /// The context data needed to verify a ciphertext-ciphertext equality proof.
 #[derive(Clone, Copy, Pod, Zeroable)]
 #[repr(C)]
 pub struct CiphertextCiphertextEqualityProofContext {
-    pub source_pubkey: pod::ElGamalPubkey, // 32 bytes
+    pub source_pubkey: PodElGamalPubkey, // 32 bytes
 
-    pub destination_pubkey: pod::ElGamalPubkey, // 32 bytes
+    pub destination_pubkey: PodElGamalPubkey, // 32 bytes
 
-    pub source_ciphertext: pod::ElGamalCiphertext, // 64 bytes
+    pub source_ciphertext: PodElGamalCiphertext, // 64 bytes
 
-    pub destination_ciphertext: pod::ElGamalCiphertext, // 64 bytes
+    pub destination_ciphertext: PodElGamalCiphertext, // 64 bytes
 }
 
 #[cfg(not(target_os = "solana"))]
@@ -66,10 +67,10 @@ impl CiphertextCiphertextEqualityProofData {
         destination_opening: &PedersenOpening,
         amount: u64,
     ) -> Result<Self, ProofGenerationError> {
-        let pod_source_pubkey = pod::ElGamalPubkey(source_keypair.pubkey().into());
-        let pod_destination_pubkey = pod::ElGamalPubkey(destination_pubkey.into());
-        let pod_source_ciphertext = pod::ElGamalCiphertext(source_ciphertext.to_bytes());
-        let pod_destination_ciphertext = pod::ElGamalCiphertext(destination_ciphertext.to_bytes());
+        let pod_source_pubkey = PodElGamalPubkey(source_keypair.pubkey().into());
+        let pod_destination_pubkey = PodElGamalPubkey(destination_pubkey.into());
+        let pod_source_ciphertext = PodElGamalCiphertext(source_ciphertext.to_bytes());
+        let pod_destination_ciphertext = PodElGamalCiphertext(destination_ciphertext.to_bytes());
 
         let context = CiphertextCiphertextEqualityProofContext {
             source_pubkey: pod_source_pubkey,
@@ -129,13 +130,15 @@ impl ZkProofData<CiphertextCiphertextEqualityProofContext>
 #[cfg(not(target_os = "solana"))]
 impl CiphertextCiphertextEqualityProofContext {
     fn new_transcript(&self) -> Transcript {
-        let mut transcript = Transcript::new(b"CiphertextCiphertextEqualityProof");
+        let mut transcript = Transcript::new(b"ciphertext-ciphertext-equality-instruction");
 
-        transcript.append_pubkey(b"source-pubkey", &self.source_pubkey);
-        transcript.append_pubkey(b"destination-pubkey", &self.destination_pubkey);
-
-        transcript.append_ciphertext(b"source-ciphertext", &self.source_ciphertext);
-        transcript.append_ciphertext(b"destination-ciphertext", &self.destination_ciphertext);
+        transcript.append_message(b"source-pubkey", bytes_of(&self.source_pubkey));
+        transcript.append_message(b"destination-pubkey", bytes_of(&self.destination_pubkey));
+        transcript.append_message(b"source-ciphertext", bytes_of(&self.source_ciphertext));
+        transcript.append_message(
+            b"destination-ciphertext",
+            bytes_of(&self.destination_ciphertext),
+        );
 
         transcript
     }
