@@ -9,6 +9,7 @@ pub mod ciphertext_ciphertext_equality;
 pub mod ciphertext_commitment_equality;
 pub mod errors;
 pub mod pod;
+pub mod pubkey;
 pub mod zero_ciphertext;
 
 #[derive(Clone, Copy, Debug, FromPrimitive, ToPrimitive, PartialEq, Eq)]
@@ -19,6 +20,7 @@ pub enum ProofType {
     ZeroCiphertext,
     CiphertextCiphertextEquality,
     CiphertextCommitmentEquality,
+    PubkeyValidity,
 }
 
 pub trait ZkProofData<T: Pod> {

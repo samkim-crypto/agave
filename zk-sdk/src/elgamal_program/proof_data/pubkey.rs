@@ -8,18 +8,19 @@
 #[cfg(not(target_os = "solana"))]
 use {
     crate::{
+        elgamal_program::errors::{ProofGenerationError, ProofVerificationError},
         encryption::elgamal::ElGamalKeypair,
-        errors::{ProofGenerationError, ProofVerificationError},
-        sigma_proofs::pubkey_proof::PubkeyValidityProof,
-        transcript::TranscriptProtocol,
+        sigma_proofs::pubkey::PubkeyValidityProof,
     },
+    bytemuck::bytes_of,
     merlin::Transcript,
     std::convert::TryInto,
 };
 use {
     crate::{
-        instruction::{ProofType, ZkProofData},
-        zk_token_elgamal::pod,
+        elgamal_program::proof_data::{ProofType, ZkProofData},
+        encryption::pod::elgamal::PodElGamalPubkey,
+        sigma_proofs::pod::PodPubkeyValidityProof,
     },
     bytemuck::{Pod, Zeroable},
 };
@@ -36,7 +37,7 @@ pub struct PubkeyValidityData {
     pub context: PubkeyValidityProofContext, // 32 bytes
 
     /// Proof that the public key is well-formed
-    pub proof: pod::PubkeyValidityProof, // 64 bytes
+    pub proof: PodPubkeyValidityProof, // 64 bytes
 }
 
 /// The context data needed to verify a pubkey validity proof.
@@ -44,13 +45,13 @@ pub struct PubkeyValidityData {
 #[repr(C)]
 pub struct PubkeyValidityProofContext {
     /// The public key to be proved
-    pub pubkey: pod::ElGamalPubkey, // 32 bytes
+    pub pubkey: PodElGamalPubkey, // 32 bytes
 }
 
 #[cfg(not(target_os = "solana"))]
 impl PubkeyValidityData {
     pub fn new(keypair: &ElGamalKeypair) -> Result<Self, ProofGenerationError> {
-        let pod_pubkey = pod::ElGamalPubkey(keypair.pubkey().into());
+        let pod_pubkey = PodElGamalPubkey(keypair.pubkey().into());
 
         let context = PubkeyValidityProofContext { pubkey: pod_pubkey };
 
@@ -81,8 +82,8 @@ impl ZkProofData<PubkeyValidityProofContext> for PubkeyValidityData {
 #[cfg(not(target_os = "solana"))]
 impl PubkeyValidityProofContext {
     fn new_transcript(&self) -> Transcript {
-        let mut transcript = Transcript::new(b"PubkeyProof");
-        transcript.append_pubkey(b"pubkey", &self.pubkey);
+        let mut transcript = Transcript::new(b"pubkey-validity-instruction");
+        transcript.append_message(b"pubkey", bytes_of(&self.pubkey));
         transcript
     }
 }

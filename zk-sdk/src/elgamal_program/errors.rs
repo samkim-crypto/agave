@@ -43,6 +43,7 @@ pub enum ProofVerificationError {
 pub enum SigmaProofType {
     ZeroCiphertext,
     Equality,
+    PubkeyValidity,
 }
 
 impl From<ZeroCiphertextProofVerificationError> for ProofVerificationError {
@@ -54,5 +55,11 @@ impl From<ZeroCiphertextProofVerificationError> for ProofVerificationError {
 impl From<EqualityProofVerificationError> for ProofVerificationError {
     fn from(err: EqualityProofVerificationError) -> Self {
         Self::SigmaProof(SigmaProofType::Equality, err.0)
+    }
+}
+
+impl From<PubkeyValidityProofVerificationError> for ProofVerificationError {
+    fn from(err: PubkeyValidityProofVerificationError) -> Self {
+        Self::SigmaProof(SigmaProofType::PubkeyValidity, err.0)
     }
 }
