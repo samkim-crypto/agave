@@ -90,6 +90,23 @@ pub enum ProofInstruction {
     ///   ii. `u32` byte offset if proof is provided as an account
     ///
     VerifyCiphertextCiphertextEquality,
+
+    /// Verify a ciphertext-commitment equality proof.
+    ///
+    /// A ciphertext-commitment equality proof certifies that an ElGamal ciphertext and a Pedersen
+    /// commitment encrypt/encode the same message.
+    ///
+    /// Accounts expected by this instruction:
+    ///
+    ///   0. `[]` (Optional) Account to read the proof from
+    ///   1. `[writable]` (Optional) The proof context account
+    ///   2. `[]` (Optional) The proof context account owner
+    ///
+    /// The instruction expects either:
+    ///   i. `CiphertextCommitmentEqualityProofData` if proof is provided as instruction data
+    ///   ii. `u32` byte offset if proof is provided as an account
+    ///
+    VerifyCiphertextCommitmentEquality,
 }
 
 /// Pubkeys associated with a context state account to be used as parameters to functions.

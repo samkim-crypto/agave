@@ -6,6 +6,7 @@ use {
 };
 
 pub mod ciphertext_ciphertext_equality;
+pub mod ciphertext_commitment_equality;
 pub mod errors;
 pub mod pod;
 pub mod zero_ciphertext;
@@ -17,6 +18,7 @@ pub enum ProofType {
     Uninitialized,
     ZeroCiphertext,
     CiphertextCiphertextEquality,
+    CiphertextCommitmentEquality,
 }
 
 pub trait ZkProofData<T: Pod> {

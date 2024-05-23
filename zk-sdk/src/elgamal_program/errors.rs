@@ -42,7 +42,7 @@ pub enum ProofVerificationError {
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum SigmaProofType {
     ZeroCiphertext,
-    CiphertextCiphertextEquality,
+    Equality,
 }
 
 impl From<ZeroCiphertextProofVerificationError> for ProofVerificationError {
@@ -53,6 +53,6 @@ impl From<ZeroCiphertextProofVerificationError> for ProofVerificationError {
 
 impl From<EqualityProofVerificationError> for ProofVerificationError {
     fn from(err: EqualityProofVerificationError) -> Self {
-        Self::SigmaProof(SigmaProofType::CiphertextCiphertextEquality, err.0)
+        Self::SigmaProof(SigmaProofType::Equality, err.0)
     }
 }
