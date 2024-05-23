@@ -8,6 +8,7 @@ use {
 pub mod ciphertext_ciphertext_equality;
 pub mod ciphertext_commitment_equality;
 pub mod errors;
+pub mod percentage_with_cap;
 pub mod pod;
 pub mod pubkey;
 pub mod zero_ciphertext;
@@ -21,6 +22,7 @@ pub enum ProofType {
     CiphertextCiphertextEquality,
     CiphertextCommitmentEquality,
     PubkeyValidity,
+    PercentageWithCap,
 }
 
 pub trait ZkProofData<T: Pod> {

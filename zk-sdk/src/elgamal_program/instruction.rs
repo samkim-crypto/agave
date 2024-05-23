@@ -124,6 +124,23 @@ pub enum ProofInstruction {
     ///   ii. `u32` byte offset if proof is provided as an account
     ///
     VerifyPubkeyValidity,
+
+    /// Verify a percentage-with-cap proof.
+    ///
+    /// A percentage-with-cap proof certifies that a tuple of Pedersen commitments satisfy a
+    /// percentage relation.
+    ///
+    /// Accounts expected by this instruction:
+    ///
+    ///   0. `[]` (Optional) Account to read the proof from
+    ///   1. `[writable]` (Optional) The proof context account
+    ///   2. `[]` (Optional) The proof context account owner
+    ///
+    /// The instruction expects either:
+    ///   i. `PercentageWithCapProofData` if proof is provided as instruction data
+    ///   ii. `u32` byte offset if proof is provided as an account
+    ///
+    VerifyPercentageWithCap,
 }
 
 /// Pubkeys associated with a context state account to be used as parameters to functions.
