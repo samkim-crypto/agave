@@ -13,20 +13,23 @@
 #[cfg(not(target_os = "solana"))]
 use {
     crate::{
+        elgamal_program::errors::{ProofGenerationError, ProofVerificationError},
         encryption::{
             elgamal::ElGamalPubkey, grouped_elgamal::GroupedElGamalCiphertext,
             pedersen::PedersenOpening,
         },
-        errors::{ProofGenerationError, ProofVerificationError},
-        sigma_proofs::grouped_ciphertext_validity_proof::GroupedCiphertext3HandlesValidityProof,
-        transcript::TranscriptProtocol,
+        sigma_proofs::grouped_ciphertext_validity::GroupedCiphertext3HandlesValidityProof,
     },
+    bytemuck::bytes_of,
     merlin::Transcript,
 };
 use {
     crate::{
-        instruction::{ProofType, ZkProofData},
-        zk_token_elgamal::pod,
+        elgamal_program::proof_data::{ProofType, ZkProofData},
+        encryption::pod::{
+            elgamal::PodElGamalPubkey, grouped_elgamal::PodGroupedElGamalCiphertext3Handles,
+        },
+        sigma_proofs::pod::PodGroupedCiphertext3HandlesValidityProof,
     },
     bytemuck::{Pod, Zeroable},
 };
@@ -41,19 +44,19 @@ use {
 pub struct GroupedCiphertext3HandlesValidityProofData {
     pub context: GroupedCiphertext3HandlesValidityProofContext,
 
-    pub proof: pod::GroupedCiphertext3HandlesValidityProof,
+    pub proof: PodGroupedCiphertext3HandlesValidityProof,
 }
 
 #[derive(Clone, Copy, Pod, Zeroable)]
 #[repr(C)]
 pub struct GroupedCiphertext3HandlesValidityProofContext {
-    pub source_pubkey: pod::ElGamalPubkey, // 32 bytes
+    pub source_pubkey: PodElGamalPubkey, // 32 bytes
 
-    pub destination_pubkey: pod::ElGamalPubkey, // 32 bytes
+    pub destination_pubkey: PodElGamalPubkey, // 32 bytes
 
-    pub auditor_pubkey: pod::ElGamalPubkey, // 32 bytes
+    pub auditor_pubkey: PodElGamalPubkey, // 32 bytes
 
-    pub grouped_ciphertext: pod::GroupedElGamalCiphertext3Handles, // 128 bytes
+    pub grouped_ciphertext: PodGroupedElGamalCiphertext3Handles, // 128 bytes
 }
 
 #[cfg(not(target_os = "solana"))]
@@ -66,9 +69,9 @@ impl GroupedCiphertext3HandlesValidityProofData {
         amount: u64,
         opening: &PedersenOpening,
     ) -> Result<Self, ProofGenerationError> {
-        let pod_source_pubkey = pod::ElGamalPubkey(source_pubkey.into());
-        let pod_destination_pubkey = pod::ElGamalPubkey(destination_pubkey.into());
-        let pod_auditor_pubkey = pod::ElGamalPubkey(auditor_pubkey.into());
+        let pod_source_pubkey = PodElGamalPubkey(source_pubkey.into());
+        let pod_destination_pubkey = PodElGamalPubkey(destination_pubkey.into());
+        let pod_auditor_pubkey = PodElGamalPubkey(auditor_pubkey.into());
         let pod_grouped_ciphertext = (*grouped_ciphertext).into();
 
         let context = GroupedCiphertext3HandlesValidityProofContext {
@@ -137,13 +140,12 @@ impl ZkProofData<GroupedCiphertext3HandlesValidityProofContext>
 #[cfg(not(target_os = "solana"))]
 impl GroupedCiphertext3HandlesValidityProofContext {
     fn new_transcript(&self) -> Transcript {
-        let mut transcript = Transcript::new(b"GroupedCiphertext3HandlesValidityProof");
+        let mut transcript = Transcript::new(b"grouped-ciphertext-validity-3-handles-instruction");
 
-        transcript.append_pubkey(b"source-pubkey", &self.source_pubkey);
-        transcript.append_pubkey(b"destination-pubkey", &self.destination_pubkey);
-        transcript.append_pubkey(b"auditor-pubkey", &self.auditor_pubkey);
-        transcript
-            .append_grouped_ciphertext_3_handles(b"grouped-ciphertext", &self.grouped_ciphertext);
+        transcript.append_message(b"source-pubkey", bytes_of(&self.source_pubkey));
+        transcript.append_message(b"destination-pubkey", bytes_of(&self.destination_pubkey));
+        transcript.append_message(b"auditor-pubkey", bytes_of(&self.auditor_pubkey));
+        transcript.append_message(b"grouped-ciphertext", bytes_of(&self.grouped_ciphertext));
 
         transcript
     }

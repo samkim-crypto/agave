@@ -13,20 +13,23 @@
 #[cfg(not(target_os = "solana"))]
 use {
     crate::{
+        elgamal_program::errors::{ProofGenerationError, ProofVerificationError},
         encryption::{
             elgamal::ElGamalPubkey, grouped_elgamal::GroupedElGamalCiphertext,
             pedersen::PedersenOpening,
         },
-        errors::{ProofGenerationError, ProofVerificationError},
-        sigma_proofs::grouped_ciphertext_validity_proof::GroupedCiphertext2HandlesValidityProof,
-        transcript::TranscriptProtocol,
+        sigma_proofs::grouped_ciphertext_validity::GroupedCiphertext2HandlesValidityProof,
     },
+    bytemuck::bytes_of,
     merlin::Transcript,
 };
 use {
     crate::{
-        instruction::{ProofType, ZkProofData},
-        zk_token_elgamal::pod,
+        elgamal_program::proof_data::{ProofType, ZkProofData},
+        encryption::pod::{
+            elgamal::PodElGamalPubkey, grouped_elgamal::PodGroupedElGamalCiphertext2Handles,
+        },
+        sigma_proofs::pod::PodGroupedCiphertext2HandlesValidityProof,
     },
     bytemuck::{Pod, Zeroable},
 };
@@ -41,17 +44,17 @@ use {
 pub struct GroupedCiphertext2HandlesValidityProofData {
     pub context: GroupedCiphertext2HandlesValidityProofContext,
 
-    pub proof: pod::GroupedCiphertext2HandlesValidityProof,
+    pub proof: PodGroupedCiphertext2HandlesValidityProof,
 }
 
 #[derive(Clone, Copy, Pod, Zeroable)]
 #[repr(C)]
 pub struct GroupedCiphertext2HandlesValidityProofContext {
-    pub destination_pubkey: pod::ElGamalPubkey, // 32 bytes
+    pub destination_pubkey: PodElGamalPubkey, // 32 bytes
 
-    pub auditor_pubkey: pod::ElGamalPubkey, // 32 bytes
+    pub auditor_pubkey: PodElGamalPubkey, // 32 bytes
 
-    pub grouped_ciphertext: pod::GroupedElGamalCiphertext2Handles, // 96 bytes
+    pub grouped_ciphertext: PodGroupedElGamalCiphertext2Handles, // 96 bytes
 }
 
 #[cfg(not(target_os = "solana"))]
@@ -63,8 +66,8 @@ impl GroupedCiphertext2HandlesValidityProofData {
         amount: u64,
         opening: &PedersenOpening,
     ) -> Result<Self, ProofGenerationError> {
-        let pod_destination_pubkey = pod::ElGamalPubkey(destination_pubkey.into());
-        let pod_auditor_pubkey = pod::ElGamalPubkey(auditor_pubkey.into());
+        let pod_destination_pubkey = PodElGamalPubkey(destination_pubkey.into());
+        let pod_auditor_pubkey = PodElGamalPubkey(auditor_pubkey.into());
         let pod_grouped_ciphertext = (*grouped_ciphertext).into();
 
         let context = GroupedCiphertext2HandlesValidityProofContext {
@@ -76,7 +79,8 @@ impl GroupedCiphertext2HandlesValidityProofData {
         let mut transcript = context.new_transcript();
 
         let proof = GroupedCiphertext2HandlesValidityProof::new(
-            (destination_pubkey, auditor_pubkey),
+            destination_pubkey,
+            auditor_pubkey,
             amount,
             opening,
             &mut transcript,
@@ -113,8 +117,10 @@ impl ZkProofData<GroupedCiphertext2HandlesValidityProofContext>
         proof
             .verify(
                 &grouped_ciphertext.commitment,
-                (&destination_pubkey, &auditor_pubkey),
-                (destination_handle, auditor_handle),
+                &destination_pubkey,
+                &auditor_pubkey,
+                destination_handle,
+                auditor_handle,
                 &mut transcript,
             )
             .map_err(|e| e.into())
@@ -124,12 +130,11 @@ impl ZkProofData<GroupedCiphertext2HandlesValidityProofContext>
 #[cfg(not(target_os = "solana"))]
 impl GroupedCiphertext2HandlesValidityProofContext {
     fn new_transcript(&self) -> Transcript {
-        let mut transcript = Transcript::new(b"CiphertextValidityProof");
+        let mut transcript = Transcript::new(b"grouped-ciphertext-validity-2-handles-instruction");
 
-        transcript.append_pubkey(b"destination-pubkey", &self.destination_pubkey);
-        transcript.append_pubkey(b"auditor-pubkey", &self.auditor_pubkey);
-        transcript
-            .append_grouped_ciphertext_2_handles(b"grouped-ciphertext", &self.grouped_ciphertext);
+        transcript.append_message(b"destination-pubkey", bytes_of(&self.destination_pubkey));
+        transcript.append_message(b"auditor-pubkey", bytes_of(&self.auditor_pubkey));
+        transcript.append_message(b"grouped-ciphertext", bytes_of(&self.grouped_ciphertext));
 
         transcript
     }

@@ -9,6 +9,7 @@ pub mod batched_range_proof;
 pub mod ciphertext_ciphertext_equality;
 pub mod ciphertext_commitment_equality;
 pub mod errors;
+pub mod grouped_ciphertext_validity;
 pub mod percentage_with_cap;
 pub mod pod;
 pub mod pubkey;
@@ -27,6 +28,8 @@ pub enum ProofType {
     BatchedRangeProofU64,
     BatchedRangeProofU128,
     BatchedRangeProofU256,
+    GroupedCiphertext2HandlesValidity,
+    GroupedCiphertext3HandlesValidity,
 }
 
 pub trait ZkProofData<T: Pod> {
