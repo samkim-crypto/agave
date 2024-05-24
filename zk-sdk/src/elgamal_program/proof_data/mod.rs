@@ -5,6 +5,7 @@ use {
     num_derive::{FromPrimitive, ToPrimitive},
 };
 
+pub mod batched_grouped_ciphertext_validity;
 pub mod batched_range_proof;
 pub mod ciphertext_ciphertext_equality;
 pub mod ciphertext_commitment_equality;
@@ -30,6 +31,8 @@ pub enum ProofType {
     BatchedRangeProofU256,
     GroupedCiphertext2HandlesValidity,
     GroupedCiphertext3HandlesValidity,
+    BatchedGroupedCiphertext2HandlesValidity,
+    BatchedGroupedCiphertext3HandlesValidity,
 }
 
 pub trait ZkProofData<T: Pod> {

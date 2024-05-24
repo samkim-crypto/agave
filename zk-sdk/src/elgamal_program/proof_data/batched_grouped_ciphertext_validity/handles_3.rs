@@ -14,20 +14,23 @@
 #[cfg(not(target_os = "solana"))]
 use {
     crate::{
+        elgamal_program::errors::{ProofGenerationError, ProofVerificationError},
         encryption::{
             elgamal::ElGamalPubkey, grouped_elgamal::GroupedElGamalCiphertext,
             pedersen::PedersenOpening,
         },
-        errors::{ProofGenerationError, ProofVerificationError},
-        sigma_proofs::batched_grouped_ciphertext_validity_proof::BatchedGroupedCiphertext3HandlesValidityProof,
-        transcript::TranscriptProtocol,
+        sigma_proofs::batched_grouped_ciphertext_validity::BatchedGroupedCiphertext3HandlesValidityProof,
     },
+    bytemuck::bytes_of,
     merlin::Transcript,
 };
 use {
     crate::{
-        instruction::{ProofType, ZkProofData},
-        zk_token_elgamal::pod,
+        elgamal_program::proof_data::{ProofType, ZkProofData},
+        encryption::pod::{
+            elgamal::PodElGamalPubkey, grouped_elgamal::PodGroupedElGamalCiphertext3Handles,
+        },
+        sigma_proofs::pod::PodBatchedGroupedCiphertext3HandlesValidityProof,
     },
     bytemuck::{Pod, Zeroable},
 };
@@ -42,21 +45,21 @@ use {
 pub struct BatchedGroupedCiphertext3HandlesValidityProofData {
     pub context: BatchedGroupedCiphertext3HandlesValidityProofContext,
 
-    pub proof: pod::BatchedGroupedCiphertext3HandlesValidityProof,
+    pub proof: PodBatchedGroupedCiphertext3HandlesValidityProof,
 }
 
 #[derive(Clone, Copy, Pod, Zeroable)]
 #[repr(C)]
 pub struct BatchedGroupedCiphertext3HandlesValidityProofContext {
-    pub source_pubkey: pod::ElGamalPubkey, // 32 bytes
+    pub source_pubkey: PodElGamalPubkey, // 32 bytes
 
-    pub destination_pubkey: pod::ElGamalPubkey, // 32 bytes
+    pub destination_pubkey: PodElGamalPubkey, // 32 bytes
 
-    pub auditor_pubkey: pod::ElGamalPubkey, // 32 bytes
+    pub auditor_pubkey: PodElGamalPubkey, // 32 bytes
 
-    pub grouped_ciphertext_lo: pod::GroupedElGamalCiphertext3Handles, // 128 bytes
+    pub grouped_ciphertext_lo: PodGroupedElGamalCiphertext3Handles, // 128 bytes
 
-    pub grouped_ciphertext_hi: pod::GroupedElGamalCiphertext3Handles, // 128 bytes
+    pub grouped_ciphertext_hi: PodGroupedElGamalCiphertext3Handles, // 128 bytes
 }
 
 #[cfg(not(target_os = "solana"))]
@@ -72,9 +75,9 @@ impl BatchedGroupedCiphertext3HandlesValidityProofData {
         opening_lo: &PedersenOpening,
         opening_hi: &PedersenOpening,
     ) -> Result<Self, ProofGenerationError> {
-        let pod_source_pubkey = pod::ElGamalPubkey(source_pubkey.into());
-        let pod_destination_pubkey = pod::ElGamalPubkey(destination_pubkey.into());
-        let pod_auditor_pubkey = pod::ElGamalPubkey(auditor_pubkey.into());
+        let pod_source_pubkey = PodElGamalPubkey(source_pubkey.into());
+        let pod_destination_pubkey = PodElGamalPubkey(destination_pubkey.into());
+        let pod_auditor_pubkey = PodElGamalPubkey(auditor_pubkey.into());
         let pod_grouped_ciphertext_lo = (*grouped_ciphertext_lo).into();
         let pod_grouped_ciphertext_hi = (*grouped_ciphertext_hi).into();
 
@@ -157,18 +160,19 @@ impl ZkProofData<BatchedGroupedCiphertext3HandlesValidityProofContext>
 #[cfg(not(target_os = "solana"))]
 impl BatchedGroupedCiphertext3HandlesValidityProofContext {
     fn new_transcript(&self) -> Transcript {
-        let mut transcript = Transcript::new(b"BatchedGroupedCiphertext3HandlesValidityProof");
+        let mut transcript =
+            Transcript::new(b"batched-grouped-ciphertext-validity-3-handles-instruction");
 
-        transcript.append_pubkey(b"source-pubkey", &self.source_pubkey);
-        transcript.append_pubkey(b"destination-pubkey", &self.destination_pubkey);
-        transcript.append_pubkey(b"auditor-pubkey", &self.auditor_pubkey);
-        transcript.append_grouped_ciphertext_3_handles(
+        transcript.append_message(b"source-pubkey", bytes_of(&self.source_pubkey));
+        transcript.append_message(b"destination-pubkey", bytes_of(&self.destination_pubkey));
+        transcript.append_message(b"auditor-pubkey", bytes_of(&self.auditor_pubkey));
+        transcript.append_message(
             b"grouped-ciphertext-lo",
-            &self.grouped_ciphertext_lo,
+            bytes_of(&self.grouped_ciphertext_lo),
         );
-        transcript.append_grouped_ciphertext_3_handles(
+        transcript.append_message(
             b"grouped-ciphertext-hi",
-            &self.grouped_ciphertext_hi,
+            bytes_of(&self.grouped_ciphertext_hi),
         );
 
         transcript
