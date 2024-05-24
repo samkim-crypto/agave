@@ -21,14 +21,14 @@ pub mod batched_range_proof_u256;
 pub mod batched_range_proof_u64;
 
 use {
-    crate::zk_token_elgamal::pod,
+    crate::encryption::pod::pedersen::PodPedersenCommitment,
     bytemuck::{Pod, Zeroable},
 };
 #[cfg(not(target_os = "solana"))]
 use {
     crate::{
+        elgamal_program::errors::{ProofGenerationError, ProofVerificationError},
         encryption::pedersen::{PedersenCommitment, PedersenOpening},
-        errors::{ProofGenerationError, ProofVerificationError},
     },
     bytemuck::bytes_of,
     curve25519_dalek::traits::IsIdentity,
@@ -51,7 +51,7 @@ const MAX_SINGLE_BIT_LENGTH: usize = 128;
 #[derive(Clone, Copy, Pod, Zeroable)]
 #[repr(C)]
 pub struct BatchedRangeProofContext {
-    pub commitments: [pod::PedersenCommitment; MAX_COMMITMENTS],
+    pub commitments: [PodPedersenCommitment; MAX_COMMITMENTS],
     pub bit_lengths: [u8; MAX_COMMITMENTS],
 }
 
@@ -59,7 +59,7 @@ pub struct BatchedRangeProofContext {
 #[cfg(not(target_os = "solana"))]
 impl BatchedRangeProofContext {
     fn new_transcript(&self) -> Transcript {
-        let mut transcript = Transcript::new(b"BatchedRangeProof");
+        let mut transcript = Transcript::new(b"batched-range-proof-instruction");
         transcript.append_message(b"commitments", bytes_of(&self.commitments));
         transcript.append_message(b"bit-lengths", bytes_of(&self.bit_lengths));
         transcript
@@ -81,13 +81,13 @@ impl BatchedRangeProofContext {
             return Err(ProofGenerationError::IllegalCommitmentLength);
         }
 
-        let mut pod_commitments = [pod::PedersenCommitment::zeroed(); MAX_COMMITMENTS];
+        let mut pod_commitments = [PodPedersenCommitment::zeroed(); MAX_COMMITMENTS];
         for (i, commitment) in commitments.iter().enumerate() {
             // all-zero commitment is invalid
             if commitment.get_point().is_identity() {
                 return Err(ProofGenerationError::InvalidCommitment);
             }
-            pod_commitments[i] = pod::PedersenCommitment(commitment.to_bytes());
+            pod_commitments[i] = PodPedersenCommitment(commitment.to_bytes());
         }
 
         let mut pod_bit_lengths = [0; MAX_COMMITMENTS];
@@ -112,7 +112,7 @@ impl TryInto<(Vec<PedersenCommitment>, Vec<usize>)> for BatchedRangeProofContext
         let commitments = self
             .commitments
             .into_iter()
-            .take_while(|commitment| *commitment != pod::PedersenCommitment::zeroed())
+            .take_while(|commitment| *commitment != PodPedersenCommitment::zeroed())
             .map(|commitment| commitment.try_into())
             .collect::<Result<Vec<PedersenCommitment>, _>>()
             .map_err(|_| ProofVerificationError::ProofContext)?;

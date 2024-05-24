@@ -1,21 +1,25 @@
 //! The 64-bit batched range proof instruction.
 
+use {
+    crate::{
+        elgamal_program::proof_data::{
+            batched_range_proof::BatchedRangeProofContext, ProofType, ZkProofData,
+        },
+        range_proof::pod::PodRangeProofU64,
+    },
+    bytemuck::{Pod, Zeroable},
+};
 #[cfg(not(target_os = "solana"))]
 use {
     crate::{
+        elgamal_program::{
+            errors::{ProofGenerationError, ProofVerificationError},
+            proof_data::batched_range_proof::MAX_COMMITMENTS,
+        },
         encryption::pedersen::{PedersenCommitment, PedersenOpening},
-        errors::{ProofGenerationError, ProofVerificationError},
-        instruction::batched_range_proof::MAX_COMMITMENTS,
         range_proof::RangeProof,
     },
     std::convert::TryInto,
-};
-use {
-    crate::{
-        instruction::{batched_range_proof::BatchedRangeProofContext, ProofType, ZkProofData},
-        zk_token_elgamal::pod,
-    },
-    bytemuck::{Pod, Zeroable},
 };
 
 /// The instruction data that is needed for the
@@ -30,7 +34,7 @@ pub struct BatchedRangeProofU64Data {
     pub context: BatchedRangeProofContext,
 
     /// The batched range proof
-    pub proof: pod::RangeProofU64,
+    pub proof: PodRangeProofU64,
 }
 
 #[cfg(not(target_os = "solana"))]
@@ -97,7 +101,7 @@ mod test {
     use {
         super::*,
         crate::{
-            encryption::pedersen::Pedersen, errors::ProofVerificationError,
+            elgamal_program::errors::ProofVerificationError, encryption::pedersen::Pedersen,
             range_proof::errors::RangeProofVerificationError,
         },
     };

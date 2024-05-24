@@ -1,21 +1,25 @@
 //! The 256-bit batched range proof instruction.
 
+use {
+    crate::{
+        elgamal_program::proof_data::{
+            batched_range_proof::BatchedRangeProofContext, ProofType, ZkProofData,
+        },
+        range_proof::pod::PodRangeProofU256,
+    },
+    bytemuck::{Pod, Zeroable},
+};
 #[cfg(not(target_os = "solana"))]
 use {
     crate::{
+        elgamal_program::{
+            errors::{ProofGenerationError, ProofVerificationError},
+            proof_data::batched_range_proof::{MAX_COMMITMENTS, MAX_SINGLE_BIT_LENGTH},
+        },
         encryption::pedersen::{PedersenCommitment, PedersenOpening},
-        errors::{ProofGenerationError, ProofVerificationError},
-        instruction::batched_range_proof::{MAX_COMMITMENTS, MAX_SINGLE_BIT_LENGTH},
         range_proof::RangeProof,
     },
     std::convert::TryInto,
-};
-use {
-    crate::{
-        instruction::{batched_range_proof::BatchedRangeProofContext, ProofType, ZkProofData},
-        zk_token_elgamal::pod,
-    },
-    bytemuck::{Pod, Zeroable},
 };
 
 #[cfg(not(target_os = "solana"))]
@@ -33,7 +37,7 @@ pub struct BatchedRangeProofU256Data {
     pub context: BatchedRangeProofContext,
 
     /// The batched range proof
-    pub proof: pod::RangeProofU256,
+    pub proof: PodRangeProofU256,
 }
 
 #[cfg(not(target_os = "solana"))]
@@ -44,7 +48,9 @@ impl BatchedRangeProofU256Data {
         bit_lengths: Vec<usize>,
         openings: Vec<&PedersenOpening>,
     ) -> Result<Self, ProofGenerationError> {
-        // each bit length must be at most 128
+        // Range proof on 256 bit length could potentially result in an unexpected behavior and
+        // therefore, restrict the bit length to be at most 128. This check is not needed for the
+        // `BatchedRangeProofU64` or `BatchedRangeProofU128`.
         if bit_lengths
             .iter()
             .any(|length| *length > MAX_SINGLE_BIT_LENGTH)
@@ -110,7 +116,7 @@ mod test {
     use {
         super::*,
         crate::{
-            encryption::pedersen::Pedersen, errors::ProofVerificationError,
+            elgamal_program::errors::ProofVerificationError, encryption::pedersen::Pedersen,
             range_proof::errors::RangeProofVerificationError,
         },
     };
