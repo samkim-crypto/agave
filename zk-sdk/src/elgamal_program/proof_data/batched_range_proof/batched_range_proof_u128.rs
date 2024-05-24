@@ -151,7 +151,7 @@ mod test {
 
         assert!(proof_data.verify_proof().is_ok());
 
-        let amount_1 = 65536_u64; // not representable as an 8-bit number
+        let amount_1 = 65536_u64; // not representable as a 16-bit number
         let amount_2 = 77_u64;
         let amount_3 = 99_u64;
         let amount_4 = 99_u64;

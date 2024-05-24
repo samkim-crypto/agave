@@ -14,7 +14,7 @@
 //! the sum of all bit-lengths.
 //!
 //! The maximum number of commitments is fixed at 8. Each bit-length in `[n_1, ..., n_N]` must be a
-//! power-of-two positive integer less than 128.
+//! power-of-two positive integer less than or equal to 128.
 
 pub mod batched_range_proof_u128;
 pub mod batched_range_proof_u256;
