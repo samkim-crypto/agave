@@ -11,8 +11,8 @@ edition = { workspace = true }
 
 [dependencies]
 bytemuck = { workspace = true, features = ["derive"] }
-thiserror = { workspace = true }
 solana-program = { workspace = true }
+thiserror = { workspace = true }
 
 [target.'cfg(not(target_os = "solana"))'.dependencies]
 ark-bn254 = { workspace = true }
