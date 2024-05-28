@@ -307,7 +307,6 @@ mod target_arch {
 mod target_arch {
     use {super::*, solana_program::syscalls};
 
-    use super::*;
     pub fn alt_bn128_addition(input: &[u8]) -> Result<Vec<u8>, AltBn128Error> {
         if input.len() > ALT_BN128_ADDITION_INPUT_LEN {
             return Err(AltBn128Error::InvalidInputData);
