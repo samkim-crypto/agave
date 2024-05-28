@@ -1,5 +1,5 @@
 pub mod prelude {
-    pub use crate::alt_bn128::compression::{
+    pub use crate::compression::{
         alt_bn128_compression_size::*, consts::*, target_arch::*, AltBn128CompressionError,
     };
 }
@@ -70,7 +70,7 @@ mod target_arch {
 
     use {
         super::*,
-        crate::alt_bn128::compression::alt_bn128_compression_size,
+        crate::compression::alt_bn128_compression_size,
         ark_serialize::{CanonicalDeserialize, CanonicalSerialize, Compress, Validate},
     };
 
@@ -275,7 +275,7 @@ mod target_arch {
 mod tests {
     use {
         super::*,
-        crate::alt_bn128::compression::target_arch::convert_endianness,
+        crate::compression::target_arch::convert_endianness,
         ark_serialize::{CanonicalDeserialize, CanonicalSerialize, Compress, Validate},
         std::ops::Neg,
         target_arch::{
