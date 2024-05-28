@@ -1,6 +1,6 @@
 pub mod compression;
 pub mod prelude {
-    pub use crate::alt_bn128::{consts::*, target_arch::*, AltBn128Error};
+    pub use crate::{consts::*, target_arch::*, AltBn128Error};
 }
 
 use {
@@ -305,6 +305,8 @@ mod target_arch {
 
 #[cfg(target_os = "solana")]
 mod target_arch {
+    use {super::*, solana_program::syscalls};
+
     use super::*;
     pub fn alt_bn128_addition(input: &[u8]) -> Result<Vec<u8>, AltBn128Error> {
         if input.len() > ALT_BN128_ADDITION_INPUT_LEN {
@@ -312,7 +314,7 @@ mod target_arch {
         }
         let mut result_buffer = [0; ALT_BN128_ADDITION_OUTPUT_LEN];
         let result = unsafe {
-            crate::syscalls::sol_alt_bn128_group_op(
+            syscalls::sol_alt_bn128_group_op(
                 ALT_BN128_ADD,
                 input as *const _ as *const u8,
                 input.len() as u64,
@@ -332,7 +334,7 @@ mod target_arch {
         }
         let mut result_buffer = [0u8; ALT_BN128_POINT_SIZE];
         let result = unsafe {
-            crate::syscalls::sol_alt_bn128_group_op(
+            syscalls::sol_alt_bn128_group_op(
                 ALT_BN128_MUL,
                 input as *const _ as *const u8,
                 input.len() as u64,
@@ -356,7 +358,7 @@ mod target_arch {
         }
         let mut result_buffer = [0u8; 32];
         let result = unsafe {
-            crate::syscalls::sol_alt_bn128_group_op(
+            syscalls::sol_alt_bn128_group_op(
                 ALT_BN128_PAIRING,
                 input as *const _ as *const u8,
                 input.len() as u64,
@@ -374,7 +376,7 @@ mod target_arch {
 #[cfg(test)]
 mod tests {
     use {
-        crate::alt_bn128::{prelude::*, PodG1},
+        crate::{prelude::*, PodG1},
         ark_bn254::g1::G1Affine,
         ark_ec::AffineRepr,
         ark_serialize::{CanonicalSerialize, Compress},
