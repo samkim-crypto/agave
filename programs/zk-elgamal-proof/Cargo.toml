@@ -1,0 +1,9 @@
+[package]
+name = "solana-zk-elgamal-proof-program"
+description = "Solana Zk ElGamal Proof Program"
+version = { workspace = true }
+authors = { workspace = true }
+repository = { workspace = true }
+homepage = { workspace = true }
+license = { workspace = true }
+edition = { workspace = true }
