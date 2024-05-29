@@ -4,11 +4,6 @@
 //! well-defined, i.e. the ciphertext can be decrypted by private keys associated with its
 //! decryption handles. To generate the proof, a prover must provide the Pedersen opening
 //! associated with the grouped ciphertext's commitment.
-//!
-//! In accordance with the SPL Token program application, the first decryption handle associated
-//! with the proof is referred to as the "source" handle, the second decryption handle is
-//! referred to as the "destination" handle, and the third decryption handle is referred to as the
-//! "auditor" handle.
 
 #[cfg(not(target_os = "solana"))]
 use {

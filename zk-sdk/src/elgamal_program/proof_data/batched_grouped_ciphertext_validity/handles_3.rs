@@ -4,12 +4,6 @@
 //! ciphertext that are encrypted using the same set of ElGamal public keys. A batched
 //! grouped-ciphertext validity proof is shorter and more efficient than two individual
 //! grouped-ciphertext validity proofs.
-//!
-//! In accordance with the SPL Token program application, the first decryption handle associated
-//! with the proof is referred to as the "source" handle, the second decryption handle is referred
-//! to as the "destination" handle, and the third decryption handle is referred to as the "auditor"
-//! handle. Furthermore, the first grouped ciphertext is referred to as the "lo" ciphertext and the
-//! second grouped ciphertext is referred to as the "hi" ciphertext.
 
 #[cfg(not(target_os = "solana"))]
 use {
