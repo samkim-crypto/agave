@@ -10,7 +10,7 @@ use {
     crate::{
         elgamal_program::errors::{ProofGenerationError, ProofVerificationError},
         encryption::elgamal::ElGamalKeypair,
-        sigma_proofs::pubkey::PubkeyValidityProof,
+        sigma_proofs::pubkey_validity::PubkeyValidityProof,
     },
     bytemuck::bytes_of,
     merlin::Transcript,

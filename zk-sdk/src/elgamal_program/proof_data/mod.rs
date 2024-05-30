@@ -13,7 +13,7 @@ pub mod errors;
 pub mod grouped_ciphertext_validity;
 pub mod percentage_with_cap;
 pub mod pod;
-pub mod pubkey;
+pub mod pubkey_validity;
 pub mod zero_ciphertext;
 
 #[derive(Clone, Copy, Debug, FromPrimitive, ToPrimitive, PartialEq, Eq)]
