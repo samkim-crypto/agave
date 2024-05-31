@@ -7718,7 +7718,7 @@ dependencies = [
  "num-traits",
  "solana-program-runtime",
  "solana-sdk",
- "solana-zk-token-sdk",
+ "solana-zk-sdk",
 ]
 
 [[package]]

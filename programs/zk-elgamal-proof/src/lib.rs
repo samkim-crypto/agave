@@ -4,33 +4,29 @@ use {
     bytemuck::Pod,
     solana_program_runtime::{declare_process_instruction, ic_msg, invoke_context::InvokeContext},
     solana_sdk::{
-        feature_set,
         instruction::{InstructionError, TRANSACTION_LEVEL_STACK_HEIGHT},
         system_program,
     },
-    solana_zk_token_sdk::{
-        zk_token_proof_instruction::*,
-        zk_token_proof_program::id,
-        zk_token_proof_state::{ProofContextState, ProofContextStateMeta},
+    solana_zk_sdk::elgamal_program::{
+        id,
+        instruction::ProofInstruction,
+        proof_data::{grouped_ciphertext_validity::*, *},
+        state::{ProofContextState, ProofContextStateMeta},
     },
     std::result::Result,
 };
 
 pub const CLOSE_CONTEXT_STATE_COMPUTE_UNITS: u64 = 3_300;
-pub const VERIFY_ZERO_BALANCE_COMPUTE_UNITS: u64 = 6_000;
-pub const VERIFY_WITHDRAW_COMPUTE_UNITS: u64 = 110_000;
+pub const VERIFY_ZERO_CIPHERTEXT_COMPUTE_UNITS: u64 = 6_000;
 pub const VERIFY_CIPHERTEXT_CIPHERTEXT_EQUALITY_COMPUTE_UNITS: u64 = 8_000;
-pub const VERIFY_TRANSFER_COMPUTE_UNITS: u64 = 219_000;
-pub const VERIFY_TRANSFER_WITH_FEE_COMPUTE_UNITS: u64 = 407_000;
+pub const VERIFY_CIPHERTEXT_COMMITMENT_EQUALITY_COMPUTE_UNITS: u64 = 6_400;
 pub const VERIFY_PUBKEY_VALIDITY_COMPUTE_UNITS: u64 = 2_600;
-pub const VERIFY_RANGE_PROOF_U64_COMPUTE_UNITS: u64 = 105_000;
+pub const VERIFY_PERCENTAGE_WITH_CAP_COMPUTE_UNITS: u64 = 6_500;
 pub const VERIFY_BATCHED_RANGE_PROOF_U64_COMPUTE_UNITS: u64 = 111_000;
 pub const VERIFY_BATCHED_RANGE_PROOF_U128_COMPUTE_UNITS: u64 = 200_000;
 pub const VERIFY_BATCHED_RANGE_PROOF_U256_COMPUTE_UNITS: u64 = 368_000;
-pub const VERIFY_CIPHERTEXT_COMMITMENT_EQUALITY_COMPUTE_UNITS: u64 = 6_400;
 pub const VERIFY_GROUPED_CIPHERTEXT_2_HANDLES_VALIDITY_COMPUTE_UNITS: u64 = 6_400;
 pub const VERIFY_BATCHED_GROUPED_CIPHERTEXT_2_HANDLES_VALIDITY_COMPUTE_UNITS: u64 = 13_000;
-pub const VERIFY_FEE_SIGMA_COMPUTE_UNITS: u64 = 6_500;
 pub const VERIFY_GROUPED_CIPHERTEXT_3_HANDLES_VALIDITY_COMPUTE_UNITS: u64 = 8_100;
 pub const VERIFY_BATCHED_GROUPED_CIPHERTEXT_3_HANDLES_VALIDITY_COMPUTE_UNITS: u64 = 16_400;
 
@@ -50,13 +46,6 @@ where
 
     // if instruction data is exactly 5 bytes, then read proof from an account
     let context_data = if instruction_data.len() == INSTRUCTION_DATA_LENGTH_WITH_PROOF_ACCOUNT {
-        if !invoke_context
-            .get_feature_set()
-            .is_active(&feature_set::enable_zk_proof_from_account::id())
-        {
-            return Err(InstructionError::InvalidInstructionData);
-        }
-
         let proof_data_account = instruction_context
             .try_borrow_instruction_account(transaction_context, accessed_accounts)?;
         accessed_accounts = accessed_accounts.checked_add(1).unwrap();
@@ -183,10 +172,6 @@ fn process_close_proof_context(invoke_context: &mut InvokeContext) -> Result<(),
 }
 
 declare_process_instruction!(Entrypoint, 0, |invoke_context| {
-    let enable_zk_transfer_with_fee = invoke_context
-        .get_feature_set()
-        .is_active(&feature_set::enable_zk_transfer_with_fee::id());
-
     let transaction_context = &invoke_context.transaction_context;
     let instruction_context = transaction_context.get_current_instruction_context()?;
     let instruction_data = instruction_context.get_instruction_data();
@@ -208,19 +193,14 @@ declare_process_instruction!(Entrypoint, 0, |invoke_context| {
             ic_msg!(invoke_context, "CloseContextState");
             process_close_proof_context(invoke_context)
         }
-        ProofInstruction::VerifyZeroBalance => {
+        ProofInstruction::VerifyZeroCiphertext => {
             invoke_context
-                .consume_checked(VERIFY_ZERO_BALANCE_COMPUTE_UNITS)
+                .consume_checked(VERIFY_ZERO_CIPHERTEXT_COMPUTE_UNITS)
                 .map_err(|_| InstructionError::ComputationalBudgetExceeded)?;
-            ic_msg!(invoke_context, "VerifyZeroBalance");
-            process_verify_proof::<ZeroBalanceProofData, ZeroBalanceProofContext>(invoke_context)
-        }
-        ProofInstruction::VerifyWithdraw => {
-            invoke_context
-                .consume_checked(VERIFY_WITHDRAW_COMPUTE_UNITS)
-                .map_err(|_| InstructionError::ComputationalBudgetExceeded)?;
-            ic_msg!(invoke_context, "VerifyWithdraw");
-            process_verify_proof::<WithdrawData, WithdrawProofContext>(invoke_context)
+            ic_msg!(invoke_context, "VerifyZeroCiphertext");
+            process_verify_proof::<ZeroCiphertextProofData, ZeroCiphertextProofContext>(
+                invoke_context,
+            )
         }
         ProofInstruction::VerifyCiphertextCiphertextEquality => {
             invoke_context
@@ -232,38 +212,33 @@ declare_process_instruction!(Entrypoint, 0, |invoke_context| {
                 CiphertextCiphertextEqualityProofContext,
             >(invoke_context)
         }
-        ProofInstruction::VerifyTransfer => {
+        ProofInstruction::VerifyCiphertextCommitmentEquality => {
             invoke_context
-                .consume_checked(VERIFY_TRANSFER_COMPUTE_UNITS)
+                .consume_checked(VERIFY_CIPHERTEXT_COMMITMENT_EQUALITY_COMPUTE_UNITS)
                 .map_err(|_| InstructionError::ComputationalBudgetExceeded)?;
-            ic_msg!(invoke_context, "VerifyTransfer");
-            process_verify_proof::<TransferData, TransferProofContext>(invoke_context)
-        }
-        ProofInstruction::VerifyTransferWithFee => {
-            // transfer with fee related proofs are not enabled
-            if !enable_zk_transfer_with_fee {
-                return Err(InstructionError::InvalidInstructionData);
-            }
-
-            invoke_context
-                .consume_checked(VERIFY_TRANSFER_WITH_FEE_COMPUTE_UNITS)
-                .map_err(|_| InstructionError::ComputationalBudgetExceeded)?;
-            ic_msg!(invoke_context, "VerifyTransferWithFee");
-            process_verify_proof::<TransferWithFeeData, TransferWithFeeProofContext>(invoke_context)
+            ic_msg!(invoke_context, "VerifyCiphertextCommitmentEquality");
+            process_verify_proof::<
+                CiphertextCommitmentEqualityProofData,
+                CiphertextCommitmentEqualityProofContext,
+            >(invoke_context)
         }
         ProofInstruction::VerifyPubkeyValidity => {
             invoke_context
                 .consume_checked(VERIFY_PUBKEY_VALIDITY_COMPUTE_UNITS)
                 .map_err(|_| InstructionError::ComputationalBudgetExceeded)?;
             ic_msg!(invoke_context, "VerifyPubkeyValidity");
-            process_verify_proof::<PubkeyValidityData, PubkeyValidityProofContext>(invoke_context)
+            process_verify_proof::<PubkeyValidityProofData, PubkeyValidityProofContext>(
+                invoke_context,
+            )
         }
-        ProofInstruction::VerifyRangeProofU64 => {
+        ProofInstruction::VerifyPercentageWithCap => {
             invoke_context
-                .consume_checked(VERIFY_RANGE_PROOF_U64_COMPUTE_UNITS)
+                .consume_checked(VERIFY_PERCENTAGE_WITH_CAP_COMPUTE_UNITS)
                 .map_err(|_| InstructionError::ComputationalBudgetExceeded)?;
-            ic_msg!(invoke_context, "VerifyRangeProof");
-            process_verify_proof::<RangeProofU64Data, RangeProofContext>(invoke_context)
+            ic_msg!(invoke_context, "VerifyPercentageWithCap");
+            process_verify_proof::<PercentageWithCapProofData, PercentageWithCapProofContext>(
+                invoke_context,
+            )
         }
         ProofInstruction::VerifyBatchedRangeProofU64 => {
             invoke_context
@@ -284,11 +259,6 @@ declare_process_instruction!(Entrypoint, 0, |invoke_context| {
             )
         }
         ProofInstruction::VerifyBatchedRangeProofU256 => {
-            // transfer with fee related proofs are not enabled
-            if !enable_zk_transfer_with_fee {
-                return Err(InstructionError::InvalidInstructionData);
-            }
-
             invoke_context
                 .consume_checked(VERIFY_BATCHED_RANGE_PROOF_U256_COMPUTE_UNITS)
                 .map_err(|_| InstructionError::ComputationalBudgetExceeded)?;
@@ -296,16 +266,6 @@ declare_process_instruction!(Entrypoint, 0, |invoke_context| {
             process_verify_proof::<BatchedRangeProofU256Data, BatchedRangeProofContext>(
                 invoke_context,
             )
-        }
-        ProofInstruction::VerifyCiphertextCommitmentEquality => {
-            invoke_context
-                .consume_checked(VERIFY_CIPHERTEXT_COMMITMENT_EQUALITY_COMPUTE_UNITS)
-                .map_err(|_| InstructionError::ComputationalBudgetExceeded)?;
-            ic_msg!(invoke_context, "VerifyCiphertextCommitmentEquality");
-            process_verify_proof::<
-                CiphertextCommitmentEqualityProofData,
-                CiphertextCommitmentEqualityProofContext,
-            >(invoke_context)
         }
         ProofInstruction::VerifyGroupedCiphertext2HandlesValidity => {
             invoke_context
@@ -329,18 +289,6 @@ declare_process_instruction!(Entrypoint, 0, |invoke_context| {
                 BatchedGroupedCiphertext2HandlesValidityProofData,
                 BatchedGroupedCiphertext2HandlesValidityProofContext,
             >(invoke_context)
-        }
-        ProofInstruction::VerifyFeeSigma => {
-            // transfer with fee related proofs are not enabled
-            if !enable_zk_transfer_with_fee {
-                return Err(InstructionError::InvalidInstructionData);
-            }
-
-            invoke_context
-                .consume_checked(VERIFY_FEE_SIGMA_COMPUTE_UNITS)
-                .map_err(|_| InstructionError::ComputationalBudgetExceeded)?;
-            ic_msg!(invoke_context, "VerifyFeeSigma");
-            process_verify_proof::<FeeSigmaProofData, FeeSigmaProofContext>(invoke_context)
         }
         ProofInstruction::VerifyGroupedCiphertext3HandlesValidity => {
             invoke_context
