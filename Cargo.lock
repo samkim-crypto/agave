@@ -5718,7 +5718,6 @@ dependencies = [
  "rand 0.8.5",
  "scopeguard",
  "solana-bn254",
- "solana-compute-budget",
  "solana-curve25519",
  "solana-log-collector",
  "solana-measure",

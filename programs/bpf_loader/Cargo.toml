@@ -15,7 +15,6 @@ byteorder = { workspace = true }
 libsecp256k1 = { workspace = true }
 log = { workspace = true }
 scopeguard = { workspace = true }
-solana-compute-budget = { workspace = true }
 solana-bn254 = { workspace = true }
 solana-curve25519 = { workspace = true }
 solana-log-collector = { workspace = true }
