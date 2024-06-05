@@ -6816,7 +6816,6 @@ version = "2.1.0"
 dependencies = [
  "anyhow",
  "arbitrary",
- "ark-bn254",
  "array-bytes",
  "assert_matches",
  "base64 0.22.1",
