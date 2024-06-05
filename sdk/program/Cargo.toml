@@ -46,7 +46,6 @@ thiserror = { workspace = true }
 getrandom = { workspace = true, features = ["custom"] }
 
 [target.'cfg(not(target_os = "solana"))'.dependencies]
-ark-bn254 = { workspace = true }
 base64 = { workspace = true, features = ["alloc", "std"] }
 bitflags = { workspace = true }
 curve25519-dalek = { workspace = true }
