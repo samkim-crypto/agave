@@ -5299,7 +5299,6 @@ dependencies = [
 name = "solana-program"
 version = "2.1.0"
 dependencies = [
- "ark-bn254",
  "base64 0.22.1",
  "bincode",
  "bitflags 2.6.0",
