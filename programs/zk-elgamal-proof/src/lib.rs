@@ -10,7 +10,7 @@ use {
     solana_zk_sdk::elgamal_program::{
         id,
         instruction::ProofInstruction,
-        proof_data::{grouped_ciphertext_validity::*, *},
+        proof_data::*,
         state::{ProofContextState, ProofContextStateMeta},
     },
     std::result::Result,
