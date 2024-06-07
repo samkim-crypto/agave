@@ -244,7 +244,7 @@ declare_process_instruction!(Entrypoint, 0, |invoke_context| {
             invoke_context
                 .consume_checked(VERIFY_BATCHED_RANGE_PROOF_U64_COMPUTE_UNITS)
                 .map_err(|_| InstructionError::ComputationalBudgetExceeded)?;
-            ic_msg!(invoke_context, "VerifyBatchedRangeProof64");
+            ic_msg!(invoke_context, "VerifyBatchedRangeProofU64");
             process_verify_proof::<BatchedRangeProofU64Data, BatchedRangeProofContext>(
                 invoke_context,
             )
@@ -253,7 +253,7 @@ declare_process_instruction!(Entrypoint, 0, |invoke_context| {
             invoke_context
                 .consume_checked(VERIFY_BATCHED_RANGE_PROOF_U128_COMPUTE_UNITS)
                 .map_err(|_| InstructionError::ComputationalBudgetExceeded)?;
-            ic_msg!(invoke_context, "VerifyBatchedRangeProof128");
+            ic_msg!(invoke_context, "VerifyBatchedRangeProofU128");
             process_verify_proof::<BatchedRangeProofU128Data, BatchedRangeProofContext>(
                 invoke_context,
             )
@@ -262,7 +262,7 @@ declare_process_instruction!(Entrypoint, 0, |invoke_context| {
             invoke_context
                 .consume_checked(VERIFY_BATCHED_RANGE_PROOF_U256_COMPUTE_UNITS)
                 .map_err(|_| InstructionError::ComputationalBudgetExceeded)?;
-            ic_msg!(invoke_context, "VerifyBatchedRangeProof256");
+            ic_msg!(invoke_context, "VerifyBatchedRangeProofU256");
             process_verify_proof::<BatchedRangeProofU256Data, BatchedRangeProofContext>(
                 invoke_context,
             )
