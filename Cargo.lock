@@ -5646,6 +5646,7 @@ dependencies = [
  "solana-poseidon",
  "solana-program-runtime",
  "solana-sdk",
+ "solana-vote",
  "solana-zk-token-sdk",
  "solana_rbpf",
  "test-case",
@@ -6761,6 +6762,7 @@ dependencies = [
  "solana-measure",
  "solana-metrics",
  "solana-sdk",
+ "solana-vote",
  "solana_rbpf",
  "test-case",
  "thiserror",
@@ -7366,6 +7368,7 @@ dependencies = [
  "solana-program-runtime",
  "solana-sdk",
  "solana-system-program",
+ "solana-vote",
 ]
 
 [[package]]

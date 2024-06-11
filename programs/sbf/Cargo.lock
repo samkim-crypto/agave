@@ -5432,6 +5432,7 @@ dependencies = [
  "solana-measure",
  "solana-metrics",
  "solana-sdk",
+ "solana-vote",
  "solana_rbpf",
  "thiserror",
 ]
@@ -6343,6 +6344,7 @@ dependencies = [
  "solana-program-runtime",
  "solana-sdk",
  "solana-system-program",
+ "solana-vote",
 ]
 
 [[package]]
