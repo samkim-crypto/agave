@@ -825,7 +825,7 @@ pub mod migrate_address_lookup_table_program_to_core_bpf {
 }
 
 pub mod zk_elgamal_proof_program_enabled {
-    solana_sdk::declare_id!("B6ehYoZirDwWHFoQwujCjMcpxTFfvxvWAnHw5wKGu7hT");
+    solana_sdk::declare_id!("zkhiy5oLowR7HY4zogXjCjeMXyruLqBwSWH21qcFtnv");
 }
 
 lazy_static! {
