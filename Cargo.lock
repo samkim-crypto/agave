@@ -7359,6 +7359,7 @@ dependencies = [
  "serde_derive",
  "solana-bpf-loader-program",
  "solana-compute-budget",
+ "solana-compute-budget-program",
  "solana-frozen-abi",
  "solana-frozen-abi-macro",
  "solana-loader-v4-program",
@@ -7367,6 +7368,7 @@ dependencies = [
  "solana-metrics",
  "solana-program-runtime",
  "solana-sdk",
+ "solana-svm",
  "solana-system-program",
  "solana-vote",
 ]
