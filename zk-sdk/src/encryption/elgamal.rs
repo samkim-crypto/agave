@@ -57,7 +57,6 @@ impl ElGamal {
     /// Generates an ElGamal keypair.
     ///
     /// This function is randomized. It internally samples a scalar element using `OsRng`.
-    #[allow(non_snake_case)]
     fn keygen() -> ElGamalKeypair {
         // secret scalar should be non-zero except with negligible probability
         let mut s = Scalar::random(&mut OsRng);
@@ -70,7 +69,6 @@ impl ElGamal {
     /// Generates an ElGamal keypair from a scalar input that determines the ElGamal private key.
     ///
     /// This function panics if the input scalar is zero, which is not a valid key.
-    #[allow(non_snake_case)]
     fn keygen_with_scalar(s: &Scalar) -> ElGamalKeypair {
         let secret = ElGamalSecretKey(*s);
         let public = ElGamalPubkey::new(&secret);
@@ -174,7 +172,6 @@ impl ElGamalKeypair {
     /// wallets, the signing key is not exposed in the API. Therefore, this function uses a signer
     /// to sign a public seed and the resulting signature is then hashed to derive an ElGamal
     /// keypair.
-    #[allow(non_snake_case)]
     pub fn new_from_signer(
         signer: &dyn Signer,
         public_seed: &[u8],
@@ -316,7 +313,6 @@ impl EncodableKeypair for ElGamalKeypair {
 pub struct ElGamalPubkey(RistrettoPoint);
 impl ElGamalPubkey {
     /// Derives the `ElGamalPubkey` that uniquely corresponds to an `ElGamalSecretKey`.
-    #[allow(non_snake_case)]
     pub fn new(secret: &ElGamalSecretKey) -> Self {
         let s = &secret.0;
         assert!(s != &Scalar::zero());
@@ -586,7 +582,6 @@ impl ConstantTimeEq for ElGamalSecretKey {
 }
 
 /// Ciphertext for the ElGamal encryption scheme.
-#[allow(non_snake_case)]
 #[derive(Clone, Copy, Debug, Default, Deserialize, Eq, PartialEq, Serialize)]
 pub struct ElGamalCiphertext {
     pub commitment: PedersenCommitment,
