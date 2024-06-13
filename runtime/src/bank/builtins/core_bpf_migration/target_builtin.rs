@@ -121,7 +121,7 @@ mod tests {
         Some(feature_set::zk_token_sdk_enabled::id())
     )]
     #[test_case(
-        solana_zk_sdk::elgamal_program::id(),
+        solana_zk_sdk::zk_elgamal_proof_program::id(),
         Some(feature_set::zk_elgamal_proof_program_enabled::id())
     )]
     fn test_target_program_builtin(program_address: Pubkey, activation_feature: Option<Pubkey>) {

@@ -125,7 +125,7 @@ pub static BUILTINS: &[BuiltinPrototype] = &[
         core_bpf_migration_config: None,
         name: zk_elgamal_proof_program,
         enable_feature_id: Some(feature_set::zk_elgamal_proof_program_enabled::id()),
-        program_id: solana_zk_sdk::elgamal_program::id(),
+        program_id: solana_zk_sdk::zk_elgamal_proof_program::id(),
         entrypoint: solana_zk_elgamal_proof_program::Entrypoint::vm,
     }),
 ];
