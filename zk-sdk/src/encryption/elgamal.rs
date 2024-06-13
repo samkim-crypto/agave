@@ -149,10 +149,16 @@ pub struct ElGamalKeypair {
 impl ElGamalKeypair {
     /// Create an ElGamal keypair from an ElGamal public key and an ElGamal secret key.
     ///
-    /// An ElGamal keypair should never be instantiated manually; `ElGamalKeypair::new_rand` or
-    /// `ElGamalKeypair::new_from_signer` should be used instead. This function exists to create
-    /// custom ElGamal keypairs for tests.
+    /// An ElGamal keypair should never be instantiated manually; `ElGamalKeypair::new`,
+    /// `ElGamalKeypair::new_rand` or `ElGamalKeypair::new_from_signer` should be used instead.
+    /// This function exists to create custom ElGamal keypairs for tests.
     pub fn new_for_tests(public: ElGamalPubkey, secret: ElGamalSecretKey) -> Self {
+        Self { public, secret }
+    }
+
+    /// Convert an ElGamal secret key to an ElGamal keypair.
+    pub fn new(secret: ElGamalSecretKey) -> Self {
+        let public = ElGamalPubkey::new(&secret);
         Self { public, secret }
     }
 
@@ -174,8 +180,13 @@ impl ElGamalKeypair {
         public_seed: &[u8],
     ) -> Result<Self, Box<dyn error::Error>> {
         let secret = ElGamalSecretKey::new_from_signer(signer, public_seed)?;
-        let public = ElGamalPubkey::new(&secret);
-        Ok(ElGamalKeypair { public, secret })
+        Ok(Self::new(secret))
+    }
+
+    /// Derive an ElGamal keypair from a signature.
+    pub fn new_from_signature(signature: &Signature) -> Result<Self, Box<dyn error::Error>> {
+        let secret = ElGamalSecretKey::new_from_signature(signature)?;
+        Ok(Self::new(secret))
     }
 
     /// Generates the public and secret keys for ElGamal encryption.
@@ -428,11 +439,23 @@ impl ElGamalSecretKey {
             return Err(SignerError::Custom("Rejecting default signatures".into()));
         }
 
+        Ok(Self::seed_from_signature(&signature))
+    }
+
+    /// Derive an ElGamal secret key from a signature.
+    pub fn new_from_signature(signature: &Signature) -> Result<Self, Box<dyn error::Error>> {
+        let seed = Self::seed_from_signature(signature);
+        let key = Self::from_seed(&seed)?;
+        Ok(key)
+    }
+
+    /// Derive an ElGamal secret key from a signature.
+    pub fn seed_from_signature(signature: &Signature) -> Vec<u8> {
         let mut hasher = Sha3_512::new();
         hasher.update(signature.as_ref());
         let result = hasher.finalize();
 
-        Ok(result.to_vec())
+        result.to_vec()
     }
 
     /// Randomly samples an ElGamal secret key.
