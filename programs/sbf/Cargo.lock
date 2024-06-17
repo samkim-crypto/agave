@@ -4819,6 +4819,7 @@ dependencies = [
  "solana-poseidon",
  "solana-program-runtime",
  "solana-sdk",
+ "solana-type-overrides",
  "solana-zk-token-sdk",
  "solana_rbpf",
  "thiserror",
@@ -5288,6 +5289,7 @@ dependencies = [
  "solana-measure",
  "solana-program-runtime",
  "solana-sdk",
+ "solana-type-overrides",
  "solana_rbpf",
 ]
 
@@ -5471,6 +5473,7 @@ dependencies = [
  "solana-measure",
  "solana-metrics",
  "solana-sdk",
+ "solana-type-overrides",
  "solana-vote",
  "solana_rbpf",
  "thiserror",
@@ -5804,6 +5807,7 @@ dependencies = [
  "solana-sdk",
  "solana-svm",
  "solana-transaction-status",
+ "solana-type-overrides",
  "solana_rbpf",
  "walkdir",
 ]
@@ -6319,6 +6323,7 @@ dependencies = [
  "solana-config-program",
  "solana-program-runtime",
  "solana-sdk",
+ "solana-type-overrides",
  "solana-vote-program",
 ]
 
@@ -6421,6 +6426,7 @@ dependencies = [
  "solana-program-runtime",
  "solana-sdk",
  "solana-system-program",
+ "solana-type-overrides",
  "solana-vote",
 ]
 
@@ -6434,6 +6440,7 @@ dependencies = [
  "serde_derive",
  "solana-program-runtime",
  "solana-sdk",
+ "solana-type-overrides",
 ]
 
 [[package]]
@@ -6572,6 +6579,15 @@ dependencies = [
  "solana-streamer",
  "thiserror",
  "tokio",
+]
+
+[[package]]
+name = "solana-type-overrides"
+version = "2.0.0"
+dependencies = [
+ "futures 0.3.30",
+ "lazy_static",
+ "rand 0.8.5",
 ]
 
 [[package]]
