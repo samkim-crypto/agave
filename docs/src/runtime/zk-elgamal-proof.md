@@ -122,4 +122,3 @@ proofs.
     ciphertexts encrypt the same message.
   - Mathematical description and proof of security:
     [[Notes]](https://github.com/solana-labs/solana/blob/master/docs/src/runtime/zk-docs/ciphertext_ciphertext_equality.pdf)
-
