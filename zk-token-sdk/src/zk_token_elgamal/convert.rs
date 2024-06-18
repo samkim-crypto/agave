@@ -1,4 +1,4 @@
-use {super::pod, crate::curve25519::ristretto::PodRistrettoPoint};
+use {super::pod, solana_curve25519::ristretto::PodRistrettoPoint};
 
 impl From<(pod::PedersenCommitment, pod::DecryptHandle)> for pod::ElGamalCiphertext {
     fn from((commitment, handle): (pod::PedersenCommitment, pod::DecryptHandle)) -> Self {
