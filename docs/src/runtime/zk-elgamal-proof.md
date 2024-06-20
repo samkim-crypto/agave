@@ -131,4 +131,3 @@ proofs.
     cipehrtext is well-formed
     - Mathematical description and proof of security:
       [[Notes]](https://github.com/anza-xyz/agave/blob/master/docs/src/runtime/zk-docs/ciphertext_validity.pdf)
-
