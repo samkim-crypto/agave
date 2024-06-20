@@ -5533,6 +5533,7 @@ dependencies = [
  "smallvec",
  "solana-accounts-db",
  "solana-bucket-map",
+ "solana-compute-budget",
  "solana-frozen-abi",
  "solana-frozen-abi-macro",
  "solana-inline-spl",
