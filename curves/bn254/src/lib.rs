@@ -4,7 +4,7 @@ pub mod prelude {
 }
 
 use {
-    bytemuck_derive::{Pod, Zeroable},
+    bytemuck::{Pod, Zeroable},
     consts::*,
     thiserror::Error,
 };
