@@ -4571,6 +4571,7 @@ dependencies = [
  "blake3",
  "bv",
  "bytemuck",
+ "bytemuck_derive",
  "bzip2",
  "crossbeam-channel",
  "dashmap",
@@ -4705,6 +4706,7 @@ version = "2.0.0"
 dependencies = [
  "bv",
  "bytemuck",
+ "bytemuck_derive",
  "log",
  "memmap2",
  "modular-bitfield",
@@ -4948,7 +4950,8 @@ name = "solana-curve25519"
 version = "2.0.0"
 dependencies = [
  "bytemuck",
- "curve25519-dalek",
+ "bytemuck_derive",
+ "curve25519-dalek 4.1.2",
  "solana-program",
  "thiserror",
 ]
@@ -6597,17 +6600,18 @@ dependencies = [
  "base64 0.22.1",
  "bincode",
  "bytemuck",
- "curve25519-dalek",
+ "bytemuck_derive",
+ "curve25519-dalek 4.1.2",
  "itertools 0.12.1",
  "lazy_static",
  "merlin",
  "num-derive",
  "num-traits",
- "rand 0.7.3",
+ "rand 0.8.5",
  "serde",
  "serde_derive",
  "serde_json",
- "sha3 0.9.1",
+ "sha3",
  "solana-program",
  "solana-sdk",
  "subtle",
@@ -6625,6 +6629,35 @@ dependencies = [
  "solana-program-runtime",
  "solana-sdk",
  "solana-zk-token-sdk",
+]
+
+[[package]]
+name = "solana-zk-token-sdk"
+version = "2.0.0"
+dependencies = [
+ "aes-gcm-siv",
+ "base64 0.22.1",
+ "bincode",
+ "bytemuck",
+ "bytemuck_derive",
+ "byteorder 1.5.0",
+ "curve25519-dalek 4.1.2",
+ "itertools 0.12.1",
+ "lazy_static",
+ "merlin",
+ "num-derive",
+ "num-traits",
+ "rand 0.8.5",
+ "serde",
+ "serde_derive",
+ "serde_json",
+ "sha3",
+ "solana-curve25519",
+ "solana-program",
+ "solana-sdk",
+ "subtle",
+ "thiserror",
+ "zeroize",
 ]
 
 [[package]]
