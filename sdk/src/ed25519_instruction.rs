@@ -5,7 +5,11 @@
 #![cfg(feature = "full")]
 
 use {
-    crate::{feature_set::FeatureSet, instruction::Instruction, precompiles::PrecompileError},
+    crate::{
+        feature_set::{ed25519_precompile_verify_strict, FeatureSet},
+        instruction::Instruction,
+        precompiles::PrecompileError,
+    },
     bytemuck::bytes_of,
     bytemuck_derive::{Pod, Zeroable},
     ed25519_dalek::{ed25519::signature::Signature, Signer, Verifier},
@@ -86,7 +90,7 @@ pub fn new_ed25519_instruction(keypair: &ed25519_dalek::Keypair, message: &[u8])
 pub fn verify(
     data: &[u8],
     instruction_datas: &[&[u8]],
-    _feature_set: &FeatureSet,
+    feature_set: &FeatureSet,
 ) -> Result<(), PrecompileError> {
     if data.len() < SIGNATURE_OFFSETS_START {
         return Err(PrecompileError::InvalidInstructionDataSize);
@@ -145,9 +149,15 @@ pub fn verify(
             offsets.message_data_size as usize,
         )?;
 
-        publickey
-            .verify(message, &signature)
-            .map_err(|_| PrecompileError::InvalidSignature)?;
+        if feature_set.is_active(&ed25519_precompile_verify_strict::id()) {
+            publickey
+                .verify_strict(message, &signature)
+                .map_err(|_| PrecompileError::InvalidSignature)?;
+        } else {
+            publickey
+                .verify(message, &signature)
+                .map_err(|_| PrecompileError::InvalidSignature)?;
+        }
     }
     Ok(())
 }
