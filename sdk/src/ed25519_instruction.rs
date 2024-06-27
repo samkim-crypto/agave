@@ -199,8 +199,8 @@ pub mod test {
             signature::{Keypair, Signer},
             transaction::Transaction,
         },
-        rand0_7::{thread_rng, Rng},
         hex,
+        rand0_7::{thread_rng, Rng},
     };
 
     pub fn new_ed25519_instruction_raw(
@@ -240,11 +240,11 @@ pub mod test {
 
         debug_assert_eq!(instruction_data.len(), public_key_offset);
 
-        instruction_data.extend_from_slice(&pubkey);
+        instruction_data.extend_from_slice(pubkey);
 
         debug_assert_eq!(instruction_data.len(), signature_offset);
 
-        instruction_data.extend_from_slice(&signature);
+        instruction_data.extend_from_slice(signature);
 
         debug_assert_eq!(instruction_data.len(), message_data_offset);
 
