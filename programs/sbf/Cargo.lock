@@ -4677,6 +4677,7 @@ dependencies = [
  "rustc_version",
  "serde",
  "serde_derive",
+ "solana-sanitize",
  "solana-sdk",
 ]
 
@@ -4903,6 +4904,7 @@ dependencies = [
  "solana-rpc",
  "solana-rpc-client-api",
  "solana-runtime",
+ "solana-sanitize",
  "solana-sdk",
  "solana-send-transaction-service",
  "solana-streamer",
@@ -5082,6 +5084,7 @@ dependencies = [
  "solana-perf",
  "solana-rayon-threadlimit",
  "solana-runtime",
+ "solana-sanitize",
  "solana-sdk",
  "solana-streamer",
  "solana-tpu-client",
@@ -5333,6 +5336,7 @@ dependencies = [
  "serde_derive",
  "sha2 0.10.8",
  "sha3",
+ "solana-sanitize",
  "solana-sdk-macro",
  "thiserror",
  "wasm-bindgen",
@@ -5659,6 +5663,13 @@ dependencies = [
  "tempfile",
  "thiserror",
  "zstd",
+]
+
+[[package]]
+name = "solana-sanitize"
+version = "2.1.0"
+dependencies = [
+ "thiserror",
 ]
 
 [[package]]
@@ -6158,6 +6169,7 @@ dependencies = [
  "sha3",
  "siphasher",
  "solana-program",
+ "solana-sanitize",
  "solana-sdk-macro",
  "thiserror",
  "uriparse",
@@ -6522,6 +6534,7 @@ dependencies = [
  "semver",
  "serde",
  "serde_derive",
+ "solana-sanitize",
  "solana-sdk",
 ]
 
