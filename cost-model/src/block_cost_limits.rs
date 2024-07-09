@@ -27,7 +27,9 @@ pub const SIGNATURE_COST: u64 = COMPUTE_UNIT_TO_US_RATIO * 24;
 /// Number of compute units for one secp256k1 signature verification.
 pub const SECP256K1_VERIFY_COST: u64 = COMPUTE_UNIT_TO_US_RATIO * 223;
 /// Number of compute units for one ed25519 signature verification.
-pub const ED25519_VERIFY_COST: u64 = COMPUTE_UNIT_TO_US_RATIO * 80;
+pub const ED25519_VERIFY_COST: u64 = COMPUTE_UNIT_TO_US_RATIO * 76;
+/// Number of compute units for one ed25519 strict signature verification.
+pub const ED25519_VERIFY_STRICT_COST: u64 = COMPUTE_UNIT_TO_US_RATIO * 80;
 /// Number of compute units for one write lock
 pub const WRITE_LOCK_UNITS: u64 = COMPUTE_UNIT_TO_US_RATIO * 10;
 /// Number of data bytes per compute units
