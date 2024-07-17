@@ -6175,6 +6175,7 @@ dependencies = [
  "sha3 0.10.8",
  "siphasher",
  "solana-decode-error",
+ "solana-bn254",
  "solana-program",
  "solana-sanitize",
  "solana-sdk-macro",
