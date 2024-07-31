@@ -6211,6 +6211,7 @@ dependencies = [
 name = "solana-dalek-test"
 version = "2.1.0"
 dependencies = [
+ "futures 0.3.30",
  "solana-client",
  "solana-logger",
  "solana-rpc-client",
