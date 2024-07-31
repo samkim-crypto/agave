@@ -45,43 +45,6 @@ impl From<PodRistrettoPoint> for pod::DecryptHandle {
     }
 }
 
-#[cfg(not(target_os = "solana"))]
-mod target_arch {
-    use {
-        super::pod,
-        crate::{curve25519::scalar::PodScalar, errors::ElGamalError},
-        curve25519_dalek::{ristretto::CompressedRistretto, scalar::Scalar},
-        std::convert::TryFrom,
-    };
-
-    impl From<Scalar> for PodScalar {
-        fn from(scalar: Scalar) -> Self {
-            Self(scalar.to_bytes())
-        }
-    }
-
-    impl TryFrom<PodScalar> for Scalar {
-        type Error = ElGamalError;
-
-        fn try_from(pod: PodScalar) -> Result<Self, Self::Error> {
-            Option::from(Scalar::from_canonical_bytes(pod.0))
-                .ok_or(ElGamalError::CiphertextDeserialization)
-        }
-    }
-
-    impl From<CompressedRistretto> for pod::CompressedRistretto {
-        fn from(cr: CompressedRistretto) -> Self {
-            Self(cr.to_bytes())
-        }
-    }
-
-    impl From<pod::CompressedRistretto> for CompressedRistretto {
-        fn from(pod: pod::CompressedRistretto) -> Self {
-            Self(pod.0)
-        }
-    }
-}
-
 #[cfg(target_os = "solana")]
 #[allow(unused_variables)]
 mod target_arch {}
