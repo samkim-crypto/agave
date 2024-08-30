@@ -15,6 +15,9 @@ cp "$SOLANA_DIR"/rust-toolchain.toml spl/
 cd spl || exit 1
 echo "HEAD: $(git rev-parse HEAD)"
 
+echo "[profile.dev.package.curve25519-dalek]
+opt-level = 3" >> Cargo.toml
+
 project_used_solana_version=$(sed -nE 's/solana-sdk = \"[>=<~]*(.*)\"/\1/p' <"token/program/Cargo.toml")
 echo "used solana version: $project_used_solana_version"
 if semverGT "$project_used_solana_version" "$SOLANA_VER"; then
