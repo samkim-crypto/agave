@@ -180,7 +180,7 @@ impl ComputeBudget {
             alt_bn128_multiplication_cost: 3_840,
             alt_bn128_pairing_one_pair_cost_first: 36_364,
             alt_bn128_pairing_one_pair_cost_other: 12_121,
-            big_modular_exponentiation_cost: 33,
+            big_modular_exponentiation_cost: 190,
             poseidon_cost_coefficient_a: 61,
             poseidon_cost_coefficient_c: 542,
             get_remaining_compute_units_cost: 100,
