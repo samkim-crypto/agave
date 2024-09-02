@@ -1716,9 +1716,9 @@ declare_builtin_function!(
             budget.syscall_base_cost.saturating_add(
                 input_len
                     .saturating_mul(input_len)
-                    .checked_div(2)
+                    .checked_div(budget.big_modular_exponentiation_cost_multiplicative_factor)
                     .unwrap_or(u64::MAX)
-                    .saturating_add(budget.big_modular_exponentiation_cost),
+                    .saturating_add(budget.big_modular_exponentiation_base_cost),
             ),
         )?;
 
@@ -4721,8 +4721,9 @@ mod tests {
             let budget = invoke_context.get_compute_budget();
             invoke_context.mock_set_remaining(
                 budget.syscall_base_cost
-                    + (MAX_LEN * MAX_LEN) / 2
-                    + budget.big_modular_exponentiation_cost,
+                    + (MAX_LEN * MAX_LEN)
+                        / budget.big_modular_exponentiation_cost_multiplicative_factor
+                    + budget.big_modular_exponentiation_base_cost,
             );
 
             let result = SyscallBigModExp::rust(
@@ -4763,8 +4764,9 @@ mod tests {
             let budget = invoke_context.get_compute_budget();
             invoke_context.mock_set_remaining(
                 budget.syscall_base_cost
-                    + (INV_LEN * INV_LEN) / 2
-                    + budget.big_modular_exponentiation_cost,
+                    + (INV_LEN * INV_LEN)
+                        / budget.big_modular_exponentiation_cost_multiplicative_factor
+                    + budget.big_modular_exponentiation_base_cost,
             );
 
             let result = SyscallBigModExp::rust(
