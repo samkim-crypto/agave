@@ -180,14 +180,19 @@ impl ZeroCiphertextProof {
 mod test {
     use {
         super::*,
-        crate::encryption::{
-            elgamal::{DecryptHandle, ElGamalKeypair},
-            pedersen::{Pedersen, PedersenCommitment, PedersenOpening},
+        crate::{
+            encryption::{
+                elgamal::{DecryptHandle, ElGamalKeypair},
+                pedersen::{Pedersen, PedersenCommitment, PedersenOpening},
+                pod::elgamal::{PodElGamalCiphertext, PodElGamalPubkey},
+            },
+            sigma_proofs::pod::PodZeroCiphertextProof,
         },
+        std::str::FromStr,
     };
 
     #[test]
-    fn test_zero_cipehrtext_proof_correctness() {
+    fn test_zero_ciphertext_proof_correctness() {
         let keypair = ElGamalKeypair::new_rand();
 
         let mut prover_transcript = Transcript::new(b"test");
@@ -280,5 +285,26 @@ mod test {
         assert!(proof
             .verify(keypair.pubkey(), &ciphertext, &mut verifier_transcript)
             .is_err());
+    }
+
+    #[test]
+    fn test_zero_ciphertext_proof_string() {
+        let pubkey_str = "Vlx+Fr61KnreO27JDg5MsBN8NgbICGa3fIech8oZ4hQ=";
+        let pod_pubkey = PodElGamalPubkey::from_str(&pubkey_str).unwrap();
+        let pubkey: ElGamalPubkey = pod_pubkey.try_into().unwrap();
+
+        let ciphertext_str = "wps5X1mou5PUdPD+llxiJ+aoX4YWrR/S6/U2MUC2LjLS7wDu6S9nOG92VMnlngQaP4irBY0OqlsGdXS4j8DROg==";
+        let pod_ciphertext = PodElGamalCiphertext::from_str(&ciphertext_str).unwrap();
+        let ciphertext: ElGamalCiphertext = pod_ciphertext.try_into().unwrap();
+
+        let proof_str = "qMDiQ5zPcTYFhchYBZzRS81UGIt2QRNce2/ULEqDBXBQEnGRI0u0G1HzRJfpIbOWCHBwMaNgsT1jTZwTOTWyMBE/2UjHI4x9IFpAM6ccGuexo/HjSECPDgL+85zrfA8L";
+        let pod_proof = PodZeroCiphertextProof::from_str(&proof_str).unwrap();
+        let proof: ZeroCiphertextProof = pod_proof.try_into().unwrap();
+
+        let mut verifier_transcript = Transcript::new(b"test");
+
+        assert!(proof
+            .verify(&pubkey, &ciphertext, &mut verifier_transcript)
+            .is_ok());
     }
 }

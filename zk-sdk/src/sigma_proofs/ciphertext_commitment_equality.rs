@@ -244,7 +244,18 @@ impl CiphertextCommitmentEqualityProof {
 mod test {
     use {
         super::*,
-        crate::encryption::{elgamal::ElGamalSecretKey, pedersen::Pedersen},
+        crate::{
+            encryption::{
+                elgamal::ElGamalSecretKey,
+                pedersen::Pedersen,
+                pod::{
+                    elgamal::{PodElGamalCiphertext, PodElGamalPubkey},
+                    pedersen::PodPedersenCommitment,
+                },
+            },
+            sigma_proofs::pod::PodCiphertextCommitmentEqualityProof,
+        },
+        std::str::FromStr,
     };
 
     #[test]
@@ -421,6 +432,31 @@ mod test {
                 &commitment,
                 &mut verifier_transcript
             )
+            .is_ok());
+    }
+
+    #[test]
+    fn test_ciphertext_commitment_equality_proof_string() {
+        let pubkey_str = "JNa7rRrDm35laU7f8HPds1PmHoZEPSHFK/M+aTtEhAk=";
+        let pod_pubkey = PodElGamalPubkey::from_str(&pubkey_str).unwrap();
+        let pubkey: ElGamalPubkey = pod_pubkey.try_into().unwrap();
+
+        let ciphertext_str = "RAXnbQ/DPRlYAWmD+iHRNqMDv7oQcPgQ7OejRzj4bxVy2qOJNziqqDOC7VP3iTW1+z/jckW4smA3EUF7i/r8Rw==";
+        let pod_ciphertext = PodElGamalCiphertext::from_str(&ciphertext_str).unwrap();
+        let ciphertext: ElGamalCiphertext = pod_ciphertext.try_into().unwrap();
+
+        let commitment_str = "ngPTYvbY9P5l6aOfr7bLQiI+0HZsw8GBgiumdW3tNzw=";
+        let pod_commitment = PodPedersenCommitment::from_str(&commitment_str).unwrap();
+        let commitment: PedersenCommitment = pod_commitment.try_into().unwrap();
+
+        let proof_str = "cCZySLxB2XJdGyDvckVBm2OWiXqf7Jf54IFoDuLJ4G+ySj+lh5DbaDMHDhuozQC9tDWtk2mFITuaXOc5Zw3nZ2oEvVYpqv5hN+k5dx9k8/nZKabUCkZwx310z7x4fE4Np5SY9PYia1hkrq9AWq0b3v97XvW1+XCSSxuflvBk5wsdaQQ+ZgcmPnKWKjHfRwmU2k5iVgYzs2VmvZa5E3OWBoM/M2yFNvukY+FCC2YMnspO0c4lNBr/vDFQuHdW0OgJ";
+        let pod_proof = PodCiphertextCommitmentEqualityProof::from_str(&proof_str).unwrap();
+        let proof: CiphertextCommitmentEqualityProof = pod_proof.try_into().unwrap();
+
+        let mut verifier_transcript = Transcript::new(b"Test");
+
+        assert!(proof
+            .verify(&pubkey, &ciphertext, &commitment, &mut verifier_transcript)
             .is_ok());
     }
 }

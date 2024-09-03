@@ -140,7 +140,11 @@ impl PubkeyValidityProof {
 mod test {
     use {
         super::*,
+        crate::{
+            encryption::pod::elgamal::PodElGamalPubkey, sigma_proofs::pod::PodPubkeyValidityProof,
+        },
         solana_sdk::{pubkey::Pubkey, signature::Keypair},
+        std::str::FromStr,
     };
 
     #[test]
@@ -167,5 +171,20 @@ mod test {
         assert!(proof
             .verify(keypair.pubkey(), &mut verifier_transcript)
             .is_ok());
+    }
+
+    #[test]
+    fn test_pubkey_proof_str() {
+        let pubkey_str = "XKF3GnFDX4HBoBEj04yDTr6Lqx+0qp9pQyPzFjyVmXY=";
+        let pod_pubkey = PodElGamalPubkey::from_str(&pubkey_str).unwrap();
+        let pubkey: ElGamalPubkey = pod_pubkey.try_into().unwrap();
+
+        let proof_str = "5hmM4uVtfJ2JfCcjWpo2dEbg22n4CdzHYQF4oBgWSGeYAh5d91z4emkjeXq9ihtmqAR+7BYCv44TqQWoMQrECA==";
+        let pod_proof = PodPubkeyValidityProof::from_str(&proof_str).unwrap();
+        let proof: PubkeyValidityProof = pod_proof.try_into().unwrap();
+
+        let mut verifier_transcript = Transcript::new(b"test");
+
+        assert!(proof.verify(&pubkey, &mut verifier_transcript).is_ok());
     }
 }

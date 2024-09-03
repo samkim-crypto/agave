@@ -238,7 +238,18 @@ impl GroupedCiphertext2HandlesValidityProof {
 mod test {
     use {
         super::*,
-        crate::encryption::{elgamal::ElGamalKeypair, pedersen::Pedersen},
+        crate::{
+            encryption::{
+                elgamal::ElGamalKeypair,
+                pedersen::Pedersen,
+                pod::{
+                    elgamal::{PodDecryptHandle, PodElGamalPubkey},
+                    pedersen::PodPedersenCommitment,
+                },
+            },
+            sigma_proofs::pod::PodGroupedCiphertext2HandlesValidityProof,
+        },
+        std::str::FromStr,
     };
 
     #[test]
@@ -379,6 +390,46 @@ mod test {
                 &commitment,
                 first_pubkey,
                 second_pubkey,
+                &first_handle,
+                &second_handle,
+                &mut verifier_transcript,
+            )
+            .is_ok());
+    }
+
+    #[test]
+    fn test_grouped_ciphertext_validity_proof_string() {
+        let commitment_str = "VjdpJcofkU/Lhd6RRvwsCoqaZ8XSbhiizI7jsxZNKSU=";
+        let pod_commitment = PodPedersenCommitment::from_str(&commitment_str).unwrap();
+        let commitment: PedersenCommitment = pod_commitment.try_into().unwrap();
+
+        let first_pubkey_str = "YllcTvlVBp9nv+bi8d0Z9UOujPfMsgH3ZcCqQSwXfic=";
+        let pod_first_pubkey = PodElGamalPubkey::from_str(&first_pubkey_str).unwrap();
+        let first_pubkey: ElGamalPubkey = pod_first_pubkey.try_into().unwrap();
+
+        let second_pubkey_str = "CCq+4oKGWlh3pkSbZpEsj6vfimhC/c3TxTVAghXq5Xo=";
+        let pod_second_pubkey = PodElGamalPubkey::from_str(&second_pubkey_str).unwrap();
+        let second_pubkey: ElGamalPubkey = pod_second_pubkey.try_into().unwrap();
+
+        let first_handle_str = "EE1qdL/QLMGXvsWIjw2c07Vg/DgUsaexxQECKtjEwWE=";
+        let pod_first_handle_str = PodDecryptHandle::from_str(&first_handle_str).unwrap();
+        let first_handle: DecryptHandle = pod_first_handle_str.try_into().unwrap();
+
+        let second_handle_str = "2Jn0+IVwpI5O/5pBU/nizS759k6dNn6UyUzxc1bt3RM=";
+        let pod_second_handle_str = PodDecryptHandle::from_str(&second_handle_str).unwrap();
+        let second_handle: DecryptHandle = pod_second_handle_str.try_into().unwrap();
+
+        let proof_str = "/GITIw3LjQSphEG1GWYpKGjKUrYnC1n4yGFDvBwcE2V6XdSM8FKgc3AjQYJWGVkUMsciv/vMRv3lyDuW4VJJclQk9STY7Pd2F4r6Lz1P3fBmODbDp++k3Ni759FrV141Oy4puCzHV8+LHg6ePh3WlZ8yL+Ri6VDTyLc+3pblSQ0VIno0QoxyavznU6faQhuCXuy3bD+E87ZlRNtk9jPKDg==";
+        let pod_proof = PodGroupedCiphertext2HandlesValidityProof::from_str(&proof_str).unwrap();
+        let proof: GroupedCiphertext2HandlesValidityProof = pod_proof.try_into().unwrap();
+
+        let mut verifier_transcript = Transcript::new(b"Test");
+
+        assert!(proof
+            .verify(
+                &commitment,
+                &first_pubkey,
+                &second_pubkey,
                 &first_handle,
                 &second_handle,
                 &mut verifier_transcript,
