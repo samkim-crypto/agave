@@ -24,6 +24,9 @@ const ELGAMAL_PUBKEY_MAX_BASE64_LEN: usize = 44;
 /// Maximum length of a base64 encoded ElGamal ciphertext
 const ELGAMAL_CIPHERTEXT_MAX_BASE64_LEN: usize = 88;
 
+/// Maximum length of a base64 encoded ElGamal decrypt handle
+const DECRYPT_HANDLE_MAX_BASE64_LEN: usize = 44;
+
 /// The `ElGamalCiphertext` type as a `Pod`.
 #[derive(Clone, Copy, bytemuck_derive::Pod, bytemuck_derive::Zeroable, PartialEq, Eq)]
 #[repr(transparent)]
@@ -149,6 +152,20 @@ impl TryFrom<PodDecryptHandle> for DecryptHandle {
         Self::from_bytes(&pod_handle.0).ok_or(ElGamalError::CiphertextDeserialization)
     }
 }
+
+impl fmt::Display for PodDecryptHandle {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", BASE64_STANDARD.encode(self.0))
+    }
+}
+
+impl_from_str!(
+    TYPE = PodDecryptHandle,
+    BYTES_LEN = DECRYPT_HANDLE_LEN,
+    BASE64_LEN = DECRYPT_HANDLE_MAX_BASE64_LEN
+);
+
+impl_from_bytes!(TYPE = PodDecryptHandle, BYTES_LEN = DECRYPT_HANDLE_LEN);
 
 #[cfg(test)]
 mod tests {
