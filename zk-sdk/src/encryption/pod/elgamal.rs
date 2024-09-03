@@ -1,14 +1,5 @@
 //! Plain Old Data types for the ElGamal encryption scheme.
 
-use {
-    crate::encryption::{
-        pod::{impl_from_bytes, impl_from_str},
-        DECRYPT_HANDLE_LEN, ELGAMAL_CIPHERTEXT_LEN, ELGAMAL_PUBKEY_LEN,
-    },
-    base64::{prelude::BASE64_STANDARD, Engine},
-    bytemuck::Zeroable,
-    std::fmt,
-};
 #[cfg(not(target_os = "solana"))]
 use {
     crate::{
@@ -16,6 +7,15 @@ use {
         errors::ElGamalError,
     },
     curve25519_dalek::ristretto::CompressedRistretto,
+};
+use {
+    crate::{
+        encryption::{DECRYPT_HANDLE_LEN, ELGAMAL_CIPHERTEXT_LEN, ELGAMAL_PUBKEY_LEN},
+        pod::{impl_from_bytes, impl_from_str},
+    },
+    base64::{prelude::BASE64_STANDARD, Engine},
+    bytemuck::Zeroable,
+    std::fmt,
 };
 
 /// Maximum length of a base64 encoded ElGamal public key
