@@ -36,6 +36,12 @@ impl From<PedersenCommitment> for PodPedersenCommitment {
     }
 }
 
+impl fmt::Display for PodPedersenCommitment {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", BASE64_STANDARD.encode(self.0))
+    }
+}
+
 impl_from_str!(
     TYPE = PodPedersenCommitment,
     BYTES_LEN = PEDERSEN_COMMITMENT_LEN,
