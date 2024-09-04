@@ -601,7 +601,7 @@ mod test {
             &mut prover_transcript,
         );
 
-        assert!(proof
+        proof
             .verify(
                 &percentage_commitment,
                 &delta_commitment,
@@ -609,7 +609,7 @@ mod test {
                 max_value,
                 &mut verifier_transcript,
             )
-            .is_ok());
+            .unwrap();
     }
 
     #[test]
@@ -653,7 +653,7 @@ mod test {
             &mut prover_transcript,
         );
 
-        assert!(proof
+        proof
             .verify(
                 &percentage_commitment,
                 &delta_commitment,
@@ -661,7 +661,7 @@ mod test {
                 max_value,
                 &mut verifier_transcript,
             )
-            .is_ok());
+            .unwrap();
     }
 
     #[test]
@@ -700,7 +700,7 @@ mod test {
             &mut prover_transcript,
         );
 
-        assert!(proof
+        proof
             .verify(
                 &percentage_commitment,
                 &delta_commitment,
@@ -708,7 +708,7 @@ mod test {
                 max_value,
                 &mut verifier_transcript,
             )
-            .is_ok());
+            .unwrap();
     }
 
     #[test]
@@ -736,14 +736,14 @@ mod test {
 
         let mut verifier_transcript = Transcript::new(b"test");
 
-        assert!(proof
+        proof
             .verify(
                 &percentage_commitment,
                 &delta_commitment,
                 &claimed_commitment,
                 max_value,
-                &mut verifier_transcript
+                &mut verifier_transcript,
             )
-            .is_ok());
+            .unwrap();
     }
 }

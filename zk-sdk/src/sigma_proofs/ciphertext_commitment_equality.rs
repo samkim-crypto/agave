@@ -278,14 +278,14 @@ mod test {
             &mut prover_transcript,
         );
 
-        assert!(proof
+        proof
             .verify(
                 keypair.pubkey(),
                 &ciphertext,
                 &commitment,
-                &mut verifier_transcript
+                &mut verifier_transcript,
             )
-            .is_ok());
+            .unwrap();
 
         // fail case: encrypted and committed messages are different
         let keypair = ElGamalKeypair::new_rand();
@@ -368,14 +368,14 @@ mod test {
             &mut prover_transcript,
         );
 
-        assert!(proof
+        proof
             .verify(
                 elgamal_keypair.pubkey(),
                 &ciphertext,
                 &commitment,
-                &mut verifier_transcript
+                &mut verifier_transcript,
             )
-            .is_ok());
+            .unwrap();
 
         // if commitment is all-zero and the ciphertext is a correct encryption of 0, then the
         // proof should still accept
@@ -397,14 +397,14 @@ mod test {
             &mut prover_transcript,
         );
 
-        assert!(proof
+        proof
             .verify(
                 elgamal_keypair.pubkey(),
                 &ciphertext,
                 &commitment,
-                &mut verifier_transcript
+                &mut verifier_transcript,
             )
-            .is_ok());
+            .unwrap();
 
         // if ciphertext is all zero and commitment correctly encodes 0, then the proof should
         // still accept
@@ -425,14 +425,14 @@ mod test {
             &mut prover_transcript,
         );
 
-        assert!(proof
+        proof
             .verify(
                 elgamal_keypair.pubkey(),
                 &ciphertext,
                 &commitment,
-                &mut verifier_transcript
+                &mut verifier_transcript,
             )
-            .is_ok());
+            .unwrap();
     }
 
     #[test]
@@ -455,8 +455,8 @@ mod test {
 
         let mut verifier_transcript = Transcript::new(b"Test");
 
-        assert!(proof
+        proof
             .verify(&pubkey, &ciphertext, &commitment, &mut verifier_transcript)
-            .is_ok());
+            .unwrap();
     }
 }

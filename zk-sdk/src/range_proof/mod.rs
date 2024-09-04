@@ -481,9 +481,9 @@ mod tests {
         let proof =
             RangeProof::new(vec![55], vec![32], vec![&open], &mut transcript_create).unwrap();
 
-        assert!(proof
+        proof
             .verify(vec![&comm], vec![32], &mut transcript_verify)
-            .is_ok());
+            .unwrap();
     }
 
     #[test]
@@ -503,13 +503,13 @@ mod tests {
         )
         .unwrap();
 
-        assert!(proof
+        proof
             .verify(
                 vec![&comm_1, &comm_2, &comm_3],
                 vec![64, 32, 32],
                 &mut transcript_verify,
             )
-            .is_ok());
+            .unwrap();
     }
 
     #[test]
@@ -532,12 +532,12 @@ mod tests {
 
         let mut transcript_verify = Transcript::new(b"Test");
 
-        assert!(proof
+        proof
             .verify(
                 vec![&commitment_1, &commitment_2, &commitment_3],
                 vec![64, 32, 32],
                 &mut transcript_verify,
             )
-            .is_ok());
+            .unwrap()
     }
 }

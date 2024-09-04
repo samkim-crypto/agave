@@ -187,7 +187,7 @@ mod test {
             &mut prover_transcript,
         );
 
-        assert!(proof
+        proof
             .verify(
                 first_pubkey,
                 second_pubkey,
@@ -202,7 +202,7 @@ mod test {
                 &third_handle_hi,
                 &mut verifier_transcript,
             )
-            .is_ok());
+            .unwrap();
     }
 
     #[test]
@@ -258,7 +258,7 @@ mod test {
 
         let mut verifier_transcript = Transcript::new(b"Test");
 
-        assert!(proof
+        proof
             .verify(
                 &first_pubkey,
                 &second_pubkey,
@@ -273,6 +273,6 @@ mod test {
                 &third_handle_hi,
                 &mut verifier_transcript,
             )
-            .is_ok());
+            .unwrap();
     }
 }

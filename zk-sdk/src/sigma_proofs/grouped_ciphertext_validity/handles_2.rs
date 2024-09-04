@@ -277,7 +277,7 @@ mod test {
             &mut prover_transcript,
         );
 
-        assert!(proof
+        proof
             .verify(
                 &commitment,
                 first_pubkey,
@@ -286,7 +286,7 @@ mod test {
                 &second_handle,
                 &mut verifier_transcript,
             )
-            .is_ok());
+            .unwrap();
     }
 
     #[test]
@@ -350,7 +350,7 @@ mod test {
             &mut prover_transcript,
         );
 
-        assert!(proof
+        proof
             .verify(
                 &commitment,
                 first_pubkey,
@@ -359,7 +359,7 @@ mod test {
                 &second_handle,
                 &mut verifier_transcript,
             )
-            .is_ok());
+            .unwrap();
 
         // decryption handles can be zero as long as the Pedersen commitment is valid
         let first_keypair = ElGamalKeypair::new_rand();
@@ -385,7 +385,7 @@ mod test {
             &mut prover_transcript,
         );
 
-        assert!(proof
+        proof
             .verify(
                 &commitment,
                 first_pubkey,
@@ -394,7 +394,7 @@ mod test {
                 &second_handle,
                 &mut verifier_transcript,
             )
-            .is_ok());
+            .unwrap();
     }
 
     #[test]
@@ -425,7 +425,7 @@ mod test {
 
         let mut verifier_transcript = Transcript::new(b"Test");
 
-        assert!(proof
+        proof
             .verify(
                 &commitment,
                 &first_pubkey,
@@ -434,6 +434,6 @@ mod test {
                 &second_handle,
                 &mut verifier_transcript,
             )
-            .is_ok());
+            .unwrap();
     }
 }

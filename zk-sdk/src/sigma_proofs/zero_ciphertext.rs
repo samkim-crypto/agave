@@ -201,13 +201,13 @@ mod test {
         // general case: encryption of 0
         let elgamal_ciphertext = keypair.pubkey().encrypt(0_u64);
         let proof = ZeroCiphertextProof::new(&keypair, &elgamal_ciphertext, &mut prover_transcript);
-        assert!(proof
+        proof
             .verify(
                 keypair.pubkey(),
                 &elgamal_ciphertext,
-                &mut verifier_transcript
+                &mut verifier_transcript,
             )
-            .is_ok());
+            .unwrap();
 
         // general case: encryption of > 0
         let elgamal_ciphertext = keypair.pubkey().encrypt(1_u64);
@@ -233,9 +233,9 @@ mod test {
 
         let proof = ZeroCiphertextProof::new(&keypair, &ciphertext, &mut prover_transcript);
 
-        assert!(proof
+        proof
             .verify(keypair.pubkey(), &ciphertext, &mut verifier_transcript)
-            .is_ok());
+            .unwrap();
 
         // if only either commitment or handle is zero, the ciphertext is always invalid and proof
         // verification should always reject
@@ -303,8 +303,8 @@ mod test {
 
         let mut verifier_transcript = Transcript::new(b"test");
 
-        assert!(proof
+        proof
             .verify(&pubkey, &ciphertext, &mut verifier_transcript)
-            .is_ok());
+            .unwrap();
     }
 }

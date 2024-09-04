@@ -302,15 +302,15 @@ mod test {
             &mut prover_transcript,
         );
 
-        assert!(proof
+        proof
             .verify(
                 first_keypair.pubkey(),
                 second_keypair.pubkey(),
                 &first_ciphertext,
                 &second_ciphertext,
-                &mut verifier_transcript
+                &mut verifier_transcript,
             )
-            .is_ok());
+            .unwrap();
 
         // fail case: encrypted and committed messages are different
         let first_message: u64 = 55;
@@ -370,14 +370,14 @@ mod test {
 
         let mut verifier_transcript = Transcript::new(b"Test");
 
-        assert!(proof
+        proof
             .verify(
                 &first_pubkey,
                 &second_pubkey,
                 &first_ciphertext,
                 &second_ciphertext,
-                &mut verifier_transcript
+                &mut verifier_transcript,
             )
-            .is_ok());
+            .unwrap();
     }
 }

@@ -156,9 +156,9 @@ mod test {
         let mut verifier_transcript = Transcript::new(b"test");
 
         let proof = PubkeyValidityProof::new(&keypair, &mut prover_transcript);
-        assert!(proof
+        proof
             .verify(keypair.pubkey(), &mut verifier_transcript)
-            .is_ok());
+            .unwrap();
 
         // derived ElGamal keypair
         let keypair =
@@ -168,9 +168,9 @@ mod test {
         let mut verifier_transcript = Transcript::new(b"test");
 
         let proof = PubkeyValidityProof::new(&keypair, &mut prover_transcript);
-        assert!(proof
+        proof
             .verify(keypair.pubkey(), &mut verifier_transcript)
-            .is_ok());
+            .unwrap();
     }
 
     #[test]
@@ -185,6 +185,6 @@ mod test {
 
         let mut verifier_transcript = Transcript::new(b"test");
 
-        assert!(proof.verify(&pubkey, &mut verifier_transcript).is_ok());
+        proof.verify(&pubkey, &mut verifier_transcript).unwrap();
     }
 }
