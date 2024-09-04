@@ -312,22 +312,6 @@ mod test {
             &mut prover_transcript,
         );
 
-        let pod_commitment: PodPedersenCommitment = commitment.into();
-        println!("commitment: {}", pod_commitment);
-        println!("first_pubkey: {}", first_pubkey);
-        println!("second_pubkey: {}", second_pubkey);
-        println!("third_pubkey: {}", third_pubkey);
-
-        let pod_first_handle: PodDecryptHandle = first_handle.into();
-        let pod_second_handle: PodDecryptHandle = second_handle.into();
-        let pod_third_handle: PodDecryptHandle = third_handle.into();
-
-        println!("first_handle: {}", pod_first_handle);
-        println!("second_handle: {}", pod_second_handle);
-        println!("third_handle: {}", pod_third_handle);
-        let pod_proof: PodGroupedCiphertext3HandlesValidityProof = proof.clone().into();
-        println!("pod proof: {}", pod_proof);
-
         assert!(proof
             .verify(
                 &commitment,
