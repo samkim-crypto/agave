@@ -13,7 +13,13 @@ use {
     },
     base64::{prelude::BASE64_STANDARD, Engine},
     rand::{rngs::OsRng, Rng},
-    sha3::{Digest, Sha3_512},
+    std::{convert::TryInto, fmt},
+    zeroize::Zeroize,
+};
+#[cfg(not(target_arch = "wasm32"))]
+use {
+    sha3::Digest,
+    sha3::Sha3_512,
     solana_derivation_path::DerivationPath,
     solana_sdk::{
         signature::Signature,
@@ -23,12 +29,10 @@ use {
         },
     },
     std::{
-        convert::TryInto,
-        error, fmt,
+        error,
         io::{Read, Write},
     },
     subtle::ConstantTimeEq,
-    zeroize::Zeroize,
 };
 
 /// Byte length of an authenticated encryption nonce component
@@ -89,6 +93,7 @@ impl AeKey {
     /// This function exists for applications where a user may not wish to maintain a Solana signer
     /// and an authenticated encryption key separately. Instead, a user can derive the ElGamal
     /// keypair on-the-fly whenever encrytion/decryption is needed.
+    #[cfg(not(target_arch = "wasm32"))]
     pub fn new_from_signer(
         signer: &dyn Signer,
         public_seed: &[u8],
@@ -100,6 +105,7 @@ impl AeKey {
     /// Derive a seed from a Solana signer used to generate an authenticated encryption key.
     ///
     /// The seed is derived as the hash of the signature of a public seed.
+    #[cfg(not(target_arch = "wasm32"))]
     pub fn seed_from_signer(
         signer: &dyn Signer,
         public_seed: &[u8],
@@ -117,12 +123,14 @@ impl AeKey {
     }
 
     /// Derive an authenticated encryption key from a signature.
+    #[cfg(not(target_arch = "wasm32"))]
     pub fn new_from_signature(signature: &Signature) -> Result<Self, Box<dyn error::Error>> {
         let seed = Self::seed_from_signature(signature);
         Self::from_seed(&seed)
     }
 
     /// Derive a seed from a signature used to generate an authenticated encryption key.
+    #[cfg(not(target_arch = "wasm32"))]
     pub fn seed_from_signature(signature: &Signature) -> Vec<u8> {
         let mut hasher = Sha3_512::new();
         hasher.update(signature);
@@ -148,6 +156,7 @@ impl AeKey {
     }
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 impl EncodableKey for AeKey {
     fn read<R: Read>(reader: &mut R) -> Result<Self, Box<dyn error::Error>> {
         let bytes: [u8; AE_KEY_LEN] = serde_json::from_reader(reader)?;
@@ -162,6 +171,7 @@ impl EncodableKey for AeKey {
     }
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 impl SeedDerivable for AeKey {
     fn from_seed(seed: &[u8]) -> Result<Self, Box<dyn error::Error>> {
         const MINIMUM_SEED_LEN: usize = AE_KEY_LEN;

@@ -14,10 +14,27 @@
 //! As the messages are encrypted as scalar elements (a.k.a. in the "exponent"), one must solve the
 //! discrete log to recover the originally encrypted value.
 
+#[cfg(not(target_arch = "wasm32"))]
+use {
+    crate::encryption::discrete_log::DiscreteLog,
+    sha3::Digest,
+    solana_derivation_path::DerivationPath,
+    solana_sdk::{
+        signature::Signature,
+        signer::{
+            keypair::generate_seed_from_seed_phrase_and_passphrase, EncodableKey, EncodableKeypair,
+            SeedDerivable, Signer, SignerError,
+        },
+    },
+    std::{
+        error,
+        io::{Read, Write},
+        path::Path,
+    },
+};
 use {
     crate::{
         encryption::{
-            discrete_log::DiscreteLog,
             pedersen::{Pedersen, PedersenCommitment, PedersenOpening, G, H},
             DECRYPT_HANDLE_LEN, ELGAMAL_CIPHERTEXT_LEN, ELGAMAL_KEYPAIR_LEN, ELGAMAL_PUBKEY_LEN,
             ELGAMAL_SECRET_KEY_LEN, PEDERSEN_COMMITMENT_LEN,
@@ -33,21 +50,8 @@ use {
     },
     rand::rngs::OsRng,
     serde::{Deserialize, Serialize},
-    sha3::{Digest, Sha3_512},
-    solana_derivation_path::DerivationPath,
-    solana_sdk::{
-        signature::Signature,
-        signer::{
-            keypair::generate_seed_from_seed_phrase_and_passphrase, EncodableKey, EncodableKeypair,
-            SeedDerivable, Signer, SignerError,
-        },
-    },
-    std::{
-        convert::TryInto,
-        error, fmt,
-        io::{Read, Write},
-        path::Path,
-    },
+    sha3::Sha3_512,
+    std::{convert::TryInto, fmt},
     subtle::{Choice, ConstantTimeEq},
     zeroize::Zeroize,
 };
@@ -116,6 +120,7 @@ impl ElGamal {
     ///
     /// The output of this function is of type `DiscreteLog`. To recover, the originally encrypted
     /// amount, use `DiscreteLog::decode`.
+    #[cfg(not(target_arch = "wasm32"))]
     fn decrypt(secret: &ElGamalSecretKey, ciphertext: &ElGamalCiphertext) -> DiscreteLog {
         DiscreteLog::new(
             *G,
@@ -128,6 +133,7 @@ impl ElGamal {
     ///
     /// If the originally encrypted amount is not a positive 32-bit number, then the function
     /// returns `None`.
+    #[cfg(not(target_arch = "wasm32"))]
     fn decrypt_u32(secret: &ElGamalSecretKey, ciphertext: &ElGamalCiphertext) -> Option<u64> {
         let discrete_log_instance = Self::decrypt(secret, ciphertext);
         discrete_log_instance.decode_u32()
@@ -151,11 +157,13 @@ impl ElGamalKeypair {
     /// An ElGamal keypair should never be instantiated manually; `ElGamalKeypair::new`,
     /// `ElGamalKeypair::new_rand` or `ElGamalKeypair::new_from_signer` should be used instead.
     /// This function exists to create custom ElGamal keypairs for tests.
+    #[cfg(not(target_arch = "wasm32"))]
     pub fn new_for_tests(public: ElGamalPubkey, secret: ElGamalSecretKey) -> Self {
         Self { public, secret }
     }
 
     /// Convert an ElGamal secret key to an ElGamal keypair.
+    #[cfg(not(target_arch = "wasm32"))]
     pub fn new(secret: ElGamalSecretKey) -> Self {
         let public = ElGamalPubkey::new(&secret);
         Self { public, secret }
@@ -173,6 +181,7 @@ impl ElGamalKeypair {
     /// wallets, the signing key is not exposed in the API. Therefore, this function uses a signer
     /// to sign a public seed and the resulting signature is then hashed to derive an ElGamal
     /// keypair.
+    #[cfg(not(target_arch = "wasm32"))]
     pub fn new_from_signer(
         signer: &dyn Signer,
         public_seed: &[u8],
@@ -182,6 +191,7 @@ impl ElGamalKeypair {
     }
 
     /// Derive an ElGamal keypair from a signature.
+    #[cfg(not(target_arch = "wasm32"))]
     pub fn new_from_signature(signature: &Signature) -> Result<Self, Box<dyn error::Error>> {
         let secret = ElGamalSecretKey::new_from_signature(signature)?;
         Ok(Self::new(secret))
@@ -203,6 +213,7 @@ impl ElGamalKeypair {
     }
 
     /// Reads a JSON-encoded keypair from a `Reader` implementor
+    #[cfg(not(target_arch = "wasm32"))]
     pub fn read_json<R: Read>(reader: &mut R) -> Result<Self, Box<dyn error::Error>> {
         let bytes: Vec<u8> = serde_json::from_reader(reader)?;
         Self::try_from(bytes.as_slice()).ok().ok_or_else(|| {
@@ -211,11 +222,13 @@ impl ElGamalKeypair {
     }
 
     /// Reads keypair from a file
+    #[cfg(not(target_arch = "wasm32"))]
     pub fn read_json_file<F: AsRef<Path>>(path: F) -> Result<Self, Box<dyn error::Error>> {
         Self::read_from_file(path)
     }
 
     /// Writes to a `Write` implementer with JSON-encoding
+    #[cfg(not(target_arch = "wasm32"))]
     pub fn write_json<W: Write>(&self, writer: &mut W) -> Result<String, Box<dyn error::Error>> {
         let json =
             serde_json::to_string(&Into::<[u8; ELGAMAL_KEYPAIR_LEN]>::into(self).as_slice())?;
@@ -224,6 +237,7 @@ impl ElGamalKeypair {
     }
 
     /// Write keypair to a file with JSON-encoding
+    #[cfg(not(target_arch = "wasm32"))]
     pub fn write_json_file<F: AsRef<Path>>(
         &self,
         outfile: F,
@@ -232,6 +246,7 @@ impl ElGamalKeypair {
     }
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 impl EncodableKey for ElGamalKeypair {
     fn read<R: Read>(reader: &mut R) -> Result<Self, Box<dyn error::Error>> {
         Self::read_json(reader)
@@ -276,6 +291,7 @@ impl From<&ElGamalKeypair> for [u8; ELGAMAL_KEYPAIR_LEN] {
     }
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 impl SeedDerivable for ElGamalKeypair {
     fn from_seed(seed: &[u8]) -> Result<Self, Box<dyn error::Error>> {
         let secret = ElGamalSecretKey::from_seed(seed)?;
@@ -301,6 +317,7 @@ impl SeedDerivable for ElGamalKeypair {
     }
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 impl EncodableKeypair for ElGamalKeypair {
     type Pubkey = ElGamalPubkey;
 
@@ -348,6 +365,7 @@ impl ElGamalPubkey {
     }
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 impl EncodableKey for ElGamalPubkey {
     fn read<R: Read>(reader: &mut R) -> Result<Self, Box<dyn error::Error>> {
         let bytes: Vec<u8> = serde_json::from_reader(reader)?;
@@ -414,6 +432,7 @@ impl ElGamalSecretKey {
     /// Deterministically derives an ElGamal secret key from a Solana signer and a public seed.
     ///
     /// See `ElGamalKeypair::new_from_signer` for more context on the key derivation.
+    #[cfg(not(target_arch = "wasm32"))]
     pub fn new_from_signer(
         signer: &dyn Signer,
         public_seed: &[u8],
@@ -426,6 +445,7 @@ impl ElGamalSecretKey {
     /// Derive a seed from a Solana signer used to generate an ElGamal secret key.
     ///
     /// The seed is derived as the hash of the signature of a public seed.
+    #[cfg(not(target_arch = "wasm32"))]
     pub fn seed_from_signer(
         signer: &dyn Signer,
         public_seed: &[u8],
@@ -443,6 +463,7 @@ impl ElGamalSecretKey {
     }
 
     /// Derive an ElGamal secret key from a signature.
+    #[cfg(not(target_arch = "wasm32"))]
     pub fn new_from_signature(signature: &Signature) -> Result<Self, Box<dyn error::Error>> {
         let seed = Self::seed_from_signature(signature);
         let key = Self::from_seed(&seed)?;
@@ -450,6 +471,7 @@ impl ElGamalSecretKey {
     }
 
     /// Derive an ElGamal secret key from a signature.
+    #[cfg(not(target_arch = "wasm32"))]
     pub fn seed_from_signature(signature: &Signature) -> Vec<u8> {
         let mut hasher = Sha3_512::new();
         hasher.update(signature.as_ref());
@@ -487,11 +509,13 @@ impl ElGamalSecretKey {
     ///
     /// The output of this function is of type `DiscreteLog`. To recover, the originally encrypted
     /// message, use `DiscreteLog::decode`.
+    #[cfg(not(target_arch = "wasm32"))]
     pub fn decrypt(&self, ciphertext: &ElGamalCiphertext) -> DiscreteLog {
         ElGamal::decrypt(self, ciphertext)
     }
 
     /// Decrypts a ciphertext using the ElGamal secret key interpretting the message as type `u32`.
+    #[cfg(not(target_arch = "wasm32"))]
     pub fn decrypt_u32(&self, ciphertext: &ElGamalCiphertext) -> Option<u64> {
         ElGamal::decrypt_u32(self, ciphertext)
     }
@@ -501,6 +525,7 @@ impl ElGamalSecretKey {
     }
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 impl EncodableKey for ElGamalSecretKey {
     fn read<R: Read>(reader: &mut R) -> Result<Self, Box<dyn error::Error>> {
         let bytes: Vec<u8> = serde_json::from_reader(reader)?;
@@ -517,6 +542,7 @@ impl EncodableKey for ElGamalSecretKey {
     }
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 impl SeedDerivable for ElGamalSecretKey {
     fn from_seed(seed: &[u8]) -> Result<Self, Box<dyn error::Error>> {
         let key = Self::from_seed(seed)?;
@@ -633,6 +659,7 @@ impl ElGamalCiphertext {
     ///
     /// The output of this function is of type `DiscreteLog`. To recover, the originally encrypted
     /// amount, use `DiscreteLog::decode`.
+    #[cfg(not(target_arch = "wasm32"))]
     pub fn decrypt(&self, secret: &ElGamalSecretKey) -> DiscreteLog {
         ElGamal::decrypt(secret, self)
     }
@@ -642,6 +669,7 @@ impl ElGamalCiphertext {
     ///
     /// If the originally encrypted amount is not a positive 32-bit number, then the function
     /// returns `None`.
+    #[cfg(not(target_arch = "wasm32"))]
     pub fn decrypt_u32(&self, secret: &ElGamalSecretKey) -> Option<u64> {
         ElGamal::decrypt_u32(secret, self)
     }
