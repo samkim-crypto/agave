@@ -53,6 +53,7 @@ use {
     sha3::Sha3_512,
     std::{convert::TryInto, fmt},
     subtle::{Choice, ConstantTimeEq},
+    wasm_bindgen::prelude::*,
     zeroize::Zeroize,
 };
 
@@ -143,12 +144,27 @@ impl ElGamal {
 /// A (twisted) ElGamal encryption keypair.
 ///
 /// The instances of the secret key are zeroized on drop.
+#[wasm_bindgen]
 #[derive(Clone, Debug, Deserialize, PartialEq, Eq, Serialize, Zeroize)]
 pub struct ElGamalKeypair {
     /// The public half of this keypair.
     public: ElGamalPubkey,
     /// The secret half of this keypair.
     secret: ElGamalSecretKey,
+}
+
+#[wasm_bindgen]
+impl ElGamalKeypair {
+    /// Generates the public and secret keys for ElGamal encryption.
+    ///
+    /// This function is randomized. It internally samples a scalar element using `OsRng`.
+    pub fn new_rand() -> Self {
+        ElGamal::keygen()
+    }
+
+    pub fn pubkey_owned(&self) -> ElGamalPubkey {
+        self.public
+    }
 }
 
 impl ElGamalKeypair {
@@ -195,13 +211,6 @@ impl ElGamalKeypair {
     pub fn new_from_signature(signature: &Signature) -> Result<Self, Box<dyn error::Error>> {
         let secret = ElGamalSecretKey::new_from_signature(signature)?;
         Ok(Self::new(secret))
-    }
-
-    /// Generates the public and secret keys for ElGamal encryption.
-    ///
-    /// This function is randomized. It internally samples a scalar element using `OsRng`.
-    pub fn new_rand() -> Self {
-        ElGamal::keygen()
     }
 
     pub fn pubkey(&self) -> &ElGamalPubkey {
@@ -327,6 +336,7 @@ impl EncodableKeypair for ElGamalKeypair {
 }
 
 /// Public key for the ElGamal encryption scheme.
+#[wasm_bindgen]
 #[derive(Clone, Copy, Debug, Default, Deserialize, Eq, PartialEq, Serialize, Zeroize)]
 pub struct ElGamalPubkey(RistrettoPoint);
 impl ElGamalPubkey {
