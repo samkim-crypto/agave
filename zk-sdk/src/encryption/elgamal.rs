@@ -14,6 +14,8 @@
 //! As the messages are encrypted as scalar elements (a.k.a. in the "exponent"), one must solve the
 //! discrete log to recover the originally encrypted value.
 
+#[cfg(target_arch = "wasm32")]
+use wasm_bindgen::prelude::*;
 #[cfg(not(target_arch = "wasm32"))]
 use {
     crate::encryption::discrete_log::DiscreteLog,
@@ -53,7 +55,6 @@ use {
     sha3::Sha3_512,
     std::{convert::TryInto, fmt},
     subtle::{Choice, ConstantTimeEq},
-    wasm_bindgen::prelude::*,
     zeroize::Zeroize,
 };
 
@@ -144,7 +145,7 @@ impl ElGamal {
 /// A (twisted) ElGamal encryption keypair.
 ///
 /// The instances of the secret key are zeroized on drop.
-#[wasm_bindgen]
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
 #[derive(Clone, Debug, Deserialize, PartialEq, Eq, Serialize, Zeroize)]
 pub struct ElGamalKeypair {
     /// The public half of this keypair.
@@ -153,7 +154,7 @@ pub struct ElGamalKeypair {
     secret: ElGamalSecretKey,
 }
 
-#[wasm_bindgen]
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
 impl ElGamalKeypair {
     /// Generates the public and secret keys for ElGamal encryption.
     ///
@@ -336,7 +337,7 @@ impl EncodableKeypair for ElGamalKeypair {
 }
 
 /// Public key for the ElGamal encryption scheme.
-#[wasm_bindgen]
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
 #[derive(Clone, Copy, Debug, Default, Deserialize, Eq, PartialEq, Serialize, Zeroize)]
 pub struct ElGamalPubkey(RistrettoPoint);
 impl ElGamalPubkey {
