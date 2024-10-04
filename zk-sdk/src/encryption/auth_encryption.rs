@@ -91,13 +91,31 @@ impl AuthenticatedEncryption {
 #[derive(Debug, Zeroize, Eq, PartialEq)]
 pub struct AeKey([u8; AE_KEY_LEN]);
 impl AeKey {
+    /// Generates a random authenticated encryption key.
+    ///
+    /// This function is randomized. It internally samples a scalar element using `OsRng`.
+    pub fn new_rand() -> Self {
+        AuthenticatedEncryption::keygen()
+    }
+
+    /// Encrypts an amount under the authenticated encryption key.
+    pub fn encrypt(&self, amount: u64) -> AeCiphertext {
+        AuthenticatedEncryption::encrypt(self, amount)
+    }
+
+    pub fn decrypt(&self, ciphertext: &AeCiphertext) -> Option<u64> {
+        AuthenticatedEncryption::decrypt(self, ciphertext)
+    }
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+impl AeKey {
     /// Deterministically derives an authenticated encryption key from a Solana signer and a public
     /// seed.
     ///
     /// This function exists for applications where a user may not wish to maintain a Solana signer
     /// and an authenticated encryption key separately. Instead, a user can derive the ElGamal
     /// keypair on-the-fly whenever encrytion/decryption is needed.
-    #[cfg(not(target_arch = "wasm32"))]
     pub fn new_from_signer(
         signer: &dyn Signer,
         public_seed: &[u8],
@@ -109,7 +127,6 @@ impl AeKey {
     /// Derive a seed from a Solana signer used to generate an authenticated encryption key.
     ///
     /// The seed is derived as the hash of the signature of a public seed.
-    #[cfg(not(target_arch = "wasm32"))]
     pub fn seed_from_signer(
         signer: &dyn Signer,
         public_seed: &[u8],
@@ -127,36 +144,18 @@ impl AeKey {
     }
 
     /// Derive an authenticated encryption key from a signature.
-    #[cfg(not(target_arch = "wasm32"))]
     pub fn new_from_signature(signature: &Signature) -> Result<Self, Box<dyn error::Error>> {
         let seed = Self::seed_from_signature(signature);
         Self::from_seed(&seed)
     }
 
     /// Derive a seed from a signature used to generate an authenticated encryption key.
-    #[cfg(not(target_arch = "wasm32"))]
     pub fn seed_from_signature(signature: &Signature) -> Vec<u8> {
         let mut hasher = Sha3_512::new();
         hasher.update(signature);
         let result = hasher.finalize();
 
         result.to_vec()
-    }
-
-    /// Generates a random authenticated encryption key.
-    ///
-    /// This function is randomized. It internally samples a scalar element using `OsRng`.
-    pub fn new_rand() -> Self {
-        AuthenticatedEncryption::keygen()
-    }
-
-    /// Encrypts an amount under the authenticated encryption key.
-    pub fn encrypt(&self, amount: u64) -> AeCiphertext {
-        AuthenticatedEncryption::encrypt(self, amount)
-    }
-
-    pub fn decrypt(&self, ciphertext: &AeCiphertext) -> Option<u64> {
-        AuthenticatedEncryption::decrypt(self, ciphertext)
     }
 }
 
