@@ -16,6 +16,10 @@
 
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen::prelude::*;
+// Currently, `wasm_bindgen` exports types and functions included in the current crate, but all
+// types and functions exported for wasm targets in all of its dependencies
+// (https://github.com/rustwasm/wasm-bindgen/issues/3759). We specifically exclude some of the
+// dependencies that will cause unnecessary bloat to the wasm binary.
 #[cfg(not(target_arch = "wasm32"))]
 use {
     crate::encryption::discrete_log::DiscreteLog,
