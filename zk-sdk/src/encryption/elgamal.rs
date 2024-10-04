@@ -173,18 +173,27 @@ impl ElGamalKeypair {
 }
 
 impl ElGamalKeypair {
+    pub fn pubkey(&self) -> &ElGamalPubkey {
+        &self.public
+    }
+
+    pub fn secret(&self) -> &ElGamalSecretKey {
+        &self.secret
+    }
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+impl ElGamalKeypair {
     /// Create an ElGamal keypair from an ElGamal public key and an ElGamal secret key.
     ///
     /// An ElGamal keypair should never be instantiated manually; `ElGamalKeypair::new`,
     /// `ElGamalKeypair::new_rand` or `ElGamalKeypair::new_from_signer` should be used instead.
     /// This function exists to create custom ElGamal keypairs for tests.
-    #[cfg(not(target_arch = "wasm32"))]
     pub fn new_for_tests(public: ElGamalPubkey, secret: ElGamalSecretKey) -> Self {
         Self { public, secret }
     }
 
     /// Convert an ElGamal secret key to an ElGamal keypair.
-    #[cfg(not(target_arch = "wasm32"))]
     pub fn new(secret: ElGamalSecretKey) -> Self {
         let public = ElGamalPubkey::new(&secret);
         Self { public, secret }
@@ -202,7 +211,6 @@ impl ElGamalKeypair {
     /// wallets, the signing key is not exposed in the API. Therefore, this function uses a signer
     /// to sign a public seed and the resulting signature is then hashed to derive an ElGamal
     /// keypair.
-    #[cfg(not(target_arch = "wasm32"))]
     pub fn new_from_signer(
         signer: &dyn Signer,
         public_seed: &[u8],
@@ -212,22 +220,12 @@ impl ElGamalKeypair {
     }
 
     /// Derive an ElGamal keypair from a signature.
-    #[cfg(not(target_arch = "wasm32"))]
     pub fn new_from_signature(signature: &Signature) -> Result<Self, Box<dyn error::Error>> {
         let secret = ElGamalSecretKey::new_from_signature(signature)?;
         Ok(Self::new(secret))
     }
 
-    pub fn pubkey(&self) -> &ElGamalPubkey {
-        &self.public
-    }
-
-    pub fn secret(&self) -> &ElGamalSecretKey {
-        &self.secret
-    }
-
     /// Reads a JSON-encoded keypair from a `Reader` implementor
-    #[cfg(not(target_arch = "wasm32"))]
     pub fn read_json<R: Read>(reader: &mut R) -> Result<Self, Box<dyn error::Error>> {
         let bytes: Vec<u8> = serde_json::from_reader(reader)?;
         Self::try_from(bytes.as_slice()).ok().ok_or_else(|| {
@@ -236,13 +234,11 @@ impl ElGamalKeypair {
     }
 
     /// Reads keypair from a file
-    #[cfg(not(target_arch = "wasm32"))]
     pub fn read_json_file<F: AsRef<Path>>(path: F) -> Result<Self, Box<dyn error::Error>> {
         Self::read_from_file(path)
     }
 
     /// Writes to a `Write` implementer with JSON-encoding
-    #[cfg(not(target_arch = "wasm32"))]
     pub fn write_json<W: Write>(&self, writer: &mut W) -> Result<String, Box<dyn error::Error>> {
         let json =
             serde_json::to_string(&Into::<[u8; ELGAMAL_KEYPAIR_LEN]>::into(self).as_slice())?;
@@ -251,7 +247,6 @@ impl ElGamalKeypair {
     }
 
     /// Write keypair to a file with JSON-encoding
-    #[cfg(not(target_arch = "wasm32"))]
     pub fn write_json_file<F: AsRef<Path>>(
         &self,
         outfile: F,
@@ -444,57 +439,6 @@ impl From<&ElGamalPubkey> for [u8; ELGAMAL_PUBKEY_LEN] {
 #[zeroize(drop)]
 pub struct ElGamalSecretKey(Scalar);
 impl ElGamalSecretKey {
-    /// Deterministically derives an ElGamal secret key from a Solana signer and a public seed.
-    ///
-    /// See `ElGamalKeypair::new_from_signer` for more context on the key derivation.
-    #[cfg(not(target_arch = "wasm32"))]
-    pub fn new_from_signer(
-        signer: &dyn Signer,
-        public_seed: &[u8],
-    ) -> Result<Self, Box<dyn error::Error>> {
-        let seed = Self::seed_from_signer(signer, public_seed)?;
-        let key = Self::from_seed(&seed)?;
-        Ok(key)
-    }
-
-    /// Derive a seed from a Solana signer used to generate an ElGamal secret key.
-    ///
-    /// The seed is derived as the hash of the signature of a public seed.
-    #[cfg(not(target_arch = "wasm32"))]
-    pub fn seed_from_signer(
-        signer: &dyn Signer,
-        public_seed: &[u8],
-    ) -> Result<Vec<u8>, SignerError> {
-        let message = [b"ElGamalSecretKey", public_seed].concat();
-        let signature = signer.try_sign_message(&message)?;
-
-        // Some `Signer` implementations return the default signature, which is not suitable for
-        // use as key material
-        if bool::from(signature.as_ref().ct_eq(Signature::default().as_ref())) {
-            return Err(SignerError::Custom("Rejecting default signatures".into()));
-        }
-
-        Ok(Self::seed_from_signature(&signature))
-    }
-
-    /// Derive an ElGamal secret key from a signature.
-    #[cfg(not(target_arch = "wasm32"))]
-    pub fn new_from_signature(signature: &Signature) -> Result<Self, Box<dyn error::Error>> {
-        let seed = Self::seed_from_signature(signature);
-        let key = Self::from_seed(&seed)?;
-        Ok(key)
-    }
-
-    /// Derive an ElGamal secret key from a signature.
-    #[cfg(not(target_arch = "wasm32"))]
-    pub fn seed_from_signature(signature: &Signature) -> Vec<u8> {
-        let mut hasher = Sha3_512::new();
-        hasher.update(signature.as_ref());
-        let result = hasher.finalize();
-
-        result.to_vec()
-    }
-
     /// Randomly samples an ElGamal secret key.
     ///
     /// This function is randomized. It internally samples a scalar element using `OsRng`.
@@ -520,23 +464,71 @@ impl ElGamalSecretKey {
         &self.0
     }
 
+    pub fn as_bytes(&self) -> &[u8; ELGAMAL_SECRET_KEY_LEN] {
+        self.0.as_bytes()
+    }
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+impl ElGamalSecretKey {
+    /// Deterministically derives an ElGamal secret key from a Solana signer and a public seed.
+    ///
+    /// See `ElGamalKeypair::new_from_signer` for more context on the key derivation.
+    pub fn new_from_signer(
+        signer: &dyn Signer,
+        public_seed: &[u8],
+    ) -> Result<Self, Box<dyn error::Error>> {
+        let seed = Self::seed_from_signer(signer, public_seed)?;
+        let key = Self::from_seed(&seed)?;
+        Ok(key)
+    }
+
+    /// Derive a seed from a Solana signer used to generate an ElGamal secret key.
+    ///
+    /// The seed is derived as the hash of the signature of a public seed.
+    pub fn seed_from_signer(
+        signer: &dyn Signer,
+        public_seed: &[u8],
+    ) -> Result<Vec<u8>, SignerError> {
+        let message = [b"ElGamalSecretKey", public_seed].concat();
+        let signature = signer.try_sign_message(&message)?;
+
+        // Some `Signer` implementations return the default signature, which is not suitable for
+        // use as key material
+        if bool::from(signature.as_ref().ct_eq(Signature::default().as_ref())) {
+            return Err(SignerError::Custom("Rejecting default signatures".into()));
+        }
+
+        Ok(Self::seed_from_signature(&signature))
+    }
+
+    /// Derive an ElGamal secret key from a signature.
+    pub fn new_from_signature(signature: &Signature) -> Result<Self, Box<dyn error::Error>> {
+        let seed = Self::seed_from_signature(signature);
+        let key = Self::from_seed(&seed)?;
+        Ok(key)
+    }
+
+    /// Derive an ElGamal secret key from a signature.
+    pub fn seed_from_signature(signature: &Signature) -> Vec<u8> {
+        let mut hasher = Sha3_512::new();
+        hasher.update(signature.as_ref());
+        let result = hasher.finalize();
+
+        result.to_vec()
+    }
+
     /// Decrypts a ciphertext using the ElGamal secret key.
     ///
     /// The output of this function is of type `DiscreteLog`. To recover, the originally encrypted
     /// message, use `DiscreteLog::decode`.
-    #[cfg(not(target_arch = "wasm32"))]
     pub fn decrypt(&self, ciphertext: &ElGamalCiphertext) -> DiscreteLog {
         ElGamal::decrypt(self, ciphertext)
     }
 
     /// Decrypts a ciphertext using the ElGamal secret key interpretting the message as type `u32`.
-    #[cfg(not(target_arch = "wasm32"))]
     pub fn decrypt_u32(&self, ciphertext: &ElGamalCiphertext) -> Option<u64> {
         ElGamal::decrypt_u32(self, ciphertext)
-    }
-
-    pub fn as_bytes(&self) -> &[u8; ELGAMAL_SECRET_KEY_LEN] {
-        self.0.as_bytes()
     }
 }
 
