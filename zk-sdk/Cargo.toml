@@ -45,9 +45,5 @@ wasm-bindgen = { workspace = true }
 [lib]
 crate-type = ["cdylib", "rlib"]
 
-[profile.release]
-lto = true
-opt-level = "s"
-
 [lints]
 workspace = true
