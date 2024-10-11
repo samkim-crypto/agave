@@ -26,8 +26,6 @@ pub mod grouped_elgamal;
 #[cfg(not(target_os = "solana"))]
 pub mod pedersen;
 pub mod pod;
-#[cfg(all(not(target_os = "solana"), target_arch = "wasm32"))]
-pub mod wasm;
 
 /// Byte length of an authenticated encryption secret key
 pub const AE_KEY_LEN: usize = 16;
