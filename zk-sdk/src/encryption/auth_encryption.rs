@@ -243,7 +243,7 @@ type Nonce = [u8; NONCE_LEN];
 type Ciphertext = [u8; CIPHERTEXT_LEN];
 
 /// Authenticated encryption nonce and ciphertext
-#[derive(Debug, Default, Clone)]
+#[derive(Clone, Copy, Debug, Default)]
 pub struct AeCiphertext {
     nonce: Nonce,
     ciphertext: Ciphertext,
