@@ -88,7 +88,7 @@ impl AuthenticatedEncryption {
     }
 }
 
-#[derive(Debug, Zeroize, Eq, PartialEq)]
+#[derive(Clone, Debug, Zeroize, Eq, PartialEq)]
 pub struct AeKey([u8; AE_KEY_LEN]);
 impl AeKey {
     /// Generates a random authenticated encryption key.
