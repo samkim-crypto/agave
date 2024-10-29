@@ -86,13 +86,108 @@ impl From<AltBn128Error> for u64 {
     }
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Pod, Zeroable)]
-#[repr(transparent)]
-pub struct PodG1(pub [u8; 64]);
+use consts::{ALT_BN128_FIELD_SIZE as FIELD_SIZE, ALT_BN128_POINT_SIZE as G1_POINT_SIZE};
 
+/// The BN254 (BN128) group element in G1 as a POD type.
+///
+/// A group element in G1 consists of two field elements `(x, y)`. A `PodG1` type expects a group
+/// element to be encoded as `[le(x), le(y)]` where `le(..)` is the little-endian encoding of the
+/// input field element as used in the `ark-bn254` crate.
+/// Note that this differs from the EIP-197 standard, which specifies that the
+/// field elements are encoded as big-endian.
+///
+/// THe Solana syscalls still expect the inputs to be encoded in big-endian as specified in
+/// EIP-197. The type `PodG1` is an intermediate type that facilitates the translation between the
+/// EIP-197 encoding and the arkworks implementation encoding.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Pod, Zeroable)]
 #[repr(transparent)]
-pub struct PodG2(pub [u8; 128]);
+pub struct PodG1(pub [u8; G1_POINT_SIZE]);
+
+impl PodG1 {
+    /// Takes in an EIP-197 (big-endian) byte encoding of a group element in G1 and constructs a
+    /// `PodG1` struct that encodes the same bytes in little-endian.
+    fn from_be_bytes(be_bytes: &[u8]) -> Result<Self, AltBn128Error> {
+        if be_bytes.len() != G1_POINT_SIZE {
+            return Err(AltBn128Error::SliceOutOfBounds);
+        }
+        let mut pod_bytes = [0u8; G1_POINT_SIZE];
+        reverse_copy(&be_bytes[..FIELD_SIZE], &mut pod_bytes[..FIELD_SIZE])?;
+        reverse_copy(&be_bytes[FIELD_SIZE..], &mut pod_bytes[FIELD_SIZE..])?;
+        Ok(Self(pod_bytes))
+    }
+}
+
+const G2_POINT_SIZE: usize = FIELD_SIZE * 4;
+
+/// The BN254 (BN128) group element in G2 as a POD type.
+///
+/// Elements in G2 is represented by 2 field-extension elements `(x, y)`. Each field-extension
+/// element itself is a degree 1 polynomial `x = x0 + x1*X`, `y = y0 + y1*X`. The EIP-197 standard
+/// encodes a G2 element as `[be(x1), be(x0), be(y1), be(y0)]` where `be(..)` is the big-endian
+/// encoding of the input field element. The `ark-bn254` crate encodes a G2 element as `[le(x0),
+/// le(x1), le(y0), le(y1)]` where `le(..)` is the little-endian encoding of the input field
+/// element. Notably, in addition to the differences in the big-endian vs. little-endian encodings
+/// of field elements, the order of the polynomial field coefficients `x0`, `x1`, `y0`, and `y1`
+/// are different.
+///
+/// THe Solana syscalls still expect the inputs to be encoded as specified in EIP-197. The type
+/// `PodG2` is an intermediate type that facilitates the translation between the `EIP-197 encoding
+/// and the encoding used in the arkworks implementation.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Pod, Zeroable)]
+#[repr(transparent)]
+pub struct PodG2(pub [u8; G2_POINT_SIZE]);
+
+impl PodG2 {
+    /// Takes in an EIP-197 (big-endian) byte encoding of a group element in G2 and constructs a
+    /// `PodG2` struct that encodes the same bytes in little-endian.
+    fn from_be_bytes(be_bytes: &[u8]) -> Result<Self, AltBn128Error> {
+        if be_bytes.len() != G2_POINT_SIZE {
+            return Err(AltBn128Error::SliceOutOfBounds);
+        }
+        // note the cross order
+        const SOURCE_X1_INDEX: usize = 0;
+        const SOURCE_X0_INDEX: usize = SOURCE_X1_INDEX.saturating_add(FIELD_SIZE);
+        const SOURCE_Y1_INDEX: usize = SOURCE_X0_INDEX.saturating_add(FIELD_SIZE);
+        const SOURCE_Y0_INDEX: usize = SOURCE_Y1_INDEX.saturating_add(FIELD_SIZE);
+
+        const TARGET_X0_INDEX: usize = 0;
+        const TARGET_X1_INDEX: usize = TARGET_X0_INDEX.saturating_add(FIELD_SIZE);
+        const TARGET_Y0_INDEX: usize = TARGET_X1_INDEX.saturating_add(FIELD_SIZE);
+        const TARGET_Y1_INDEX: usize = TARGET_Y0_INDEX.saturating_add(FIELD_SIZE);
+
+        let mut pod_bytes = [0u8; G2_POINT_SIZE];
+        reverse_copy(
+            &be_bytes[SOURCE_X1_INDEX..SOURCE_X1_INDEX.saturating_add(FIELD_SIZE)],
+            &mut pod_bytes[TARGET_X1_INDEX..TARGET_X1_INDEX.saturating_add(FIELD_SIZE)],
+        )?;
+        reverse_copy(
+            &be_bytes[SOURCE_X0_INDEX..SOURCE_X0_INDEX.saturating_add(FIELD_SIZE)],
+            &mut pod_bytes[TARGET_X0_INDEX..TARGET_X0_INDEX.saturating_add(FIELD_SIZE)],
+        )?;
+        reverse_copy(
+            &be_bytes[SOURCE_Y1_INDEX..SOURCE_Y1_INDEX.saturating_add(FIELD_SIZE)],
+            &mut pod_bytes[TARGET_Y1_INDEX..TARGET_Y1_INDEX.saturating_add(FIELD_SIZE)],
+        )?;
+        reverse_copy(
+            &be_bytes[SOURCE_Y0_INDEX..SOURCE_Y0_INDEX.saturating_add(FIELD_SIZE)],
+            &mut pod_bytes[TARGET_Y0_INDEX..TARGET_Y0_INDEX.saturating_add(FIELD_SIZE)],
+        )?;
+        Ok(Self(pod_bytes))
+    }
+}
+
+/// Copies a `source` byte slice into a `destination` byte slice in reverse order.
+fn reverse_copy(source: &[u8], destination: &mut [u8]) -> Result<(), AltBn128Error> {
+    if source.len() != destination.len() {
+        return Err(AltBn128Error::SliceOutOfBounds);
+    }
+    let mut destination_index = destination.len().saturating_sub(1);
+    for &byte in source.into_iter() {
+        destination[destination_index] = byte;
+        destination_index = destination_index.saturating_sub(1);
+    }
+    Ok(())
+}
 
 #[cfg(not(target_os = "solana"))]
 mod target_arch {
@@ -167,18 +262,8 @@ mod target_arch {
         let mut input = input.to_vec();
         input.resize(ALT_BN128_ADDITION_INPUT_LEN, 0);
 
-        let p: G1 = PodG1(
-            convert_endianness_64(&input[..64])
-                .try_into()
-                .map_err(AltBn128Error::TryIntoVecError)?,
-        )
-        .try_into()?;
-        let q: G1 = PodG1(
-            convert_endianness_64(&input[64..ALT_BN128_ADDITION_INPUT_LEN])
-                .try_into()
-                .map_err(AltBn128Error::TryIntoVecError)?,
-        )
-        .try_into()?;
+        let p: G1 = PodG1::from_be_bytes(&input[..64])?.try_into()?;
+        let q: G1 = PodG1::from_be_bytes(&input[64..ALT_BN128_ADDITION_INPUT_LEN])?.try_into()?;
 
         #[allow(clippy::arithmetic_side_effects)]
         let result_point = p + q;
@@ -205,12 +290,7 @@ mod target_arch {
         let mut input = input.to_vec();
         input.resize(ALT_BN128_MULTIPLICATION_INPUT_LEN, 0);
 
-        let p: G1 = PodG1(
-            convert_endianness_64(&input[..64])
-                .try_into()
-                .map_err(AltBn128Error::TryIntoVecError)?,
-        )
-        .try_into()?;
+        let p: G1 = PodG1::from_be_bytes(&input[..64])?.try_into()?;
         let fr = BigInteger256::deserialize_uncompressed_unchecked(
             &convert_endianness_64(&input[64..96])[..],
         )
@@ -247,31 +327,18 @@ mod target_arch {
         let ele_len = input.len().saturating_div(ALT_BN128_PAIRING_ELEMENT_LEN);
 
         let mut vec_pairs: Vec<(G1, G2)> = Vec::new();
-        for i in 0..ele_len {
+        let mut current_byte_index = 0_usize;
+        for _ in 0..ele_len {
+            let p_bytes_start = current_byte_index;
+            let p_bytes_end = p_bytes_start.saturating_add(G1_POINT_SIZE);
+            let q_bytes_start = p_bytes_end;
+            let q_bytes_end = q_bytes_start.saturating_add(G2_POINT_SIZE);
+
             vec_pairs.push((
-                PodG1(
-                    convert_endianness_64(
-                        &input[i.saturating_mul(ALT_BN128_PAIRING_ELEMENT_LEN)
-                            ..i.saturating_mul(ALT_BN128_PAIRING_ELEMENT_LEN)
-                                .saturating_add(ALT_BN128_POINT_SIZE)],
-                    )
-                    .try_into()
-                    .map_err(AltBn128Error::TryIntoVecError)?,
-                )
-                .try_into()?,
-                PodG2(
-                    convert_endianness_128(
-                        &input[i
-                            .saturating_mul(ALT_BN128_PAIRING_ELEMENT_LEN)
-                            .saturating_add(ALT_BN128_POINT_SIZE)
-                            ..i.saturating_mul(ALT_BN128_PAIRING_ELEMENT_LEN)
-                                .saturating_add(ALT_BN128_PAIRING_ELEMENT_LEN)],
-                    )
-                    .try_into()
-                    .map_err(AltBn128Error::TryIntoVecError)?,
-                )
-                .try_into()?,
+                PodG1::from_be_bytes(&input[p_bytes_start..p_bytes_end])?.try_into()?,
+                PodG2::from_be_bytes(&input[q_bytes_start..q_bytes_end])?.try_into()?,
             ));
+            current_byte_index = current_byte_index.saturating_add(ALT_BN128_PAIRING_ELEMENT_LEN);
         }
 
         let mut result = BigInteger256::from(0u64);
@@ -291,13 +358,6 @@ mod target_arch {
     fn convert_endianness_64(bytes: &[u8]) -> Vec<u8> {
         bytes
             .chunks(32)
-            .flat_map(|b| b.iter().copied().rev().collect::<Vec<u8>>())
-            .collect::<Vec<u8>>()
-    }
-
-    fn convert_endianness_128(bytes: &[u8]) -> Vec<u8> {
-        bytes
-            .chunks(64)
             .flat_map(|b| b.iter().copied().rev().collect::<Vec<u8>>())
             .collect::<Vec<u8>>()
     }
