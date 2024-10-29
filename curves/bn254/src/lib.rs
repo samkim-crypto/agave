@@ -187,7 +187,7 @@ fn reverse_copy(source: &[u8], destination: &mut [u8]) -> Result<(), AltBn128Err
         return Err(AltBn128Error::SliceOutOfBounds);
     }
     let mut destination_index = destination.len().saturating_sub(1);
-    for &byte in source.into_iter() {
+    for &byte in source.iter() {
         destination[destination_index] = byte;
         destination_index = destination_index.saturating_sub(1);
     }
