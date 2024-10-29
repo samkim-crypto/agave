@@ -104,20 +104,6 @@ use consts::{ALT_BN128_FIELD_SIZE as FIELD_SIZE, ALT_BN128_POINT_SIZE as G1_POIN
 #[repr(transparent)]
 pub struct PodG1(pub [u8; G1_POINT_SIZE]);
 
-impl PodG1 {
-    /// Takes in an EIP-197 (big-endian) byte encoding of a group element in G1 and constructs a
-    /// `PodG1` struct that encodes the same bytes in little-endian.
-    fn from_be_bytes(be_bytes: &[u8]) -> Result<Self, AltBn128Error> {
-        if be_bytes.len() != G1_POINT_SIZE {
-            return Err(AltBn128Error::SliceOutOfBounds);
-        }
-        let mut pod_bytes = [0u8; G1_POINT_SIZE];
-        reverse_copy(&be_bytes[..FIELD_SIZE], &mut pod_bytes[..FIELD_SIZE])?;
-        reverse_copy(&be_bytes[FIELD_SIZE..], &mut pod_bytes[FIELD_SIZE..])?;
-        Ok(Self(pod_bytes))
-    }
-}
-
 const G2_POINT_SIZE: usize = FIELD_SIZE * 4;
 
 /// The BN254 (BN128) group element in G2 as a POD type.
@@ -141,59 +127,6 @@ const G2_POINT_SIZE: usize = FIELD_SIZE * 4;
 #[repr(transparent)]
 pub struct PodG2(pub [u8; G2_POINT_SIZE]);
 
-impl PodG2 {
-    /// Takes in an EIP-197 (big-endian) byte encoding of a group element in G2
-    /// and constructs a `PodG2` struct that encodes the same bytes in
-    /// little-endian.
-    fn from_be_bytes(be_bytes: &[u8]) -> Result<Self, AltBn128Error> {
-        if be_bytes.len() != G2_POINT_SIZE {
-            return Err(AltBn128Error::SliceOutOfBounds);
-        }
-        // note the cross order
-        const SOURCE_X1_INDEX: usize = 0;
-        const SOURCE_X0_INDEX: usize = SOURCE_X1_INDEX.saturating_add(FIELD_SIZE);
-        const SOURCE_Y1_INDEX: usize = SOURCE_X0_INDEX.saturating_add(FIELD_SIZE);
-        const SOURCE_Y0_INDEX: usize = SOURCE_Y1_INDEX.saturating_add(FIELD_SIZE);
-
-        const TARGET_X0_INDEX: usize = 0;
-        const TARGET_X1_INDEX: usize = TARGET_X0_INDEX.saturating_add(FIELD_SIZE);
-        const TARGET_Y0_INDEX: usize = TARGET_X1_INDEX.saturating_add(FIELD_SIZE);
-        const TARGET_Y1_INDEX: usize = TARGET_Y0_INDEX.saturating_add(FIELD_SIZE);
-
-        let mut pod_bytes = [0u8; G2_POINT_SIZE];
-        reverse_copy(
-            &be_bytes[SOURCE_X1_INDEX..SOURCE_X1_INDEX.saturating_add(FIELD_SIZE)],
-            &mut pod_bytes[TARGET_X1_INDEX..TARGET_X1_INDEX.saturating_add(FIELD_SIZE)],
-        )?;
-        reverse_copy(
-            &be_bytes[SOURCE_X0_INDEX..SOURCE_X0_INDEX.saturating_add(FIELD_SIZE)],
-            &mut pod_bytes[TARGET_X0_INDEX..TARGET_X0_INDEX.saturating_add(FIELD_SIZE)],
-        )?;
-        reverse_copy(
-            &be_bytes[SOURCE_Y1_INDEX..SOURCE_Y1_INDEX.saturating_add(FIELD_SIZE)],
-            &mut pod_bytes[TARGET_Y1_INDEX..TARGET_Y1_INDEX.saturating_add(FIELD_SIZE)],
-        )?;
-        reverse_copy(
-            &be_bytes[SOURCE_Y0_INDEX..SOURCE_Y0_INDEX.saturating_add(FIELD_SIZE)],
-            &mut pod_bytes[TARGET_Y0_INDEX..TARGET_Y0_INDEX.saturating_add(FIELD_SIZE)],
-        )?;
-        Ok(Self(pod_bytes))
-    }
-}
-
-/// Copies a `source` byte slice into a `destination` byte slice in reverse order.
-fn reverse_copy(source: &[u8], destination: &mut [u8]) -> Result<(), AltBn128Error> {
-    if source.len() != destination.len() {
-        return Err(AltBn128Error::SliceOutOfBounds);
-    }
-    let mut destination_index = destination.len().saturating_sub(1);
-    for &byte in source.iter() {
-        destination[destination_index] = byte;
-        destination_index = destination_index.saturating_sub(1);
-    }
-    Ok(())
-}
-
 #[cfg(not(target_os = "solana"))]
 mod target_arch {
     use {
@@ -206,6 +139,60 @@ mod target_arch {
 
     type G1 = ark_bn254::g1::G1Affine;
     type G2 = ark_bn254::g2::G2Affine;
+
+    impl PodG1 {
+        /// Takes in an EIP-197 (big-endian) byte encoding of a group element in G1 and constructs a
+        /// `PodG1` struct that encodes the same bytes in little-endian.
+        fn from_be_bytes(be_bytes: &[u8]) -> Result<Self, AltBn128Error> {
+            if be_bytes.len() != G1_POINT_SIZE {
+                return Err(AltBn128Error::SliceOutOfBounds);
+            }
+            let mut pod_bytes = [0u8; G1_POINT_SIZE];
+            reverse_copy(&be_bytes[..FIELD_SIZE], &mut pod_bytes[..FIELD_SIZE])?;
+            reverse_copy(&be_bytes[FIELD_SIZE..], &mut pod_bytes[FIELD_SIZE..])?;
+            Ok(Self(pod_bytes))
+        }
+    }
+
+    impl PodG2 {
+        /// Takes in an EIP-197 (big-endian) byte encoding of a group element in G2
+        /// and constructs a `PodG2` struct that encodes the same bytes in
+        /// little-endian.
+        fn from_be_bytes(be_bytes: &[u8]) -> Result<Self, AltBn128Error> {
+            if be_bytes.len() != G2_POINT_SIZE {
+                return Err(AltBn128Error::SliceOutOfBounds);
+            }
+            // note the cross order
+            const SOURCE_X1_INDEX: usize = 0;
+            const SOURCE_X0_INDEX: usize = SOURCE_X1_INDEX.saturating_add(FIELD_SIZE);
+            const SOURCE_Y1_INDEX: usize = SOURCE_X0_INDEX.saturating_add(FIELD_SIZE);
+            const SOURCE_Y0_INDEX: usize = SOURCE_Y1_INDEX.saturating_add(FIELD_SIZE);
+
+            const TARGET_X0_INDEX: usize = 0;
+            const TARGET_X1_INDEX: usize = TARGET_X0_INDEX.saturating_add(FIELD_SIZE);
+            const TARGET_Y0_INDEX: usize = TARGET_X1_INDEX.saturating_add(FIELD_SIZE);
+            const TARGET_Y1_INDEX: usize = TARGET_Y0_INDEX.saturating_add(FIELD_SIZE);
+
+            let mut pod_bytes = [0u8; G2_POINT_SIZE];
+            reverse_copy(
+                &be_bytes[SOURCE_X1_INDEX..SOURCE_X1_INDEX.saturating_add(FIELD_SIZE)],
+                &mut pod_bytes[TARGET_X1_INDEX..TARGET_X1_INDEX.saturating_add(FIELD_SIZE)],
+            )?;
+            reverse_copy(
+                &be_bytes[SOURCE_X0_INDEX..SOURCE_X0_INDEX.saturating_add(FIELD_SIZE)],
+                &mut pod_bytes[TARGET_X0_INDEX..TARGET_X0_INDEX.saturating_add(FIELD_SIZE)],
+            )?;
+            reverse_copy(
+                &be_bytes[SOURCE_Y1_INDEX..SOURCE_Y1_INDEX.saturating_add(FIELD_SIZE)],
+                &mut pod_bytes[TARGET_Y1_INDEX..TARGET_Y1_INDEX.saturating_add(FIELD_SIZE)],
+            )?;
+            reverse_copy(
+                &be_bytes[SOURCE_Y0_INDEX..SOURCE_Y0_INDEX.saturating_add(FIELD_SIZE)],
+                &mut pod_bytes[TARGET_Y0_INDEX..TARGET_Y0_INDEX.saturating_add(FIELD_SIZE)],
+            )?;
+            Ok(Self(pod_bytes))
+        }
+    }
 
     impl TryFrom<PodG1> for G1 {
         type Error = AltBn128Error;
@@ -365,6 +352,19 @@ mod target_arch {
             .chunks(32)
             .flat_map(|b| b.iter().copied().rev().collect::<Vec<u8>>())
             .collect::<Vec<u8>>()
+    }
+
+    /// Copies a `source` byte slice into a `destination` byte slice in reverse order.
+    fn reverse_copy(source: &[u8], destination: &mut [u8]) -> Result<(), AltBn128Error> {
+        if source.len() != destination.len() {
+            return Err(AltBn128Error::SliceOutOfBounds);
+        }
+        let mut destination_index = destination.len().saturating_sub(1);
+        for &byte in source.iter() {
+            destination[destination_index] = byte;
+            destination_index = destination_index.saturating_sub(1);
+        }
+        Ok(())
     }
 }
 
