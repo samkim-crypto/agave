@@ -90,15 +90,16 @@ use consts::{ALT_BN128_FIELD_SIZE as FIELD_SIZE, ALT_BN128_POINT_SIZE as G1_POIN
 
 /// The BN254 (BN128) group element in G1 as a POD type.
 ///
-/// A group element in G1 consists of two field elements `(x, y)`. A `PodG1` type expects a group
-/// element to be encoded as `[le(x), le(y)]` where `le(..)` is the little-endian encoding of the
-/// input field element as used in the `ark-bn254` crate.
-/// Note that this differs from the EIP-197 standard, which specifies that the
-/// field elements are encoded as big-endian.
+/// A group element in G1 consists of two field elements `(x, y)`. A `PodG1`
+/// type expects a group element to be encoded as `[le(x), le(y)]` where
+/// `le(..)` is the little-endian encoding of the input field element as used
+/// in the `ark-bn254` crate. Note that this differs from the EIP-197 standard,
+/// which specifies that the field elements are encoded as big-endian.
 ///
-/// THe Solana syscalls still expect the inputs to be encoded in big-endian as specified in
-/// EIP-197. The type `PodG1` is an intermediate type that facilitates the translation between the
-/// EIP-197 encoding and the arkworks implementation encoding.
+/// The Solana syscalls still expect the inputs to be encoded in big-endian as
+/// specified in EIP-197. The type `PodG1` is an intermediate type that
+/// facilitates the translation between the EIP-197 encoding and the arkworks
+/// implementation encoding.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Pod, Zeroable)]
 #[repr(transparent)]
 pub struct PodG1(pub [u8; G1_POINT_SIZE]);
@@ -121,25 +122,29 @@ const G2_POINT_SIZE: usize = FIELD_SIZE * 4;
 
 /// The BN254 (BN128) group element in G2 as a POD type.
 ///
-/// Elements in G2 is represented by 2 field-extension elements `(x, y)`. Each field-extension
-/// element itself is a degree 1 polynomial `x = x0 + x1*X`, `y = y0 + y1*X`. The EIP-197 standard
-/// encodes a G2 element as `[be(x1), be(x0), be(y1), be(y0)]` where `be(..)` is the big-endian
-/// encoding of the input field element. The `ark-bn254` crate encodes a G2 element as `[le(x0),
-/// le(x1), le(y0), le(y1)]` where `le(..)` is the little-endian encoding of the input field
-/// element. Notably, in addition to the differences in the big-endian vs. little-endian encodings
-/// of field elements, the order of the polynomial field coefficients `x0`, `x1`, `y0`, and `y1`
-/// are different.
+/// Elements in G2 is represented by 2 field-extension elements `(x, y)`. Each
+/// field-extension element itself is a degree 1 polynomial `x = x0 + x1*X`,
+/// `y = y0 + y1*X`. The EIP-197 standard encodes a G2 element as
+/// `[be(x1), be(x0), be(y1), be(y0)]` where `be(..)` is the big-endian
+/// encoding of the input field element. The `ark-bn254` crate encodes a G2
+/// element as `[le(x0), le(x1), le(y0), le(y1)]` where `le(..)` is the
+/// little-endian encoding of the input field element. Notably, in addition to
+/// the differences in the big-endian vs. little-endian encodings of field
+/// elements, the order of the polynomial field coefficients `x0`, `x1`, `y0`,
+/// and `y1` are different.
 ///
-/// THe Solana syscalls still expect the inputs to be encoded as specified in EIP-197. The type
-/// `PodG2` is an intermediate type that facilitates the translation between the `EIP-197 encoding
-/// and the encoding used in the arkworks implementation.
+/// THe Solana syscalls still expect the inputs to be encoded as specified in
+/// EIP-197. The type `PodG2` is an intermediate type that facilitates the
+/// translation between the `EIP-197 encoding and the encoding used in the
+/// arkworks implementation.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Pod, Zeroable)]
 #[repr(transparent)]
 pub struct PodG2(pub [u8; G2_POINT_SIZE]);
 
 impl PodG2 {
-    /// Takes in an EIP-197 (big-endian) byte encoding of a group element in G2 and constructs a
-    /// `PodG2` struct that encodes the same bytes in little-endian.
+    /// Takes in an EIP-197 (big-endian) byte encoding of a group element in G2
+    /// and constructs a `PodG2` struct that encodes the same bytes in
+    /// little-endian.
     fn from_be_bytes(be_bytes: &[u8]) -> Result<Self, AltBn128Error> {
         if be_bytes.len() != G2_POINT_SIZE {
             return Err(AltBn128Error::SliceOutOfBounds);
