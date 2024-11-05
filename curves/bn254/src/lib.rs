@@ -319,18 +319,13 @@ mod target_arch {
         let ele_len = input.len().saturating_div(ALT_BN128_PAIRING_ELEMENT_LEN);
 
         let mut vec_pairs: Vec<(G1, G2)> = Vec::new();
-        let mut current_byte_index = 0_usize;
-        for _ in 0..ele_len {
-            let p_bytes_start = current_byte_index;
-            let p_bytes_end = p_bytes_start.saturating_add(G1_POINT_SIZE);
-            let q_bytes_start = p_bytes_end;
-            let q_bytes_end = q_bytes_start.saturating_add(G2_POINT_SIZE);
+        for chunk in input.chunks(ALT_BN128_PAIRING_ELEMENT_LEN) {
+            let (p_bytes, q_bytes) = chunk.split_at(G1_POINT_SIZE);
 
-            vec_pairs.push((
-                PodG1::from_be_bytes(&input[p_bytes_start..p_bytes_end])?.try_into()?,
-                PodG2::from_be_bytes(&input[q_bytes_start..q_bytes_end])?.try_into()?,
-            ));
-            current_byte_index = current_byte_index.saturating_add(ALT_BN128_PAIRING_ELEMENT_LEN);
+            let g1 = PodG1::from_be_bytes(p_bytes)?.try_into()?;
+            let g2 = PodG2::from_be_bytes(q_bytes)?.try_into()?;
+
+            vec_pairs.push((g1, g2));
         }
 
         let mut result = BigInteger256::from(0u64);
@@ -359,10 +354,8 @@ mod target_arch {
         if source.len() != destination.len() {
             return Err(AltBn128Error::SliceOutOfBounds);
         }
-        let mut destination_index = destination.len().saturating_sub(1);
-        for &byte in source.iter() {
-            destination[destination_index] = byte;
-            destination_index = destination_index.saturating_sub(1);
+        for (source_index, destination_index) in source.iter().rev().zip(destination.iter_mut()) {
+            *destination_index = *source_index;
         }
         Ok(())
     }
