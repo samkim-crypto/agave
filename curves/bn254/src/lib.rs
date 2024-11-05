@@ -271,7 +271,7 @@ mod target_arch {
             .serialize_with_mode(&mut result_point_data[32..], Compress::No)
             .map_err(|_| AltBn128Error::InvalidInputData)?;
 
-        Ok(convert_endianness_64(&result_point_data[..]).to_vec())
+        Ok(convert_endianness_64(&result_point_data[..]))
     }
 
     pub fn alt_bn128_multiplication(input: &[u8]) -> Result<Vec<u8>, AltBn128Error> {
@@ -301,10 +301,9 @@ mod target_arch {
             .serialize_with_mode(&mut result_point_data[32..], Compress::No)
             .map_err(|_| AltBn128Error::InvalidInputData)?;
 
-        Ok(
-            convert_endianness_64(&result_point_data[..ALT_BN128_MULTIPLICATION_OUTPUT_LEN])
-                .to_vec(),
-        )
+        Ok(convert_endianness_64(
+            &result_point_data[..ALT_BN128_MULTIPLICATION_OUTPUT_LEN],
+        ))
     }
 
     pub fn alt_bn128_pairing(input: &[u8]) -> Result<Vec<u8>, AltBn128Error> {
