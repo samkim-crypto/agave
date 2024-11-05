@@ -283,10 +283,10 @@ mod target_arch {
         input.resize(ALT_BN128_MULTIPLICATION_INPUT_LEN, 0);
 
         let p: G1 = PodG1::from_be_bytes(&input[..64])?.try_into()?;
-        let fr = BigInteger256::deserialize_uncompressed_unchecked(
-            &convert_endianness_64(&input[64..96])[..],
-        )
-        .map_err(|_| AltBn128Error::InvalidInputData)?;
+        let mut fr_bytes = [0u8; 32];
+        reverse_copy(&input[64..96], &mut fr_bytes)?;
+        let fr = BigInteger256::deserialize_uncompressed_unchecked(fr_bytes.as_slice())
+            .map_err(|_| AltBn128Error::InvalidInputData)?;
 
         let result_point: G1 = p.mul_bigint(fr).into();
 
