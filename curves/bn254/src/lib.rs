@@ -318,7 +318,7 @@ mod target_arch {
 
         let ele_len = input.len().saturating_div(ALT_BN128_PAIRING_ELEMENT_LEN);
 
-        let mut vec_pairs: Vec<(G1, G2)> = Vec::new();
+        let mut vec_pairs: Vec<(G1, G2)> = Vec::with_capacity(ele_len);
         for chunk in input.chunks(ALT_BN128_PAIRING_ELEMENT_LEN) {
             let (p_bytes, q_bytes) = chunk.split_at(G1_POINT_SIZE);
 
