@@ -2,7 +2,10 @@
 
 extern crate test;
 use {
-    openssl::{ec::{EcGroup, EcKey}, nid::Nid},
+    openssl::{
+        ec::{EcGroup, EcKey},
+        nid::Nid,
+    },
     rand0_7::{thread_rng, Rng},
     solana_feature_set::FeatureSet,
     solana_sdk::{
