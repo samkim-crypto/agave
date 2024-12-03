@@ -94,7 +94,7 @@ impl SignatureDetailsFilter {
             ProgramIdStatus::Secp256k1
         } else if program_id == &solana_sdk::ed25519_program::ID {
             ProgramIdStatus::Ed25519
-        } else if program_id == &solana_secp256r1_program::ID {
+        } else if program_id == &solana_sdk_ids::secp256r1_program::ID {
             ProgramIdStatus::Secp256r1
         } else {
             ProgramIdStatus::NotSignature
@@ -150,7 +150,7 @@ mod tests {
             Pubkey::new_unique(),
             solana_sdk::secp256k1_program::ID,
             solana_sdk::ed25519_program::ID,
-            solana_secp256r1_program::ID,
+            solana_sdk_ids::secp256r1_program::ID,
         ];
         let instructions = [
             make_instruction(&program_ids, 1, &[5]),
@@ -174,7 +174,7 @@ mod tests {
         let program_ids = [
             solana_sdk::secp256k1_program::ID,
             solana_sdk::ed25519_program::ID,
-            solana_secp256r1_program::ID,
+            solana_sdk_ids::secp256r1_program::ID,
         ];
         let instructions = [
             make_instruction(&program_ids, 0, &[]),

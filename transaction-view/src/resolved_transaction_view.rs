@@ -17,6 +17,7 @@ use {
         secp256k1_program,
         signature::Signature,
     },
+    solana_sdk_ids::secp256r1_program,
     solana_svm_transaction::{
         instruction::SVMInstruction, message_address_table_lookup::SVMMessageAddressTableLookup,
         svm_message::SVMMessage, svm_transaction::SVMTransaction,
@@ -177,7 +178,7 @@ impl<D: TransactionData> ResolvedTransactionView<D> {
                     num_ed25519_instruction_signatures =
                         num_ed25519_instruction_signatures.wrapping_add(u64::from(*num_verifies));
                 }
-            } else if solana_secp256r1_program::check_id(program_id) {
+            } else if secp256r1_program::check_id(program_id) {
                 if let Some(num_verifies) = instruction.data.first() {
                     num_secp256r1_instruction_signatures =
                         num_secp256r1_instruction_signatures.wrapping_add(u64::from(*num_verifies));

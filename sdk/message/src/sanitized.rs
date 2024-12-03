@@ -14,7 +14,7 @@ use {
     solana_instruction::{BorrowedAccountMeta, BorrowedInstruction},
     solana_pubkey::Pubkey,
     solana_sanitize::Sanitize,
-    solana_sdk_ids::{ed25519_program, secp256k1_program},
+    solana_sdk_ids::{ed25519_program, secp256k1_program, secp256r1_program},
     std::{borrow::Cow, collections::HashSet, convert::TryFrom},
 };
 
@@ -411,7 +411,7 @@ impl SanitizedMessage {
                             .num_ed25519_instruction_signatures
                             .saturating_add(u64::from(*num_verifies));
                 }
-            } else if solana_secp256r1_program::check_id(program_id) {
+            } else if secp256r1_program::check_id(program_id) {
                 if let Some(num_verifies) = instruction.data.first() {
                     transaction_signature_details.num_secp256r1_instruction_signatures =
                         transaction_signature_details
