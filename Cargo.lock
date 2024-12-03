@@ -237,6 +237,7 @@ dependencies = [
  "bincode",
  "criterion",
  "solana-sdk",
+ "solana-secp256r1-program",
  "solana-svm-transaction",
 ]
 
@@ -7550,6 +7551,7 @@ dependencies = [
  "solana-pubkey",
  "solana-sanitize",
  "solana-sdk-ids",
+ "solana-secp256r1-program",
  "solana-sha256-hasher",
  "solana-short-vec",
  "solana-system-interface",
@@ -8462,6 +8464,7 @@ dependencies = [
  "solana-program",
  "solana-pubkey",
  "solana-sdk",
+ "solana-secp256r1-program",
  "solana-svm-transaction",
  "thiserror 2.0.3",
 ]

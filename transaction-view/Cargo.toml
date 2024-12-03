@@ -11,6 +11,7 @@ edition = { workspace = true }
 
 [dependencies]
 solana-sdk = { workspace = true }
+solana-secp256r1-program = { workspace = true }
 solana-svm-transaction = { workspace = true }
 
 [dev-dependencies]

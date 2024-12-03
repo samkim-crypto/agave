@@ -24,6 +24,7 @@ solana-logger = { workspace = true, optional = true }
 solana-pubkey = { workspace = true }
 solana-sanitize = { workspace = true }
 solana-sdk-ids = { workspace = true }
+solana-secp256r1-program = { workspace = true, features = ["openssl-vendored"] }
 solana-short-vec = { workspace = true, optional = true }
 solana-system-interface = { workspace = true, optional = true, features = [
     "bincode",

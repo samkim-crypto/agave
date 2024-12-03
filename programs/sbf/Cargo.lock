@@ -78,6 +78,7 @@ name = "agave-transaction-view"
 version = "2.2.0"
 dependencies = [
  "solana-sdk",
+ "solana-secp256r1-program",
  "solana-svm-transaction",
 ]
 
@@ -5962,6 +5963,7 @@ dependencies = [
  "solana-pubkey",
  "solana-sanitize",
  "solana-sdk-ids",
+ "solana-secp256r1-program",
  "solana-short-vec",
  "solana-system-interface",
  "solana-transaction-error",
@@ -6678,6 +6680,7 @@ dependencies = [
  "solana-compute-budget",
  "solana-pubkey",
  "solana-sdk",
+ "solana-secp256r1-program",
  "solana-svm-transaction",
  "thiserror 2.0.3",
 ]
