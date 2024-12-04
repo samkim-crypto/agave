@@ -129,6 +129,11 @@ impl CostModel {
                     .num_ed25519_instruction_signatures()
                     .saturating_mul(ed25519_verify_cost),
             )
+            .saturating_add(
+                signatures_count_detail
+                    .num_secp256r1_instruction_signatures()
+                    .saturating_mul(SECP256R1_VERIFY_COST),
+            )
     }
 
     fn get_writable_accounts(message: &impl SVMMessage) -> impl Iterator<Item = &Pubkey> {
