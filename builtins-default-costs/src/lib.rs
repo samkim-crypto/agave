@@ -11,7 +11,6 @@ use {
         pubkey::Pubkey,
         secp256k1_program,
     },
-    solana_sdk_ids::secp256r1_program,
 };
 
 /// DEVELOPER: when a builtin is migrated to sbpf, please add its corresponding
@@ -123,13 +122,6 @@ lazy_static! {
             core_bpf_migration_feature: None,
         },
     ),
-    (
-        secp256r1_program::id(),
-        BuiltinCost {
-            native_cost: 0,
-            core_bpf_migration_feature: None,
-        }
-    )
     // DO NOT ADD MORE ENTRIES TO THIS MAP
     ]
     .iter()
