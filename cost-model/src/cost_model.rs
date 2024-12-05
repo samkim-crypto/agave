@@ -116,6 +116,13 @@ impl CostModel {
                 ED25519_VERIFY_COST
             };
 
+        let secp256r1_verify_cost =
+            if feature_set.is_active(&feature_set::enable_secp256r1_precompile::id()) {
+                SECP256R1_VERIFY_COST
+            } else {
+                0
+            };
+
         signatures_count_detail
             .num_transaction_signatures()
             .saturating_mul(SIGNATURE_COST)
@@ -132,7 +139,7 @@ impl CostModel {
             .saturating_add(
                 signatures_count_detail
                     .num_secp256r1_instruction_signatures()
-                    .saturating_mul(SECP256R1_VERIFY_COST),
+                    .saturating_mul(secp256r1_verify_cost),
             )
     }
 
