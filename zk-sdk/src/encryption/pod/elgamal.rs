@@ -145,6 +145,10 @@ impl PodElGamalPubkey {
         self.0.into()
     }
 
+    pub fn zeroed() -> Self {
+        Self::default()
+    }
+
     pub fn compressed(decoded: &ElGamalPubkey) -> PodElGamalPubkey {
         (*decoded).into()
     }
