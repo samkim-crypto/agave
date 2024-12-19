@@ -1,5 +1,7 @@
 //! Plain Old Data types for the ElGamal encryption scheme.
 
+#[cfg(not(target_arch = "wasm32"))]
+use bytemuck::Zeroable;
 #[cfg(not(target_os = "solana"))]
 use {
     crate::{
@@ -14,7 +16,6 @@ use {
         pod::{impl_from_bytes, impl_from_str, impl_wasm_bindings},
     },
     base64::{prelude::BASE64_STANDARD, Engine},
-    bytemuck::Zeroable,
     std::fmt,
 };
 #[cfg(target_arch = "wasm32")]
@@ -35,7 +36,13 @@ const DECRYPT_HANDLE_MAX_BASE64_LEN: usize = 44;
 /// The `ElGamalCiphertext` type as a `Pod`.
 #[derive(Clone, Copy, bytemuck_derive::Pod, bytemuck_derive::Zeroable, PartialEq, Eq)]
 #[repr(transparent)]
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
 pub struct PodElGamalCiphertext(pub(crate) [u8; ELGAMAL_CIPHERTEXT_LEN]);
+
+impl_wasm_bindings!(
+    POD_TYPE = PodElGamalCiphertext,
+    DECODED_TYPE = ElGamalCiphertext
+);
 
 impl fmt::Debug for PodElGamalCiphertext {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
