@@ -34,9 +34,9 @@ const ELGAMAL_CIPHERTEXT_MAX_BASE64_LEN: usize = 88;
 const DECRYPT_HANDLE_MAX_BASE64_LEN: usize = 44;
 
 /// The `ElGamalCiphertext` type as a `Pod`.
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
 #[derive(Clone, Copy, bytemuck_derive::Pod, bytemuck_derive::Zeroable, PartialEq, Eq)]
 #[repr(transparent)]
-#[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
 pub struct PodElGamalCiphertext(pub(crate) [u8; ELGAMAL_CIPHERTEXT_LEN]);
 
 impl_wasm_bindings!(
@@ -90,9 +90,9 @@ impl TryFrom<PodElGamalCiphertext> for ElGamalCiphertext {
 }
 
 /// The `ElGamalPubkey` type as a `Pod`.
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
 #[derive(Clone, Copy, Default, bytemuck_derive::Pod, bytemuck_derive::Zeroable, PartialEq, Eq)]
 #[repr(transparent)]
-#[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
 pub struct PodElGamalPubkey(pub(crate) [u8; ELGAMAL_PUBKEY_LEN]);
 
 impl_wasm_bindings!(POD_TYPE = PodElGamalPubkey, DECODED_TYPE = ElGamalPubkey);
