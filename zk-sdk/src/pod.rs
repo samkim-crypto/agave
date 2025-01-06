@@ -67,19 +67,23 @@ macro_rules! impl_wasm_bindings {
     (POD_TYPE = $pod_type:ident, DECODED_TYPE = $decoded_type: ident) => {
         #[cfg(target_arch = "wasm32")]
         #[allow(non_snake_case)]
-        #[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
+        #[cfg_attr(target_arch = "wasm32", wasm_bindgen::prelude::wasm_bindgen)]
         impl $pod_type {
-            #[wasm_bindgen(constructor)]
-            pub fn constructor(value: JsValue) -> Result<$pod_type, JsValue> {
+            #[wasm_bindgen::prelude::wasm_bindgen(constructor)]
+            pub fn constructor(
+                value: wasm_bindgen::JsValue,
+            ) -> Result<$pod_type, wasm_bindgen::JsValue> {
                 if let Some(base64_str) = value.as_string() {
                     base64_str
                         .parse::<$pod_type>()
                         .map_err(|e| e.to_string().into())
-                } else if let Some(uint8_array) = value.dyn_ref::<Uint8Array>() {
+                } else if let Some(uint8_array) = value.dyn_ref::<js_sys::Uint8Array>() {
                     bytemuck::try_from_bytes(&uint8_array.to_vec())
-                        .map_err(|err| JsValue::from(format!("Invalid Uint8Array: {err:?}")))
+                        .map_err(|err| {
+                            wasm_bindgen::JsValue::from(format!("Invalid Uint8Array: {err:?}"))
+                        })
                         .map(|value| *value)
-                } else if let Some(array) = value.dyn_ref::<Array>() {
+                } else if let Some(array) = value.dyn_ref::<js_sys::Array>() {
                     let mut bytes = vec![];
                     let iterator =
                         js_sys::try_iter(&array.values())?.expect("array to be iterable");
@@ -96,7 +100,9 @@ macro_rules! impl_wasm_bindings {
                     }
 
                     bytemuck::try_from_bytes(&bytes)
-                        .map_err(|err| JsValue::from(format!("Invalid Array: {err:?}")))
+                        .map_err(|err| {
+                            wasm_bindgen::JsValue::from(format!("Invalid Array: {err:?}"))
+                        })
                         .map(|value| *value)
                 } else if value.is_undefined() {
                     Ok($pod_type::default())
@@ -125,7 +131,7 @@ macro_rules! impl_wasm_bindings {
                 (*decoded).into()
             }
 
-            pub fn decode(&self) -> Result<$decoded_type, JsValue> {
+            pub fn decode(&self) -> Result<$decoded_type, wasm_bindgen::JsValue> {
                 (*self)
                     .try_into()
                     .map_err(|err| JsValue::from(format!("Invalid encoding: {err:?}")))

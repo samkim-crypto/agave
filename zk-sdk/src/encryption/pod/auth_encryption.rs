@@ -2,6 +2,8 @@
 
 #[cfg(not(target_os = "solana"))]
 use crate::{encryption::auth_encryption::AeCiphertext, errors::AuthenticatedEncryptionError};
+#[cfg(target_arch = "wasm32")]
+use wasm_bindgen::prelude::*;
 use {
     crate::{
         encryption::AE_CIPHERTEXT_LEN,
@@ -10,11 +12,6 @@ use {
     base64::{prelude::BASE64_STANDARD, Engine},
     bytemuck::{Pod, Zeroable},
     std::fmt,
-};
-#[cfg(target_arch = "wasm32")]
-use {
-    js_sys::{Array, Uint8Array},
-    wasm_bindgen::prelude::*,
 };
 
 /// Maximum length of a base64 encoded authenticated encryption ciphertext

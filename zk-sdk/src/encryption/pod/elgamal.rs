@@ -2,6 +2,8 @@
 
 #[cfg(not(target_arch = "wasm32"))]
 use bytemuck::Zeroable;
+#[cfg(target_arch = "wasm32")]
+use wasm_bindgen::prelude::*;
 #[cfg(not(target_os = "solana"))]
 use {
     crate::{
@@ -17,11 +19,6 @@ use {
     },
     base64::{prelude::BASE64_STANDARD, Engine},
     std::fmt,
-};
-#[cfg(target_arch = "wasm32")]
-use {
-    js_sys::{Array, Uint8Array},
-    wasm_bindgen::prelude::*,
 };
 
 /// Maximum length of a base64 encoded ElGamal public key
