@@ -227,12 +227,12 @@ impl<const N: usize> GroupedElGamalCiphertext<N> {
 mod grouped_elgamal_wasm {
     use super::*;
 
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
+    #[wasm_bindgen]
     pub struct GroupedElGamalCiphertext2Handles(pub(crate) GroupedElGamalCiphertext<2>);
 
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
+    #[wasm_bindgen]
     impl GroupedElGamalCiphertext2Handles {
-        #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = encryptU64))]
+        #[wasm_bindgen(js_name = encryptU64)]
         pub fn encrypt_u64(
             first_pubkey: &ElGamalPubkey,
             second_pubkey: &ElGamalPubkey,
@@ -245,12 +245,12 @@ mod grouped_elgamal_wasm {
         }
     }
 
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
+    #[wasm_bindgen]
     pub struct GroupedElGamalCiphertext3Handles(pub(crate) GroupedElGamalCiphertext<3>);
 
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
+    #[wasm_bindgen]
     impl GroupedElGamalCiphertext3Handles {
-        #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = encryptU64))]
+        #[wasm_bindgen(js_name = encryptU64)]
         pub fn encrypt_u64(
             first_pubkey: &ElGamalPubkey,
             second_pubkey: &ElGamalPubkey,
