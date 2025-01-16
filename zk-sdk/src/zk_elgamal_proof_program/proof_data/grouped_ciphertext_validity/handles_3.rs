@@ -99,6 +99,9 @@ impl GroupedCiphertext3HandlesValidityProofData {
     }
 }
 
+// Define a separate constructor for `wasm32` target since `wasm_bindgen` does
+// not yet support parameters with generic constants (i.e.
+// `GroupedElGamalCiphertext<3>`).
 #[cfg(target_arch = "wasm32")]
 #[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
 impl GroupedCiphertext3HandlesValidityProofData {
