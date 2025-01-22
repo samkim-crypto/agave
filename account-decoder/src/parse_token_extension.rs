@@ -2,9 +2,9 @@ pub use solana_account_decoder_client_types::token::{
     UiConfidentialMintBurn, UiConfidentialTransferAccount, UiConfidentialTransferFeeAmount,
     UiConfidentialTransferFeeConfig, UiConfidentialTransferMint, UiCpiGuard, UiDefaultAccountState,
     UiExtension, UiGroupMemberPointer, UiGroupPointer, UiInterestBearingConfig, UiMemoTransfer,
-    UiMetadataPointer, UiMintCloseAuthority, UiPermanentDelegate, UiTokenGroup, UiTokenGroupMember,
-    UiTokenMetadata, UiTransferFee, UiTransferFeeAmount, UiTransferFeeConfig, UiTransferHook,
-    UiTransferHookAccount, UiScaledUiAmountConfig, UiPausableConfig,
+    UiMetadataPointer, UiMintCloseAuthority, UiPausableConfig, UiPermanentDelegate,
+    UiScaledUiAmountConfig, UiTokenGroup, UiTokenGroupMember, UiTokenMetadata, UiTransferFee,
+    UiTransferFeeAmount, UiTransferFeeConfig, UiTransferHook, UiTransferHookAccount,
 };
 use {
     crate::parse_token::convert_account_state,
@@ -150,9 +150,7 @@ pub fn parse_extension<S: BaseState + Pack>(
             .unwrap_or(UiExtension::UnparseableExtension),
         ExtensionType::Pausable => account
             .get_extension::<extension::pausable::PausableConfig>()
-            .map(|&extension| {
-                UiExtension::PausableConfig(convert_pausable_config(extension))
-            })
+            .map(|&extension| UiExtension::PausableConfig(convert_pausable_config(extension)))
             .unwrap_or(UiExtension::UnparseableExtension),
         ExtensionType::PausableAccount => UiExtension::PausableAccount,
     }
@@ -416,7 +414,8 @@ fn convert_scaled_ui_amount(
     let authority: Option<Pubkey> = scaled_ui_amount_config.authority.into();
     let multiplier: f64 = scaled_ui_amount_config.multiplier.into();
     let new_multiplier_effective_timestamp: i64 = scaled_ui_amount_config
-        .new_multiplier_effective_timestamp.into();
+        .new_multiplier_effective_timestamp
+        .into();
     let new_multiplier: f64 = scaled_ui_amount_config.new_multiplier.into();
     UiScaledUiAmountConfig {
         authority: authority.map(|pubkey| pubkey.to_string()),
