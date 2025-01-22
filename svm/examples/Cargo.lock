@@ -2629,7 +2629,7 @@ dependencies = [
  "solana-system-program",
  "solana-transaction-status",
  "solana-version",
- "spl-token-2022 6.0.0",
+ "spl-token-2022 7.0.0",
  "tokio",
  "tokio-util 0.7.12",
 ]
