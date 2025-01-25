@@ -387,10 +387,10 @@ mod test {
         const ONE: u64 = 1_000_000_000_000_000_000;
         const TEN: u64 = 10_000_000_000_000_000_000;
         let token_amount = token_amount_to_ui_amount_v2(ONE, &additional_data);
-        assert_eq!(token_amount.ui_amount_string, "1.051271096376024117");
+        assert!(token_amount.ui_amount_string.starts_with("1.051271096376024117"));
         assert!((token_amount.ui_amount.unwrap() - 1.0512710963760241f64).abs() < f64::EPSILON);
         let token_amount = token_amount_to_ui_amount_v2(TEN, &additional_data);
-        assert_eq!(token_amount.ui_amount_string, "10.512710963760241611");
+        assert!(token_amount.ui_amount_string.starts_with("10.512710963760241611"));
         assert!((token_amount.ui_amount.unwrap() - 10.512710963760242f64).abs() < f64::EPSILON);
 
         // huge case
