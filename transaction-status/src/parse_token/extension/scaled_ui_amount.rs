@@ -31,7 +31,7 @@ pub(in crate::parse_token) fn parse_scaled_ui_amount_instruction(
                 info: json!({
                     "mint": account_keys[account_indexes[0] as usize].to_string(),
                     "authority": authority.map(|pubkey| pubkey.to_string()),
-                    "multiplier": f64::from(multiplier),
+                    "multiplier": f64::from(multiplier).to_string(),
                 }),
             })
         }
@@ -45,7 +45,7 @@ pub(in crate::parse_token) fn parse_scaled_ui_amount_instruction(
             })?;
             let mut value = json!({
                 "mint": account_keys[account_indexes[0] as usize].to_string(),
-                "newMultiplier": f64::from(multiplier),
+                "newMultiplier": f64::from(multiplier).to_string(),
                 "newMultiplierTimestamp": i64::from(effective_timestamp),
             });
             let map = value.as_object_mut().unwrap();
