@@ -15,7 +15,7 @@ use {
             elgamal::PodElGamalPubkey, grouped_elgamal::PodGroupedElGamalCiphertext2Handles,
         },
         sigma_proofs::pod::PodBatchedGroupedCiphertext2HandlesValidityProof,
-        zk_elgamal_proof_program::proof_data::{ProofType, ZkProofData},
+        zk_elgamal_proof_program::proof_data::{pod::impl_wasm_to_bytes, ProofType, ZkProofData},
     },
     bytemuck_derive::{Pod, Zeroable},
 };
@@ -148,19 +148,9 @@ impl BatchedGroupedCiphertext2HandlesValidityProofData {
 
         Ok(Self { context, proof })
     }
-
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = toBytes))]
-    pub fn to_bytes(&self) -> Box<[u8]> {
-        bytes_of(self).into()
-    }
-
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = fromBytes))]
-    pub fn from_bytes(bytes: &[u8]) -> Result<Self, ProofDataError> {
-        bytemuck::try_from_bytes(bytes)
-            .copied()
-            .map_err(|_| ProofDataError::Deserialization)
-    }
 }
+
+impl_wasm_to_bytes!(TYPE = BatchedGroupedCiphertext2HandlesValidityProofData);
 
 impl ZkProofData<BatchedGroupedCiphertext2HandlesValidityProofContext>
     for BatchedGroupedCiphertext2HandlesValidityProofData
@@ -227,21 +217,7 @@ impl BatchedGroupedCiphertext2HandlesValidityProofContext {
     }
 }
 
-#[cfg(not(target_os = "solana"))]
-#[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
-impl BatchedGroupedCiphertext2HandlesValidityProofContext {
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = toBytes))]
-    pub fn to_bytes(&self) -> Box<[u8]> {
-        bytes_of(self).into()
-    }
-
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = fromBytes))]
-    pub fn from_bytes(bytes: &[u8]) -> Result<Self, ProofDataError> {
-        bytemuck::try_from_bytes(bytes)
-            .copied()
-            .map_err(|_| ProofDataError::Deserialization)
-    }
-}
+impl_wasm_to_bytes!(TYPE = BatchedGroupedCiphertext2HandlesValidityProofContext);
 
 #[cfg(test)]
 mod test {

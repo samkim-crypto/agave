@@ -27,7 +27,7 @@ use {
         encryption::pod::pedersen::PodPedersenCommitment,
         pod::PodU64,
         sigma_proofs::pod::PodPercentageWithCapProof,
-        zk_elgamal_proof_program::proof_data::{ProofType, ZkProofData},
+        zk_elgamal_proof_program::proof_data::{pod::impl_wasm_to_bytes, ProofType, ZkProofData},
     },
     bytemuck_derive::{Pod, Zeroable},
 };
@@ -113,19 +113,9 @@ impl PercentageWithCapProofData {
 
         Ok(Self { context, proof })
     }
-
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = toBytes))]
-    pub fn to_bytes(&self) -> Box<[u8]> {
-        bytes_of(self).into()
-    }
-
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = fromBytes))]
-    pub fn from_bytes(bytes: &[u8]) -> Result<Self, ProofDataError> {
-        bytemuck::try_from_bytes(bytes)
-            .copied()
-            .map_err(|_| ProofDataError::Deserialization)
-    }
 }
+
+impl_wasm_to_bytes!(TYPE = PercentageWithCapProofData);
 
 impl ZkProofData<PercentageWithCapProofContext> for PercentageWithCapProofData {
     const PROOF_TYPE: ProofType = ProofType::PercentageWithCap;
@@ -171,21 +161,7 @@ impl PercentageWithCapProofContext {
     }
 }
 
-#[cfg(not(target_os = "solana"))]
-#[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
-impl PercentageWithCapProofContext {
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = toBytes))]
-    pub fn to_bytes(&self) -> Box<[u8]> {
-        bytes_of(self).into()
-    }
-
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen(js_name = fromBytes))]
-    pub fn from_bytes(bytes: &[u8]) -> Result<Self, ProofDataError> {
-        bytemuck::try_from_bytes(bytes)
-            .copied()
-            .map_err(|_| ProofDataError::Deserialization)
-    }
-}
+impl_wasm_to_bytes!(TYPE = PercentageWithCapProofContext);
 
 #[cfg(test)]
 mod test {
