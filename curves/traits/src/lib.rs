@@ -22,6 +22,13 @@ pub trait PointValidation {
     fn validate_point(&self) -> bool;
 }
 
+pub trait HashToCurve {
+    type Point;
+
+    /// Hash a sequence of bgytes to a curve point.
+    fn hash_to_curve(bytes: &[u8], dst: &[u8], aug: &[u8]) -> Self::Point;
+}
+
 pub trait GroupOperations {
     type Point;
     type Scalar;
@@ -72,13 +79,20 @@ pub trait Pairing {
     /// Applies the bilinear pairing operation to two curve points P1, P2 -> e(P1, P2). This trait
     /// is only relevant for "pairing-friendly" curves such as BN254 and BLS12-381.
     fn pairing_map(
-        left_point: &Self::G1Point,
-        right_point: &Self::G2Point,
+        g1_points: &[Self::G1Point],
+        g2_points: &[Self::G2Point],
+        n: usize,
     ) -> Option<Self::GTPoint>;
 }
 
 pub const CURVE25519_EDWARDS: u64 = 0;
 pub const CURVE25519_RISTRETTO: u64 = 1;
+pub const BN254_G1: u64 = 2;
+pub const BN254_G2: u64 = 3;
+pub const BN254_GT: u64 = 4;
+pub const BLS12_381_G1: u64 = 5;
+pub const BLS12_381_G2: u64 = 6;
+pub const BLS12_381_GT: u64 = 7;
 
 pub const ADD: u64 = 0;
 pub const SUB: u64 = 1;
