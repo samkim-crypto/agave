@@ -103,7 +103,7 @@ members = [
     "programs/vote",
     "programs/zk-elgamal-proof",
     "programs/zk-token-proof",
-    "programs/zk-token-proof-tests",
+    "programs/zk-elgamal-proof-tests",
     "pubsub-client",
     "quic-client",
     "rayon-threadlimit",
