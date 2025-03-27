@@ -15,9 +15,7 @@ use {
             grouped_elgamal::GroupedElGamal,
             pedersen::{Pedersen, PedersenOpening},
         },
-        zk_elgamal_proof_program::{
-            self, instruction::*, proof_data::*, state::ProofContextState,
-        },
+        zk_elgamal_proof_program::{self, instruction::*, proof_data::*, state::ProofContextState},
     },
     std::mem::size_of,
 };
@@ -38,20 +36,15 @@ const VERIFY_INSTRUCTION_TYPES: [ProofInstruction; 12] = [
 ];
 
 #[tokio::test]
-async fn test_zero_balance()
-        {
-       
+async fn test_zero_balance() {
     let elgamal_keypair = ElGamalKeypair::new_rand();
 
-       
-       
     let zero_ciphertext = elgamal_keypair.pubkey().encrypt(0_u64);
     let success_proof_data =
         ZeroCiphertextProofData::new(&elgamal_keypair, &zero_ciphertext).unwrap();
 
     let incorrect_pubkey = elgamal_keypair.pubkey();
-    let incorrect_secret 
-       = ElGamalSecretKey::new_rand();
+    let incorrect_secret = ElGamalSecretKey::new_rand();
     let incorrect_keypair = ElGamalKeypair::new_for_tests(*incorrect_pubkey, incorrect_secret);
 
     let fail_proof_data =
