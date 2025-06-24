@@ -102,7 +102,6 @@ pub fn new_batched_range_proof_u256(
     Ok(bytes_of(&proof_data).to_vec())
 }
 
-
 impl ZkProofData<BatchedRangeProofContext> for BatchedRangeProofU256Data {
     const PROOF_TYPE: ProofType = ProofType::BatchedRangeProofU256;
 
