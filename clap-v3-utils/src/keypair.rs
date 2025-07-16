@@ -9,6 +9,8 @@
 //! sources supported by the Solana CLI. Many other functions here are
 //! variations on, or delegate to, `signer_from_path`.
 
+#[cfg(feature = "elgamal")]
+use solana_zk_sdk::encryption::{auth_encryption::AeKey, elgamal::ElGamalKeypair};
 use {
     crate::{
         input_parsers::signer::{try_pubkeys_sigs_of, SignerSource, SignerSourceKind},
@@ -41,9 +43,6 @@ use {
         rc::Rc,
     },
 };
-
-#[cfg(feature = "elgamal")]
-use solana_zk_sdk::encryption::{auth_encryption::AeKey, elgamal::ElGamalKeypair};
 
 pub struct SignOnly {
     pub blockhash: Hash,
