@@ -17,7 +17,7 @@ name = "solana_clap_v3_utils"
 
 [features]
 default = ["elgamal"]
-elgamal = ["solana-zk-sdk"]
+elgamal = ["dep:solana-zk-sdk"]
 
 [dependencies]
 chrono = { workspace = true, features = ["default"] }
