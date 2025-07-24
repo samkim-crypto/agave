@@ -11,7 +11,7 @@ pub enum SigmaProofVerificationError {
     MultiscalarMul,
     #[error("transcript failed to produce a challenge")]
     Transcript(#[from] TranscriptError),
-    #[error("public key si the identity")]
+    #[error("public key is the identity")]
     PubkeyIsIdentity,
 }
 
