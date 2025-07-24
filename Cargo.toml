@@ -561,7 +561,7 @@ solana-vote-program = { path = "programs/vote", version = "=3.0.0", default-feat
 solana-wen-restart = { path = "wen-restart", version = "=3.0.0" }
 solana-zk-elgamal-proof-program = { path = "programs/zk-elgamal-proof", version = "=3.0.0" }
 solana-zk-keygen = { path = "zk-keygen", version = "=3.0.0" }
-solana-zk-sdk = { path = "zk-sdk", version = "=3.0.0" }
+solana-zk-sdk = "3.0.0"
 solana-zk-token-proof-program = { path = "programs/zk-token-proof", version = "=3.0.0" }
 solana-zk-token-sdk = { path = "zk-token-sdk", version = "=3.0.0" }
 spl-associated-token-account = "7.0.0"
