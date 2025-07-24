@@ -140,7 +140,6 @@ members = [
     "wen-restart",
     "xdp",
     "zk-keygen",
-    "zk-sdk",
     "zk-token-sdk",
 ]
 
@@ -677,4 +676,3 @@ crossbeam-epoch = { git = "https://github.com/anza-xyz/crossbeam", rev = "fd279d
 # There is a similar override in `programs/sbf/Cargo.toml`.  Please keep both
 # comments and the overrides in sync.
 solana-curve25519 = { path = "curves/curve25519" }
-solana-zk-sdk = { path = "zk-sdk" }
