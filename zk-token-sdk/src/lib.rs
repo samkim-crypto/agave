@@ -1,5 +1,7 @@
 // Deprecate the crate
-#![deprecated]
+#![deprecated(
+    note = "use the `zk-sdk` instead: https://github.com/solana-program/zk-elgamal-proof/tree/main/zk-sdk"
+)]
 // Allow deprecated warnings to be suppressed in the crate
 #![allow(deprecated)]
 #![allow(clippy::arithmetic_side_effects, clippy::op_ref)]
