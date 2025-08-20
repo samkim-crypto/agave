@@ -1,6 +1,7 @@
 // Deprecate the crate
 #![deprecated(
-    note = "use the `zk-sdk` instead: https://github.com/solana-program/zk-elgamal-proof/tree/main/zk-sdk"
+    since = "2.3.8",
+    note = "use the `solana-zk-sdk` instead: https://github.com/solana-program/zk-elgamal-proof/tree/main/zk-sdk"
 )]
 // Allow deprecated warnings to be suppressed in the crate
 #![allow(deprecated)]
