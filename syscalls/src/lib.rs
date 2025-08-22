@@ -18,9 +18,8 @@ use {
     solana_blake3_hasher as blake3,
     solana_bn254::prelude::{
         alt_bn128_addition, alt_bn128_multiplication, alt_bn128_multiplication_128,
-        alt_bn128_pairing, ALT_BN128_ADDITION_OUTPUT_LEN,
-        ALT_BN128_MULTIPLICATION_OUTPUT_LEN, ALT_BN128_PAIRING_ELEMENT_LEN,
-        ALT_BN128_PAIRING_OUTPUT_LEN,
+        alt_bn128_pairing, ALT_BN128_ADDITION_OUTPUT_LEN, ALT_BN128_MULTIPLICATION_OUTPUT_LEN,
+        ALT_BN128_PAIRING_ELEMENT_LEN, ALT_BN128_PAIRING_OUTPUT_LEN,
     },
     solana_cpi::MAX_RETURN_DATA,
     solana_hash::Hash,
