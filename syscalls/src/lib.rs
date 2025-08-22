@@ -1691,10 +1691,7 @@ declare_builtin_function!(
             }
         };
 
-        let result_point = match calculation(input) {
-            Ok(result_point) => result_point,
-            Err(_) => return Ok(1),
-        };
+        let Ok(result_point) = calculation(input) else { return Ok(1) };
 
         call_result.copy_from_slice(&result_point);
         Ok(SUCCESS)
