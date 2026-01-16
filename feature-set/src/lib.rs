@@ -178,6 +178,7 @@ impl FeatureSet {
             create_account_allow_prefund: self.is_active(&create_account_allow_prefund::id()),
             bls_pubkey_management_in_vote_account: self
                 .is_active(&bls_pubkey_management_in_vote_account::id()),
+            enable_bls12_381_syscall: self.is_active(&enable_bls12_381_syscall::id()),
         }
     }
 }
@@ -1220,6 +1221,10 @@ pub mod bls_pubkey_management_in_vote_account {
     solana_pubkey::declare_id!("EGJLweNUVskAPEwpjvNB7JT6uUi6h4mFhowNYXVSrimG");
 }
 
+pub mod enable_bls12_381_syscall {
+    solana_pubkey::declare_id!("EGJLweNUVskAPEwpjvNB7JT6uUi6h4mFhowNYXVSrimG");
+}
+
 pub static FEATURE_NAMES: LazyLock<AHashMap<Pubkey, &'static str>> = LazyLock::new(|| {
     [
         (secp256k1_program_enabled::id(), "secp256k1 program"),
@@ -2186,6 +2191,10 @@ pub static FEATURE_NAMES: LazyLock<AHashMap<Pubkey, &'static str>> = LazyLock::n
         (
             bls_pubkey_management_in_vote_account::id(),
             "SIMD-0387: BLS Pubkey Management in Vote Account",
+        ),
+        (
+            enable_bls12_381_syscall::id(),
+            "SIMD-0388: BLS12-381 syscalls",
         ),
         /*************** ADD NEW FEATURES HERE ***************/
     ]
