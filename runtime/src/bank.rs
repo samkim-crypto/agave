@@ -3391,6 +3391,16 @@ impl Bank {
             // Reserved key set may have changed, so we must verify that
             // no writable keys are reserved.
             self.check_reserved_keys(transaction)?;
+
+            if self.feature_set.snapshot().limit_instruction_accounts {
+                for instr in transaction.instructions_iter() {
+                    if instr.accounts.len()
+                        > solana_transaction_context::MAX_ACCOUNTS_PER_INSTRUCTION
+                    {
+                        return Err(solana_transaction_error::TransactionError::SanitizeFailure);
+                    }
+                }
+            }
         }
 
         if self.slot() > alt_invalidation_slot {
@@ -5028,6 +5038,8 @@ impl Bank {
         let enable_instruction_account_limit =
             self.feature_set.snapshot().limit_instruction_accounts;
 
+        // WARNING: Any pending features added here most likely must also be checked in
+        //          `Bank::resanitize_transaction_minimally`.
         let sanitized_tx = {
             let size =
                 wincode::serialized_size(&tx).map_err(|_| TransactionError::SanitizeFailure)?;
