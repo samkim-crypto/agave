@@ -17,6 +17,7 @@ use {
         consensus::{Tower, tower_storage::TowerStorage},
         cost_update_service::CostUpdateService,
         drop_bank_service::DropBankService,
+        epoch_specs::EpochSpecs,
         repair::repair_service::{OutstandingShredRepairs, RepairInfo, RepairServiceChannels},
         replay_stage::{ReplayReceivers, ReplaySenders, ReplayStage, ReplayStageConfig},
         shred_fetch_stage::{SHRED_FETCH_CHANNEL_SIZE, ShredFetchStage},
@@ -585,13 +586,16 @@ impl Tvu {
             exit.clone(),
         );
 
+        let epoch_specs: Box<dyn solana_gossip::epoch_specs::EpochSpecs> =
+            Box::new(EpochSpecs::from(bank_forks.clone()));
+
         let duplicate_shred_listener = DuplicateShredListener::new(
             exit,
             cluster_info.clone(),
             DuplicateShredHandler::new(
                 blockstore,
                 leader_schedule_cache.clone(),
-                bank_forks.clone(),
+                epoch_specs,
                 duplicate_slots_sender,
                 tvu_config.shred_version,
             ),
