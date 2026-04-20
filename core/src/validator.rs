@@ -2438,13 +2438,13 @@ fn maybe_warp_slot(
         bank_forks.set_root(warp_slot, Some(snapshot_controller), Some(warp_slot));
         leader_schedule_cache.set_root(&warp_bank);
 
+        let snapshot_config = SnapshotConfig {
+            bank_snapshots_dir: ledger_path.to_path_buf(),
+            ..config.snapshot_config.clone()
+        };
         let full_snapshot_archive_info = match snapshot_bank_utils::bank_to_full_snapshot_archive(
-            ledger_path,
+            &snapshot_config,
             &warp_bank,
-            None,
-            &config.snapshot_config.full_snapshot_archives_dir,
-            &config.snapshot_config.incremental_snapshot_archives_dir,
-            config.snapshot_config.archive_format,
         ) {
             Ok(archive_info) => archive_info,
             Err(e) => return Err(format!("Unable to create snapshot: {e}")),
