@@ -24,7 +24,7 @@ use {
         svm_message::{SVMMessage, SVMStaticMessage},
         svm_transaction::SVMTransaction,
     },
-    solana_transaction::TransactionError,
+    solana_transaction::{TransactionError, versioned::TransactionVersion},
 };
 
 mod sdk_transactions;
@@ -83,6 +83,10 @@ impl<T> Deref for RuntimeTransaction<T> {
     }
 }
 impl<T: SVMStaticMessage> SVMStaticMessage for RuntimeTransaction<T> {
+    fn version(&self) -> TransactionVersion {
+        self.transaction.version()
+    }
+
     fn num_transaction_signatures(&self) -> u64 {
         self.transaction.num_transaction_signatures()
     }
