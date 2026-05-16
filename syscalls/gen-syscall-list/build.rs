@@ -51,8 +51,8 @@ fn main() {
         .count();
     if new_num_syscalls < old_num_syscalls {
         println!(
-            "LOG: Number of syscalls reduced from {old_num_syscalls} to \
-             {new_num_syscalls}, parsing logic in build.rs may need to be fixed."
+            "LOG: Number of syscalls reduced from {old_num_syscalls} to {new_num_syscalls}, \
+             parsing logic in build.rs may need to be fixed."
         );
     }
 
