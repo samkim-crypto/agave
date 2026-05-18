@@ -23,6 +23,8 @@ dev-context-only-utils = []
 [dependencies]
 agave-votor-messages = { workspace = true }
 crossbeam-channel = { workspace = true }
+curve25519 = { package = "solana-ed25519", git = "https://github.com/anza-xyz/cryptography", branch = "master", features = ["alloc", "rand_core", "digest"] }
+rand = "0.10"
 dlopen2 = { workspace = true }
 log = { workspace = true }
 num_cpus = { workspace = true }

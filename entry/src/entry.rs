@@ -24,6 +24,7 @@ use {
     },
     wincode::{SchemaRead, SchemaWrite, containers::Vec as WincodeVec, len::BincodeLen},
 };
+use curve25519::ed_sigs::{self, VerificationKeyBytes, Signature as HeeaSignature};
 
 pub type EntrySender = Sender<Vec<Entry>>;
 pub type EntryReceiver = Receiver<Vec<Entry>>;
@@ -212,14 +213,46 @@ impl UnverifiedSignatures {
     }
 
     pub fn verify(&self) -> Result<()> {
-        let verification_items = self.signatures.par_iter().flat_map_iter(|tx| {
-            let message = tx.serialized_message.as_slice();
-            let len = tx.signatures.len();
+        let dalek_result = {
+            let verification_items = self.signatures.par_iter().flat_map_iter(|tx| {
+                let message = tx.serialized_message.as_slice();
+                let len = tx.signatures.len();
 
-            (0..len).map(move |i| (&tx.signatures[i], &tx.signer_pubkeys[i], message))
-        });
+                (0..len).map(move |i| (&tx.signatures[i], &tx.signer_pubkeys[i], message))
+            });
+            batch_verify(verification_items)
+        };
 
-        if batch_verify(verification_items) {
+        let heea_result = {
+            let mut heea_batch = ed_sigs::batch::Verifier::new();
+
+            for tx in &self.signatures {
+                let message = tx.serialized_message.as_slice();
+                for i in 0..tx.signatures.len() {
+                    let sig_bytes: [u8; 64] = tx.signatures[i].into();
+
+                    let mut pubkey_bytes = [0u8; 32];
+                    pubkey_bytes.copy_from_slice(tx.signer_pubkeys[i].as_ref());
+
+                    let heea_sig = HeeaSignature::from(sig_bytes);
+                    let heea_vk = VerificationKeyBytes::from(pubkey_bytes);
+
+                    heea_batch.queue((heea_vk, heea_sig, message));
+                }
+            }
+
+            heea_batch.verify(rand::rng()).is_ok()
+        };
+
+        if dalek_result != heea_result {
+            log::error!(
+                "SHADOW VERIFICATION MISMATCH! Dalek: {}, HEEA: {}",
+                dalek_result,
+                heea_result
+            );
+        }
+
+        if dalek_result {
             Ok(())
         } else {
             Err(TransactionError::SignatureFailure)
