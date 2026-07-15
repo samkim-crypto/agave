@@ -157,12 +157,13 @@ impl VoteAccount {
             &Pubkey::from(rng.random::<[u8; 32]>()),
             &clock,
         );
-        let account = AccountSharedData::new_data(
+        let data = wincode::serialize(&VoteStateVersions::new_v4(vote_state)).unwrap();
+        let mut account = AccountSharedData::new(
             rng.random(), // lamports
-            &VoteStateVersions::new_v4(vote_state),
+            data.len(),
             &solana_sdk_ids::vote::id(), // owner
-        )
-        .unwrap();
+        );
+        account.set_data_from_slice(&data);
         VoteAccount::try_from(account).unwrap()
     }
 }
