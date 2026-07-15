@@ -622,3 +622,5 @@ codegen-units = 1
 crossbeam-epoch = { git = "https://github.com/anza-xyz/crossbeam", rev = "fd279d707025f0e60951e429bf778b4813d1b6bf" }
 solana-signature = { git = "https://github.com/zz-sol/solana-sdk", branch = "zz/ed25519" }
 solana-sanitize = { git = "https://github.com/zz-sol/solana-sdk", branch = "zz/ed25519" }
+solana-frozen-abi = { git = "https://github.com/zz-sol/solana-sdk", branch = "zz/ed25519" }
+solana-frozen-abi-macro = { git = "https://github.com/zz-sol/solana-sdk", branch = "zz/ed25519" }
