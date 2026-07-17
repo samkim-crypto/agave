@@ -38,6 +38,7 @@ use {
     solana_secp256k1_recover::{
         SECP256K1_PUBLIC_KEY_LENGTH, SECP256K1_SIGNATURE_LENGTH, Secp256k1RecoverError,
     },
+    solana_secp256r1,
     solana_sha256_hasher::Hasher,
     solana_sha512_hasher as sha512,
     solana_svm_feature_set::SVMFeatureSet,
@@ -335,6 +336,7 @@ pub fn create_program_runtime_environment(
     let enable_big_mod_exp_syscall = feature_set.enable_big_mod_exp_syscall;
     let blake3_syscall_enabled = feature_set.blake3_syscall_enabled;
     let curve25519_syscall_enabled = feature_set.curve25519_syscall_enabled;
+    let secp256r1_syscall_enabled = feature_set.secp256r1_syscall_enabled;
     let enable_bls12_381_syscall = feature_set.enable_bls12_381_syscall;
     let enable_sha512_syscall = feature_set.enable_sha512_syscall;
     let disable_fees_sysvar = feature_set.disable_fees_sysvar;
