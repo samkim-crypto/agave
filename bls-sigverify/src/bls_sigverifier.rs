@@ -289,10 +289,10 @@ impl SigVerifier {
                 self.stats.num_discarded_pkts += 1;
                 continue;
             }
-            // TODO(#13227): Enforce shred_version matching during deserialization
-            let Ok(msg) = wincode::config::deserialize_exact::<VersionedWireConsensusMessage, _>(
+            let Ok(msg) = VersionedWireConsensusMessage::deserialize_with_expected_shred_version(
                 packet.data(..).unwrap_or_default(),
                 packet_config(),
+                my_shred_version,
             ) else {
                 self.stats.num_malformed_pkts += 1;
                 continue;
@@ -302,11 +302,7 @@ impl SigVerifier {
                 self.stats.num_malformed_pkts += 1;
                 continue;
             };
-            let Some(decoded_msg) = DecodedWireConsensusMessage::try_new(msg, my_shred_version)
-            else {
-                self.stats.num_malformed_pkts += 1;
-                continue;
-            };
+            let decoded_msg = DecodedWireConsensusMessage::new(msg);
 
             match decoded_msg {
                 DecodedWireConsensusMessage::Vote(unverified_vote) => {
