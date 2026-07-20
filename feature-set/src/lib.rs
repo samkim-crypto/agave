@@ -2642,10 +2642,7 @@ pub static FEATURE_NAMES: LazyLock<AHashMap<Pubkey, &'static str>> = LazyLock::n
             loader_v3_set_program_data_to_elf_length::id(),
             "SIMD-0433: Loader V3 Set Program Data to ELF Length",
         ),
-        (
-            secp256r1_syscall_enabled::id(),
-            "enable secp256r1 syscall",
-        ),
+        (secp256r1_syscall_enabled::id(), "enable secp256r1 syscall"),
         /*************** ADD NEW FEATURES HERE ***************/
         /***** ADD NEW FEATURE BOOL TO `FeatureSnapshot` *****/
     ]

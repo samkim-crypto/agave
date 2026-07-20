@@ -299,6 +299,72 @@ impl HasherImpl for Sha512Hasher {
     }
 }
 
+// ------------------- To be moved to the `solana-secp256r1` library crate
+pub(crate) fn parse_secp256r1_point(
+    bytes: &[u8],
+    is_le: bool,
+) -> Option<solana_secp256r1::group::AffinePoint> {
+    if bytes.len() != 64 {
+        return None;
+    }
+    if bytes == [0u8; 64] {
+        return Some(solana_secp256r1::group::AffinePoint::IDENTITY);
+    }
+    let mut x_bytes = [0u8; 32];
+    let mut y_bytes = [0u8; 32];
+    x_bytes.copy_from_slice(&bytes[0..32]);
+    y_bytes.copy_from_slice(&bytes[32..64]);
+
+    if is_le {
+        x_bytes.reverse();
+        y_bytes.reverse();
+    }
+
+    let x = solana_secp256r1::field::FieldElement::from_be_bytes(x_bytes)?;
+    let y = solana_secp256r1::field::FieldElement::from_be_bytes(y_bytes)?;
+
+    solana_secp256r1::group::AffinePoint::new(x, y)
+}
+
+pub(crate) fn serialize_secp256r1_point(
+    point: &solana_secp256r1::group::AffinePoint,
+    is_le: bool,
+) -> [u8; 64] {
+    if point.is_identity() {
+        return [0u8; 64];
+    }
+    let mut x_bytes = point.x().unwrap().to_be_bytes();
+    let mut y_bytes = point.y().unwrap().to_be_bytes();
+
+    if is_le {
+        x_bytes.reverse();
+        y_bytes.reverse();
+    }
+
+    let mut out = [0u8; 64];
+    out[0..32].copy_from_slice(&x_bytes);
+    out[32..64].copy_from_slice(&y_bytes);
+    out
+}
+
+pub(crate) fn parse_secp256r1_scalar(
+    bytes: &[u8],
+    is_le: bool,
+) -> Option<solana_secp256r1::scalar::Scalar> {
+    if bytes.len() != 32 {
+        return None;
+    }
+    let mut scalar_bytes = [0u8; 32];
+    scalar_bytes.copy_from_slice(bytes);
+
+    if is_le {
+        scalar_bytes.reverse();
+    }
+
+    solana_secp256r1::scalar::Scalar::from_be_bytes(scalar_bytes)
+}
+// ------------------- To be moved to the `solana-secp256r1` library crate
+
 // NOTE: This macro name is checked by gen-syscall-list to create the list of
 // syscalls. If this macro name is changed, or if a new one is added, then
 // gen-syscall-list/build.rs must also be updated.
@@ -323,7 +389,6 @@ pub fn create_program_runtime_environment(
     let enable_big_mod_exp_syscall = feature_set.enable_big_mod_exp_syscall;
     let blake3_syscall_enabled = feature_set.blake3_syscall_enabled;
     let curve25519_syscall_enabled = feature_set.curve25519_syscall_enabled;
-    let secp256r1_syscall_enabled = feature_set.secp256r1_syscall_enabled;
     let enable_bls12_381_syscall = feature_set.enable_bls12_381_syscall;
     let enable_sha512_syscall = feature_set.enable_sha512_syscall;
     let disable_fees_sysvar = feature_set.disable_fees_sysvar;
@@ -1020,6 +1085,12 @@ impl BuiltinFunctionDefinition<InvokeContext<'_, '_>> for SyscallCurvePointValid
             return Err(SyscallError::InvalidAttribute.into());
         }
 
+        if !invoke_context.get_feature_set().secp256r1_syscall_enabled
+            && matches!(curve_id, SECP256R1_LE | SECP256R1_BE)
+        {
+            return Err(SyscallError::InvalidAttribute.into());
+        }
+
         let check_aligned = invoke_context.get_check_aligned();
         let memory_mapping = invoke_context.memory_contexts.memory_mapping()?;
         match curve_id {
@@ -1115,6 +1186,20 @@ impl BuiltinFunctionDefinition<InvokeContext<'_, '_>> for SyscallCurvePointValid
                     Ok(1)
                 }
             }
+            SECP256R1_LE | SECP256R1_BE => {
+                let cost = invoke_context.get_execution_cost().secp256r1_validate_cost;
+                invoke_context.compute_meter.consume_checked(cost)?;
+
+                let is_le = curve_id == SECP256R1_LE;
+                let point_input =
+                    translate_slice::<u8>(memory_mapping, point_addr, 64, check_aligned)?;
+
+                if crate::parse_secp256r1_point(point_input, is_le).is_some() {
+                    Ok(SUCCESS)
+                } else {
+                    Ok(1)
+                }
+            }
             _ => {
                 if invoke_context.get_feature_set().abort_on_invalid_curve {
                     Err(SyscallError::InvalidAttribute.into())
@@ -1148,6 +1233,12 @@ impl BuiltinFunctionDefinition<InvokeContext<'_, '_>> for SyscallCurveDecompress
             },
             solana_define_syscall::curve_constants::*,
         };
+
+        if !invoke_context.get_feature_set().secp256r1_syscall_enabled
+            && matches!(curve_id, SECP256R1_LE | SECP256R1_BE)
+        {
+            return Err(SyscallError::InvalidAttribute.into());
+        }
 
         let check_aligned = invoke_context.get_check_aligned();
         match curve_id {
@@ -1221,6 +1312,43 @@ impl BuiltinFunctionDefinition<InvokeContext<'_, '_>> for SyscallCurveDecompress
                     Ok(1)
                 }
             }
+            SECP256R1_LE | SECP256R1_BE => {
+                let cost = invoke_context
+                    .get_execution_cost()
+                    .secp256r1_decompress_cost;
+                invoke_context.compute_meter.consume_checked(cost)?;
+
+                let is_le = curve_id == SECP256R1_LE;
+                let memory_mapping = invoke_context.memory_contexts.memory_mapping_mut()?;
+
+                let compressed_input =
+                    translate_slice::<u8>(memory_mapping, point_addr, 33, check_aligned)?;
+
+                let mut compressed_bytes = [0u8; 33];
+                compressed_bytes.copy_from_slice(compressed_input);
+
+                if is_le {
+                    compressed_bytes[1..33].reverse();
+                }
+
+                if let Some(affine_point) =
+                    solana_secp256r1::group::AffinePoint::from_compressed(compressed_bytes)
+                {
+                    translate_mut!(
+                        memory_mapping,
+                        check_aligned,
+                        let result_ref_mut: (&mut [MaybeUninit<u8>]) =
+                            map(result_addr, 64)?;
+                    );
+                    result_ref_mut.write_copy_of_slice(&crate::serialize_secp256r1_point(
+                        &affine_point,
+                        is_le,
+                    ));
+                    Ok(SUCCESS)
+                } else {
+                    Ok(1)
+                }
+            }
             _ => Err(SyscallError::InvalidAttribute.into()),
         }
     }
@@ -1252,6 +1380,7 @@ impl BuiltinFunctionDefinition<InvokeContext<'_, '_>> for SyscallCurveGroupOps {
                 scalar,
             },
             solana_define_syscall::curve_constants::*,
+            solana_secp256r1::group::ProjectivePoint,
         };
 
         if !invoke_context.get_feature_set().enable_bls12_381_syscall
@@ -1259,6 +1388,12 @@ impl BuiltinFunctionDefinition<InvokeContext<'_, '_>> for SyscallCurveGroupOps {
                 curve_id,
                 BLS12_381_G1_BE | BLS12_381_G1_LE | BLS12_381_G2_BE | BLS12_381_G2_LE
             )
+        {
+            return Err(SyscallError::InvalidAttribute.into());
+        }
+
+        if !invoke_context.get_feature_set().secp256r1_syscall_enabled
+            && matches!(curve_id, SECP256R1_LE | SECP256R1_BE)
         {
             return Err(SyscallError::InvalidAttribute.into());
         }
@@ -1710,6 +1845,145 @@ impl BuiltinFunctionDefinition<InvokeContext<'_, '_>> for SyscallCurveGroupOps {
                 }
             }
 
+            SECP256R1_LE | SECP256R1_BE => {
+                let is_le = curve_id == SECP256R1_LE;
+                match group_op {
+                    ADD => {
+                        let cost = invoke_context.get_execution_cost().secp256r1_add_cost;
+                        invoke_context.compute_meter.consume_checked(cost)?;
+
+                        let memory_mapping = invoke_context.memory_contexts.memory_mapping_mut()?;
+                        let left_input = translate_slice::<u8>(
+                            memory_mapping,
+                            left_input_addr,
+                            64,
+                            check_aligned,
+                        )?;
+                        let right_input = translate_slice::<u8>(
+                            memory_mapping,
+                            right_input_addr,
+                            64,
+                            check_aligned,
+                        )?;
+
+                        let left_point = parse_secp256r1_point(left_input, is_le);
+                        let right_point = parse_secp256r1_point(right_input, is_le);
+
+                        if let (Some(left), Some(right)) = (left_point, right_point) {
+                            let result_point = (ProjectivePoint::from_affine(left)
+                                + ProjectivePoint::from_affine(right))
+                            .to_affine();
+
+                            translate_mut!(
+                                memory_mapping,
+                                check_aligned,
+                                let result_point_ref_mut:
+                                    (&mut [MaybeUninit<u8>]) =
+                                    map(result_point_addr, 64)?;
+                            );
+                            result_point_ref_mut.write_copy_of_slice(&serialize_secp256r1_point(
+                                &result_point,
+                                is_le,
+                            ));
+                            Ok(SUCCESS)
+                        } else {
+                            Ok(1)
+                        }
+                    }
+                    SUB => {
+                        let cost = invoke_context.get_execution_cost().secp256r1_subtract_cost;
+                        invoke_context.compute_meter.consume_checked(cost)?;
+
+                        let memory_mapping = invoke_context.memory_contexts.memory_mapping_mut()?;
+                        let left_input = translate_slice::<u8>(
+                            memory_mapping,
+                            left_input_addr,
+                            64,
+                            check_aligned,
+                        )?;
+                        let right_input = translate_slice::<u8>(
+                            memory_mapping,
+                            right_input_addr,
+                            64,
+                            check_aligned,
+                        )?;
+
+                        let left_point = parse_secp256r1_point(left_input, is_le);
+                        let right_point = parse_secp256r1_point(right_input, is_le);
+
+                        if let (Some(left), Some(right)) = (left_point, right_point) {
+                            let result_point = (ProjectivePoint::from_affine(left)
+                                - ProjectivePoint::from_affine(right))
+                            .to_affine();
+
+                            translate_mut!(
+                                memory_mapping,
+                                check_aligned,
+                                let result_point_ref_mut:
+                                    (&mut [MaybeUninit<u8>]) =
+                                    map(result_point_addr, 64)?;
+                            );
+                            result_point_ref_mut.write_copy_of_slice(&serialize_secp256r1_point(
+                                &result_point,
+                                is_le,
+                            ));
+                            Ok(SUCCESS)
+                        } else {
+                            Ok(1)
+                        }
+                    }
+                    MUL => {
+                        let cost = invoke_context.get_execution_cost().secp256r1_multiply_cost;
+                        invoke_context.compute_meter.consume_checked(cost)?;
+
+                        let memory_mapping = invoke_context.memory_contexts.memory_mapping_mut()?;
+                        let scalar_input = translate_slice::<u8>(
+                            memory_mapping,
+                            left_input_addr,
+                            32,
+                            check_aligned,
+                        )?;
+                        let point_input = translate_slice::<u8>(
+                            memory_mapping,
+                            right_input_addr,
+                            64,
+                            check_aligned,
+                        )?;
+
+                        let scalar = parse_secp256r1_scalar(scalar_input, is_le);
+                        let point = parse_secp256r1_point(point_input, is_le);
+
+                        if let (Some(scalar), Some(point)) = (scalar, point) {
+                            let result_point = ProjectivePoint::from_affine(point)
+                                .mul_scalar_vartime(scalar.to_be_bytes())
+                                .to_affine();
+
+                            translate_mut!(
+                                memory_mapping,
+                                check_aligned,
+                                let result_point_ref_mut:
+                                    (&mut [MaybeUninit<u8>]) =
+                                    map(result_point_addr, 64)?;
+                            );
+                            result_point_ref_mut.write_copy_of_slice(&serialize_secp256r1_point(
+                                &result_point,
+                                is_le,
+                            ));
+                            Ok(SUCCESS)
+                        } else {
+                            Ok(1)
+                        }
+                    }
+                    _ => {
+                        if invoke_context.get_feature_set().abort_on_invalid_curve {
+                            Err(SyscallError::InvalidAttribute.into())
+                        } else {
+                            Ok(1)
+                        }
+                    }
+                }
+            }
+
             _ => {
                 if invoke_context.get_feature_set().abort_on_invalid_curve {
                     Err(SyscallError::InvalidAttribute.into())
@@ -1747,6 +2021,12 @@ impl BuiltinFunctionDefinition<InvokeContext<'_, '_>> for SyscallCurveMultiscala
 
         if points_len > 512 {
             return Err(Box::new(SyscallError::InvalidLength));
+        }
+
+        if !invoke_context.get_feature_set().secp256r1_syscall_enabled
+            && matches!(curve_id, SECP256R1_LE | SECP256R1_BE)
+        {
+            return Err(SyscallError::InvalidAttribute.into());
         }
 
         let check_aligned = invoke_context.get_check_aligned();
@@ -1828,6 +2108,71 @@ impl BuiltinFunctionDefinition<InvokeContext<'_, '_>> for SyscallCurveMultiscala
                     );
                     result_point_ref_mut.write(result_point);
                     Ok(0)
+                } else {
+                    Ok(1)
+                }
+            }
+
+            SECP256R1_LE | SECP256R1_BE => {
+                let cost = invoke_context
+                    .get_execution_cost()
+                    .secp256r1_msm_base_cost
+                    .saturating_add(
+                        invoke_context
+                            .get_execution_cost()
+                            .secp256r1_msm_incremental_cost
+                            .saturating_mul(points_len.saturating_sub(1)),
+                    );
+                invoke_context.compute_meter.consume_checked(cost)?;
+
+                let memory_mapping = invoke_context.memory_contexts.memory_mapping_mut()?;
+                let is_le = curve_id == SECP256R1_LE;
+
+                let scalars_input = translate_slice::<[u8; 32]>(
+                    memory_mapping,
+                    scalars_addr,
+                    points_len,
+                    check_aligned,
+                )?;
+
+                let points_input = translate_slice::<[u8; 64]>(
+                    memory_mapping,
+                    points_addr,
+                    points_len,
+                    check_aligned,
+                )?;
+
+                let mut scalars = Vec::with_capacity(points_len as usize);
+                let mut points = Vec::with_capacity(points_len as usize);
+
+                for i in 0..(points_len as usize) {
+                    let scalar = crate::parse_secp256r1_scalar(&scalars_input[i], is_le);
+                    let point = crate::parse_secp256r1_point(&points_input[i], is_le);
+
+                    if let (Some(s), Some(p)) = (scalar, point) {
+                        scalars.push(s.to_be_bytes());
+                        points.push(p);
+                    } else {
+                        return Ok(1); // Invalid point or scalar fails immediately
+                    }
+                }
+
+                if let Some(result_point) =
+                    solana_secp256r1::group::ProjectivePoint::multi_scalar_mul_vartime(
+                        &points, &scalars,
+                    )
+                {
+                    translate_mut!(
+                        memory_mapping,
+                        check_aligned,
+                        let result_point_ref_mut: (&mut [MaybeUninit<u8>]) =
+                            map(result_point_addr, 64)?;
+                    );
+                    result_point_ref_mut.write_copy_of_slice(&crate::serialize_secp256r1_point(
+                        &result_point.to_affine(),
+                        is_le,
+                    ));
+                    Ok(SUCCESS)
                 } else {
                     Ok(1)
                 }
