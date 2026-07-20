@@ -204,6 +204,10 @@ pub struct SVMTransactionExecutionCost {
     pub secp256r1_msm_base_cost: u64,
     /// Number of compute units consumed for a multiscalar multiplication (msm) of secp256r1 points.
     pub secp256r1_msm_incremental_cost: u64,
+    /// Number of compute units consumed to validate a secp256r1 point.
+    pub secp256r1_validate_cost: u64,
+    /// Number of compute units consumed to decompress a secp256r1 point.
+    pub secp256r1_decompress_cost: u64,
 }
 
 impl Default for SVMTransactionExecutionCost {
@@ -263,6 +267,8 @@ impl Default for SVMTransactionExecutionCost {
             secp256r1_multiply_cost: 100_000,
             secp256r1_msm_base_cost: 100_000,
             secp256r1_msm_incremental_cost: 100_000,
+            secp256r1_validate_cost: 100_000,
+            secp256r1_decompress_cost: 100_000,
         }
     }
 }

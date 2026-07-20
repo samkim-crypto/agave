@@ -145,15 +145,19 @@ pub struct ComputeBudget {
     pub secp256r1_subtract_cost: u64,
     /// Number of compute units consumed to perform a secp256r1 point multiplication.
     pub secp256r1_multiply_cost: u64,
-    /// Base number of compute units consumed for a multiscalar multiplication 
-    /// (msm) of secp256r1 points. To account for sub-linear optimization 
-    /// algorithms, the total cost is calculated as 
+    /// Base number of compute units consumed for a multiscalar multiplication
+    /// (msm) of secp256r1 points. To account for sub-linear optimization
+    /// algorithms, the total cost is calculated as
     /// `msm_base_cost + (length - 1) * msm_incremental_cost`.
     pub secp256r1_msm_base_cost: u64,
-    /// Incremental number of compute units consumed per additional secp256r1 
-    /// point in a multiscalar multiplication (msm). The total cost is 
+    /// Incremental number of compute units consumed per additional secp256r1
+    /// point in a multiscalar multiplication (msm). The total cost is
     /// calculated as `msm_base_cost + (length - 1) * msm_incremental_cost`.
     pub secp256r1_msm_incremental_cost: u64,
+    /// Number of compute units to perform a secp256r1 point validation.
+    pub secp256r1_validate_cost: u64,
+    /// Number of compute units to perform a secp256r1 point decompression.
+    pub secp256r1_decompress_cost: u64,
 }
 
 #[cfg(feature = "dev-context-only-utils")]
@@ -241,6 +245,8 @@ impl ComputeBudget {
             secp256r1_multiply_cost: cost.secp256r1_multiply_cost,
             secp256r1_msm_base_cost: cost.secp256r1_msm_base_cost,
             secp256r1_msm_incremental_cost: cost.secp256r1_msm_incremental_cost,
+            secp256r1_validate_cost: cost.secp256r1_validate_cost,
+            secp256r1_decompress_cost: cost.secp256r1_decompress_cost,
         }
     }
 
@@ -313,6 +319,8 @@ impl ComputeBudget {
             secp256r1_multiply_cost: self.secp256r1_multiply_cost,
             secp256r1_msm_base_cost: self.secp256r1_msm_base_cost,
             secp256r1_msm_incremental_cost: self.secp256r1_msm_incremental_cost,
+            secp256r1_validate_cost: self.secp256r1_validate_cost,
+            secp256r1_decompress_cost: self.secp256r1_decompress_cost,
         }
     }
 

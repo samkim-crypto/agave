@@ -2625,10 +2625,7 @@ pub static FEATURE_NAMES: LazyLock<AHashMap<Pubkey, &'static str>> = LazyLock::n
             relax_fee_payer_constraint::id(),
             "SIMD-0290: Relax block constraint requiring valid fee-payer",
         ),
-        (
-            secp256r1_syscall_enabled::id(),
-            "enable secp256r1 syscall",
-        ),
+        (secp256r1_syscall_enabled::id(), "enable secp256r1 syscall"),
         /*************** ADD NEW FEATURES HERE ***************/
         /***** ADD NEW FEATURE BOOL TO `FeatureSnapshot` *****/
     ]
