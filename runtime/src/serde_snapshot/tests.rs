@@ -209,7 +209,8 @@ mod serde_snapshot_tests {
     fn test_accounts_serialize() {
         agave_logger::setup();
         let (_accounts_dir, paths) = get_temp_accounts_paths(4).unwrap();
-        let accounts_db = AccountsDb::new_for_tests(paths);
+        let accounts_db =
+            AccountsDb::new_for_tests_with_config(paths, ACCOUNTS_DB_CONFIG_FOR_TESTING);
         let accounts = Accounts::new(Arc::new(accounts_db));
 
         let slot = 0;
@@ -266,7 +267,7 @@ mod serde_snapshot_tests {
         agave_logger::setup();
         let unrooted_slot = 9;
         let unrooted_bank_id = 9;
-        let db = AccountsDb::new_single_for_tests();
+        let db = AccountsDb::default_for_tests();
         let key = solana_pubkey::new_rand();
         let account0 = AccountSharedData::new(1, 0, &key);
         db.store_for_tests((unrooted_slot, [(&key, &account0)].as_slice()));
@@ -298,7 +299,7 @@ mod serde_snapshot_tests {
     fn test_accounts_db_serialize1() {
         for pass in 0..2 {
             agave_logger::setup();
-            let accounts = AccountsDb::new_single_for_tests();
+            let accounts = AccountsDb::default_for_tests();
             let mut pubkeys: Vec<Pubkey> = vec![];
 
             // Create 100 accounts in slot 0
@@ -413,7 +414,7 @@ mod serde_snapshot_tests {
         let account2 = AccountSharedData::new(some_lamport + 1, no_data, &owner);
         let pubkey2 = solana_pubkey::new_rand();
 
-        let accounts = AccountsDb::new_single_for_tests();
+        let accounts = AccountsDb::default_for_tests();
 
         let mut current_slot = 1;
         accounts.store_for_tests((current_slot, [(&pubkey, &account)].as_slice()));
@@ -466,7 +467,7 @@ mod serde_snapshot_tests {
         let dummy_account = AccountSharedData::new(dummy_lamport, no_data, &owner);
         let dummy_pubkey = Pubkey::default();
 
-        let accounts = AccountsDb::new_single_for_tests();
+        let accounts = AccountsDb::default_for_tests();
 
         let mut current_slot = 1;
         accounts.store_for_tests((current_slot, [(&pubkey, &account)].as_slice()));
@@ -566,7 +567,7 @@ mod serde_snapshot_tests {
         let purged_pubkey2 = solana_pubkey::new_rand();
 
         let mut current_slot = 0;
-        let accounts = AccountsDb::new_single_for_tests();
+        let accounts = AccountsDb::default_for_tests();
 
         // create intermediate updates to purged_pubkey1 so that
         // generate_index must add slots as root last at once
@@ -638,7 +639,7 @@ mod serde_snapshot_tests {
         let dummy_pubkey = solana_pubkey::new_rand();
 
         let mut current_slot = 0;
-        let accounts = AccountsDb::new_single_for_tests();
+        let accounts = AccountsDb::default_for_tests();
 
         accounts.set_latest_full_snapshot_slot(0);
 
@@ -735,7 +736,7 @@ mod serde_snapshot_tests {
         agave_logger::setup();
 
         for startup in &[false, true] {
-            let accounts = AccountsDb::new_single_for_tests();
+            let accounts = AccountsDb::default_for_tests();
 
             let pubkey_count = 100;
             let pubkeys: Vec<_> = (0..pubkey_count)
