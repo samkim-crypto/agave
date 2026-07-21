@@ -162,7 +162,7 @@ impl Consumer {
             bank,
             txs,
             check_results,
-            ExecutionFlags {
+            &ExecutionFlags {
                 drop_on_failure: false,
                 all_or_nothing: false,
             },
@@ -181,7 +181,7 @@ impl Consumer {
         bank: &Bank,
         txs: &[impl TransactionWithMeta],
         max_ages: &[MaxAge],
-        flags: ExecutionFlags,
+        flags: &ExecutionFlags,
     ) -> ProcessTransactionBatchOutput {
         // Need to filter out transactions since they were sanitized earlier.
         // This means that the transaction may cross and epoch boundary (not allowed),
@@ -201,7 +201,7 @@ impl Consumer {
         bank: &Bank,
         txs: &[impl TransactionWithMeta],
         pre_results: impl Iterator<Item = Result<(), TransactionError>>,
-        flags: ExecutionFlags,
+        flags: &ExecutionFlags,
     ) -> ProcessTransactionBatchOutput {
         // Only lock accounts for transactions that passed pre-lock checks;
         // Once accounts are locked, other threads cannot encode transactions that will modify the
@@ -235,7 +235,7 @@ impl Consumer {
         &self,
         bank: &Bank,
         batch: &TransactionBatch<impl TransactionWithMeta>,
-        flags: ExecutionFlags,
+        flags: &ExecutionFlags,
     ) -> ExecuteAndCommitTransactionsOutput {
         let transaction_status_sender_enabled = self.committer.transaction_status_sender_enabled();
         let mut execute_and_commit_timings = LeaderExecuteAndCommitTimings::default();
@@ -1500,7 +1500,7 @@ mod tests {
                 &bank,
                 &transactions,
                 std::iter::repeat(Ok(())),
-                ExecutionFlags {
+                &ExecutionFlags {
                     drop_on_failure: false,
                     all_or_nothing: true,
                 },
