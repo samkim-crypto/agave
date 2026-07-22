@@ -406,14 +406,12 @@ impl SigVerifier {
                 None
             })?;
         let rank = rank_map.get_rank_for_vote_pubkey(&entry.vote_account_pubkey)?;
-        if *rank != msg.rank {
-            return None;
-        }
         Some(UnverifiedVotePayload {
             vote_message: msg,
             sender_bls_pubkey: entry.bls_pubkey,
             sender_vote_account_pubkey: entry.vote_account_pubkey,
             sender_identity_pubkey,
+            rank: *rank,
             stake: entry.stake,
         })
     }
