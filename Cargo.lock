@@ -10417,7 +10417,8 @@ dependencies = [
 [[package]]
 name = "solana-secp256r1"
 version = "0.1.0"
-source = "git+https://github.com/anza-xyz/cryptography#5905da09e5bd070f218563275233a552630d359d"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d220d4ca37217d65177b186c7d85906a143c50fde4fcc75d9b33d466e3170dc3"
 
 [[package]]
 name = "solana-secp256r1-program"
