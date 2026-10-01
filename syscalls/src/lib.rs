@@ -3228,8 +3228,6 @@ mod tests {
         };
     }
 
-    mod secp256r1;
-
     #[allow(dead_code)]
     struct MockSlice {
         vm_addr: u64,
