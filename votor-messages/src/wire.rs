@@ -49,14 +49,13 @@ use {
         vote::Vote,
     },
     serde::{Deserialize, Serialize},
-    solana_bls_signatures::{HashedMessage, Signature as BLSSignature},
+    solana_bls_signatures::{BLS_SIGNATURE_AFFINE_SIZE, HashedMessage, Signature as BLSSignature},
     solana_clock::Slot,
     std::mem::MaybeUninit,
     wincode::{
-        ReadError, SchemaRead, SchemaReadContext, SchemaWrite,
+        ReadError, ReadResult, SchemaRead, SchemaReadContext, SchemaWrite, TypeMeta, WriteResult,
         config::{Config, DefaultConfig},
-        io::Reader,
-        pod_wrapper,
+        io::{Reader, Writer},
     },
 };
 
@@ -65,13 +64,48 @@ fn sample_bls_signature(
     rng: &mut (impl solana_frozen_abi::rand::RngCore + ?Sized),
 ) -> BLSSignature {
     use solana_frozen_abi::stable_abi::StableAbi;
-    BLSSignature(<[u8; solana_bls_signatures::BLS_SIGNATURE_AFFINE_SIZE] as StableAbi>::random(rng))
+    let mut bytes = <[u8; BLS_SIGNATURE_AFFINE_SIZE] as StableAbi>::random(rng);
+    // Keep roundtrip samples within the accepted wire encoding.
+    bytes[0] &= !0xA0;
+    BLSSignature(bytes)
 }
 
-// Use `BLSSignature` directly once `BLSSignature` wincode support
-// is released in solana-sdk.
-pod_wrapper! {
-    unsafe struct PodBLSSignature(BLSSignature);
+// Wire signatures must use the uncompressed encoding. Point and signature validity are checked
+// during sigverify, after deserialization.
+struct UncompressedBLSSignature;
+
+// SAFETY: BLSSignature is a transparent wrapper around the byte array used for serialization.
+unsafe impl<C: Config> SchemaWrite<C> for UncompressedBLSSignature {
+    type Src = BLSSignature;
+    const TYPE_META: TypeMeta = <[u8; BLS_SIGNATURE_AFFINE_SIZE] as SchemaWrite<C>>::TYPE_META;
+
+    fn size_of(_: &Self::Src) -> WriteResult<usize> {
+        Ok(BLS_SIGNATURE_AFFINE_SIZE)
+    }
+
+    fn write(writer: impl Writer, src: &Self::Src) -> WriteResult<()> {
+        <[u8; BLS_SIGNATURE_AFFINE_SIZE] as SchemaWrite<C>>::write(writer, &src.0)
+    }
+}
+
+// SAFETY: Reads exactly BLS_SIGNATURE_AFFINE_SIZE bytes and initializes dst only on success.
+unsafe impl<'de, C: Config> SchemaRead<'de, C> for UncompressedBLSSignature {
+    type Dst = BLSSignature;
+    // Disable zero-copy reads so containing types cannot skip the encoding check.
+    const TYPE_META: TypeMeta =
+        <[u8; BLS_SIGNATURE_AFFINE_SIZE] as SchemaRead<'de, C>>::TYPE_META.keep_zero_copy(false);
+
+    fn read(reader: impl Reader<'de>, dst: &mut MaybeUninit<Self::Dst>) -> ReadResult<()> {
+        let bytes = <[u8; BLS_SIGNATURE_AFFINE_SIZE] as SchemaRead<'de, C>>::get(reader)?;
+        // The compression (0x80) and sort (0x20) flags must be clear for uncompressed points.
+        if bytes[0] & 0xA0 != 0 {
+            return Err(ReadError::Custom(
+                "BLS signature must use uncompressed encoding",
+            ));
+        }
+        dst.write(BLSSignature(bytes));
+        Ok(())
+    }
 }
 
 #[cfg_attr(feature = "stable-abi", derive(StableAbi, StableAbiSample))]
@@ -81,7 +115,7 @@ pub(crate) struct WireVoteSignature {
         feature = "stable-abi",
         stable_abi_sample(with = "sample_bls_signature(rng)")
     )]
-    #[wincode(with = "PodBLSSignature")]
+    #[wincode(with = "UncompressedBLSSignature")]
     pub(crate) signature: BLSSignature,
 }
 
@@ -115,7 +149,7 @@ pub struct WireCertSignature {
         feature = "stable-abi",
         stable_abi_sample(with = "sample_bls_signature(rng)")
     )]
-    #[wincode(with = "PodBLSSignature")]
+    #[wincode(with = "UncompressedBLSSignature")]
     /// the aggregate signature
     pub signature: BLSSignature,
     /// bitmap of ranks of validators included in the aggregate.
@@ -327,7 +361,7 @@ impl WireConsensusMessageV1 {
     feature = "stable-abi",
     derive(StableAbi, StableAbiSample, SchemaRead),
     frozen_abi(
-        abi_digest = "ErGjoTr18hn3dvPVA7jFgK5WLwb4jgx7a39Yn8dSzB2K",
+        abi_digest = "5p2tk49G9mZzswscAfCbbqF9UgEXpXQw4zDGNnMWHmMU",
         abi_serializer = "wincode",
         test_roundtrip = "eq_and_wire",
     )
@@ -559,7 +593,107 @@ pub fn get_vote_payload_to_sign(vote: Vote, shred_version: u16) -> Vec<u8> {
 
 #[cfg(test)]
 mod tests {
-    use {super::*, crate::consensus_message::BlockId};
+    use {
+        super::*,
+        crate::consensus_message::BlockId,
+        solana_bls_signatures::{Keypair as BLSKeypair, SignatureProjective},
+    };
+
+    fn wire_messages(signature: BLSSignature) -> [VersionedWireConsensusMessage; 12] {
+        let block = Block {
+            slot: 42,
+            block_id: BlockId::new_unique(),
+        };
+        let block_vote = WireBlockVoteMessage {
+            block,
+            signature: WireVoteSignature { signature },
+        };
+        let slot_vote = WireSlotVoteMessage {
+            slot: block.slot,
+            signature: WireVoteSignature { signature },
+        };
+        let cert_signature = WireCertSignature {
+            signature,
+            bitmap: vec![0, 1, 2],
+        };
+        let block_cert = WireBlockCertMessage {
+            block,
+            signature: cert_signature.clone(),
+        };
+        let slot_cert = WireSlotCertMessage {
+            slot: block.slot,
+            signature: cert_signature,
+        };
+        [
+            WireConsensusMessageKind::NotarVote(block_vote.clone()),
+            WireConsensusMessageKind::FinalizeVote(slot_vote.clone()),
+            WireConsensusMessageKind::SkipVote(slot_vote.clone()),
+            WireConsensusMessageKind::NotarFallbackVote(block_vote.clone()),
+            WireConsensusMessageKind::SkipFallbackVote(slot_vote),
+            WireConsensusMessageKind::GenesisVote(block_vote),
+            WireConsensusMessageKind::FinalizeCert(slot_cert.clone()),
+            WireConsensusMessageKind::FastFinalizeCert(block_cert.clone()),
+            WireConsensusMessageKind::NotarCert(block_cert.clone()),
+            WireConsensusMessageKind::NotarFallbackCert(block_cert.clone()),
+            WireConsensusMessageKind::SkipCert(slot_cert),
+            WireConsensusMessageKind::GenesisCert(block_cert),
+        ]
+        .map(|kind| {
+            VersionedWireConsensusMessage::V1(WireConsensusMessageV1 {
+                kind,
+                shred_version: 123,
+            })
+        })
+    }
+
+    #[test]
+    fn test_wire_signatures_uncompressed_roundtrip() {
+        for signature in [
+            BLSSignature::from(BLSKeypair::new().sign(b"wire encoding")),
+            // The infinity flag is allowed by the encoding; sigverify checks signature validity.
+            BLSSignature::from(SignatureProjective::identity()),
+        ] {
+            assert_eq!(
+                wincode::serialize(&WireVoteSignature { signature }).unwrap(),
+                signature.0,
+            );
+            for message in wire_messages(signature) {
+                let bytes = wincode::serialize(&message).unwrap();
+                let decoded =
+                    VersionedWireConsensusMessage::deserialize_with_expected_shred_version(
+                        bytes.as_slice(),
+                        DefaultConfig::new(),
+                        123,
+                    )
+                    .unwrap();
+                assert_eq!(decoded, message);
+            }
+        }
+    }
+
+    #[test]
+    fn test_wire_signatures_reject_compression_and_sort_flags() {
+        // Check both forbidden flags, including combinations with the infinity flag, using
+        // synthetic point bytes so this exercises wire decoding independently of sigverify.
+        for flags in [0x20, 0x60, 0x80, 0xA0, 0xC0, 0xE0] {
+            let mut signature = BLSSignature([0; BLS_SIGNATURE_AFFINE_SIZE]);
+            signature.0[0] = flags;
+            for message in wire_messages(signature) {
+                let bytes = wincode::serialize(&message).unwrap();
+                let result = VersionedWireConsensusMessage::deserialize_with_expected_shred_version(
+                    bytes.as_slice(),
+                    DefaultConfig::new(),
+                    123,
+                );
+                assert!(matches!(
+                    result,
+                    Err(ReadError::Custom(
+                        "BLS signature must use uncompressed encoding"
+                    ))
+                ));
+            }
+        }
+    }
 
     fn vote_payloads() -> [VotePayloadToSign; 6] {
         let block = Block {
